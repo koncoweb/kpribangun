@@ -17,6 +17,16 @@ import Laporan from "./pages/Laporan/Laporan";
 import Pengaturan from "./pages/Pengaturan/Pengaturan";
 import NotFound from "./pages/NotFound";
 
+// POS Pages (Placeholders for now)
+import POSIndex from "./pages/POS/POSIndex";
+import StokBarang from "./pages/POS/StokBarang";
+import Inventori from "./pages/POS/Inventori";
+import NamaKasir from "./pages/POS/NamaKasir";
+import RiwayatTransaksi from "./pages/POS/RiwayatTransaksi";
+import KuitansiPembayaran from "./pages/POS/KuitansiPembayaran";
+import LaporanJualBeli from "./pages/POS/LaporanJualBeli";
+import LaporanRugiLaba from "./pages/POS/LaporanRugiLaba";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -36,6 +46,17 @@ const App = () => (
           <Route path="/transaksi/:id" element={<TransaksiDetail />} />
           <Route path="/laporan" element={<Laporan />} />
           <Route path="/pengaturan" element={<Pengaturan />} />
+          
+          {/* POS Routes */}
+          <Route path="/pos" element={<POSIndex />} />
+          <Route path="/pos/stok" element={<StokBarang />} />
+          <Route path="/pos/inventori" element={<Inventori />} />
+          <Route path="/pos/kasir" element={<NamaKasir />} />
+          <Route path="/pos/riwayat" element={<RiwayatTransaksi />} />
+          <Route path="/pos/kuitansi" element={<KuitansiPembayaran />} />
+          <Route path="/pos/laporan-jual-beli" element={<LaporanJualBeli />} />
+          <Route path="/pos/laporan-rugi-laba" element={<LaporanRugiLaba />} />
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
