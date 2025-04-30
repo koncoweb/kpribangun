@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -99,7 +98,7 @@ export default function PenjualanDetail() {
           title: "Transaksi berhasil diperbarui",
           description: "Data transaksi telah diperbarui"
         });
-        setIsEditDialogOpen(false); // Fixed variable name
+        setIsEditDialogOpen(false);
       } else {
         throw new Error("Gagal memperbarui transaksi");
       }
@@ -150,6 +149,32 @@ export default function PenjualanDetail() {
       title: "Cetak Struk",
       description: "Fitur cetak struk akan segera tersedia"
     });
+  };
+  
+  const handleUpdate = async (data: {
+    status: "sukses" | "dibatalkan";
+    catatan: string;
+  }) => {
+    try {
+      const updated = updatePenjualan(id, data);
+      
+      if (updated) {
+        setPenjualan(updated);
+        toast({
+          title: "Transaksi berhasil diperbarui",
+          description: "Data transaksi telah diperbarui"
+        });
+        setIsEditDialogOpen(false);
+      } else {
+        throw new Error("Gagal memperbarui transaksi");
+      }
+    } catch (error) {
+      toast({
+        title: "Gagal memperbarui transaksi",
+        description: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive"
+      });
+    }
   };
   
   if (!penjualan) {
