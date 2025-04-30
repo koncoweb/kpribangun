@@ -1,10 +1,11 @@
 
 import Layout from "@/components/layout/Layout";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   Users, PiggyBank, Wallet, TrendingUp, 
-  ArrowRight, Plus 
+  ArrowRight, Plus, CreditCard
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -72,27 +73,27 @@ export default function Dashboard() {
             </Link>
           </div>
           
-          <div className="p-0">
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">ID</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">Nama</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">Simpanan</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">Pinjaman</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentMembers.map((member, index) => (
-                  <tr key={index} className="border-b last:border-0 hover:bg-muted/20">
-                    <td className="py-3 px-4 text-sm">{member.id}</td>
-                    <td className="py-3 px-4 text-sm font-medium">{member.name}</td>
-                    <td className="py-3 px-4 text-sm text-green-600">{member.saving}</td>
-                    <td className="py-3 px-4 text-sm text-amber-600">{member.loan}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-4">
+            {recentMembers.map((member, index) => (
+              <div key={index} className="flex items-center justify-between py-3 border-b last:border-0">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{member.name}</p>
+                    <div className="flex items-center">
+                      <CreditCard className="h-3 w-3 text-gray-400 mr-1" />
+                      <p className="text-xs text-gray-500">{member.id}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium text-green-600">{member.saving}</p>
+                  <p className="text-xs text-amber-600">{member.loan}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
         
@@ -107,35 +108,24 @@ export default function Dashboard() {
             </Link>
           </div>
           
-          <div className="p-0">
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">Tanggal</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">Anggota</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">Tipe</th>
-                  <th className="py-3 px-4 text-left text-sm font-medium text-muted-foreground">Jumlah</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTransactions.map((transaction, index) => (
-                  <tr key={index} className="border-b last:border-0 hover:bg-muted/20">
-                    <td className="py-3 px-4 text-sm">{transaction.date}</td>
-                    <td className="py-3 px-4 text-sm font-medium">{transaction.memberName}</td>
-                    <td className="py-3 px-4 text-sm">
-                      <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                        transaction.type === "Simpan" ? "bg-green-100 text-green-800" :
-                        transaction.type === "Pinjam" ? "bg-amber-100 text-amber-800" :
-                        "bg-blue-100 text-blue-800"
-                      }`}>
-                        {transaction.type}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-sm font-medium">{transaction.amount}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="p-4">
+            {recentTransactions.map((transaction, index) => (
+              <div key={index} className="flex items-center justify-between py-3 border-b last:border-0">
+                <div>
+                  <p className="font-medium">{transaction.memberName}</p>
+                  <p className="text-xs text-gray-500">{transaction.date}</p>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <Badge variant={
+                    transaction.type === "Simpan" ? "success" :
+                    transaction.type === "Pinjam" ? "warning" : "info"
+                  }>
+                    {transaction.type}
+                  </Badge>
+                  <p className="font-medium text-right">{transaction.amount}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </Card>
       </div>
