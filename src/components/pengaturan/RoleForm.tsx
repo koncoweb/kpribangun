@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 interface RoleFormProps {
   role?: Role;
@@ -46,6 +47,18 @@ export function RoleForm({ role, permissions, onSubmit, onCancel }: RoleFormProp
       'pengaturan': 'Pengaturan',
     };
     return moduleMap[module] || module.charAt(0).toUpperCase() + module.slice(1);
+  };
+
+  // Get badge variant for action type
+  const getActionBadgeVariant = (action: string) => {
+    const variantMap: Record<string, "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info"> = {
+      'read': 'info',
+      'create': 'success',
+      'update': 'warning',
+      'delete': 'destructive',
+      'all': 'secondary',
+    };
+    return variantMap[action] || 'default';
   };
 
   // Define form with default values
@@ -123,7 +136,7 @@ export function RoleForm({ role, permissions, onSubmit, onCancel }: RoleFormProp
               <div key={module} className="mb-6">
                 <h4 className="font-medium text-md mb-2">{getModuleDisplayName(module)}</h4>
                 <Separator className="mb-3" />
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {modulePermissions.map((permission) => (
                     <FormField
                       key={permission.id}
@@ -153,9 +166,14 @@ export function RoleForm({ role, permissions, onSubmit, onCancel }: RoleFormProp
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel className="cursor-pointer">
-                                {permission.name}
-                              </FormLabel>
+                              <div className="flex items-center gap-2">
+                                <FormLabel className="cursor-pointer">
+                                  {permission.name}
+                                </FormLabel>
+                                <Badge variant={getActionBadgeVariant(permission.action)} className="text-xs">
+                                  {permission.action}
+                                </Badge>
+                              </div>
                               <p className="text-sm text-muted-foreground">
                                 {permission.description}
                               </p>
