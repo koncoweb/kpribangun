@@ -207,7 +207,7 @@ export default function PenjualanDetail() {
                 variant="outline"
                 size="sm"
                 className="gap-1"
-                onClick={() => setEditDialogOpen(true)}
+                onClick={() => setIsEditDialogOpen(true)}
               >
                 <Pencil size={14} /> Edit
               </Button>
