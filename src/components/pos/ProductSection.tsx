@@ -11,7 +11,7 @@ interface ProductSectionProps {
 
 export function ProductSection({ products, onAddToCart }: ProductSectionProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [categories, setCategories] = useState<string[]>([]);
   
   // Extract unique categories
@@ -24,7 +24,7 @@ export function ProductSection({ products, onAddToCart }: ProductSectionProps) {
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          product.kode.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === "" || product.kategori === categoryFilter;
+    const matchesCategory = categoryFilter === "all" || product.kategori === categoryFilter;
     
     return matchesSearch && matchesCategory;
   });
