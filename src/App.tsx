@@ -1,4 +1,5 @@
 
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,8 +18,11 @@ import Laporan from "./pages/Laporan/Laporan";
 import Pengaturan from "./pages/Pengaturan/Pengaturan";
 import NotFound from "./pages/NotFound";
 
-// POS Pages (Placeholders for now)
+// POS Pages
 import POSIndex from "./pages/POS/POSIndex";
+import Penjualan from "./pages/POS/Penjualan"; // New Penjualan page
+import PenjualanList from "./pages/POS/PenjualanList"; // New PenjualanList page
+import PenjualanDetail from "./pages/POS/PenjualanDetail"; // New PenjualanDetail page
 import StokBarang from "./pages/POS/StokBarang";
 import Inventori from "./pages/POS/Inventori";
 import NamaKasir from "./pages/POS/NamaKasir";
@@ -49,6 +53,9 @@ const App = () => (
           
           {/* POS Routes */}
           <Route path="/pos" element={<POSIndex />} />
+          <Route path="/pos/penjualan" element={<Penjualan />} />
+          <Route path="/pos/penjualan-list" element={<PenjualanList />} />
+          <Route path="/pos/penjualan/:id" element={<PenjualanDetail />} />
           <Route path="/pos/stok" element={<StokBarang />} />
           <Route path="/pos/inventori" element={<Inventori />} />
           <Route path="/pos/kasir" element={<NamaKasir />} />

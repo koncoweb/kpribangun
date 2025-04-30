@@ -1,5 +1,5 @@
 
-export type Anggota = {
+export interface Anggota {
   id: string;
   nama: string;
   nik: string;
@@ -10,43 +10,85 @@ export type Anggota = {
   pekerjaan: string;
   foto?: string;
   createdAt: string;
-  updatedAt: string;
-};
+}
 
-export type Transaksi = {
+export interface Transaksi {
   id: string;
   tanggal: string;
   anggotaId: string;
-  anggotaNama: string;
   jenis: "Simpan" | "Pinjam" | "Angsuran";
   jumlah: number;
-  keterangan?: string;
-  status: "Sukses" | "Pending" | "Ditolak";
+  keterangan: string;
+  status: "Sukses" | "Pending" | "Gagal";
   createdAt: string;
-  updatedAt: string;
-};
+}
 
-export type PengaturanTenor = {
-  minTenor: number;
-  maxTenor: number;
-  defaultTenor: number;
-  tenorOptions: number[];
-};
+export interface Pengaturan {
+  sukuBunga: {
+    pinjaman: number;
+    simpanan: number;
+    metodeBunga: "flat" | "menurun";
+  };
+  tenor: {
+    minTenor: number;
+    maxTenor: number;
+    defaultTenor: number;
+    tenorOptions: number[];
+  };
+  denda: {
+    persentase: number;
+    gracePeriod: number;
+    metodeDenda: "harian" | "bulanan";
+  };
+}
 
-export type PengaturanSukuBunga = {
-  pinjaman: number;
-  simpanan: number;
-  metodeBunga: "flat" | "menurun";
-};
+// POS Types
+export interface ProdukItem {
+  id: string;
+  kode: string;
+  nama: string;
+  kategori: string;
+  hargaBeli: number;
+  hargaJual: number;
+  stok: number;
+  satuan: string;
+  deskripsi?: string;
+  gambar?: string;
+  createdAt: string;
+}
 
-export type PengaturanDenda = {
-  persentase: number;
-  gracePeriod: number;
-  metodeDenda: "harian" | "bulanan";
-};
+export interface Kasir {
+  id: string;
+  nama: string;
+  noHp: string;
+  username: string;
+  role: "admin" | "kasir";
+  aktif: boolean;
+  createdAt: string;
+}
 
-export type Pengaturan = {
-  tenor: PengaturanTenor;
-  sukuBunga: PengaturanSukuBunga;
-  denda: PengaturanDenda;
-};
+export interface PenjualanItem {
+  produkId: string;
+  jumlah: number;
+  hargaSatuan: number;
+  total: number;
+  diskon?: number;
+}
+
+export interface Penjualan {
+  id: string;
+  nomorTransaksi: string;
+  tanggal: string;
+  kasirId: string;
+  items: PenjualanItem[];
+  subtotal: number;
+  diskon?: number;
+  pajak?: number;
+  total: number;
+  dibayar: number;
+  kembalian: number;
+  metodePembayaran: "cash" | "debit" | "kredit" | "qris";
+  status: "sukses" | "dibatalkan";
+  catatan?: string;
+  createdAt: string;
+}

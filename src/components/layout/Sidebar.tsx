@@ -3,7 +3,7 @@ import {
   Users, PiggyBank, FileText, Settings, Home, 
   ChevronLeft, ChevronRight, LogOut, ShoppingCart,
   Package, Archive, User, History, Receipt,
-  BarChart, LineChart
+  BarChart, LineChart, Store, ShoppingBag
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
@@ -100,8 +100,9 @@ export default function Sidebar() {
       label: "Point of Sales", 
       icon: ShoppingCart,
       subItems: [
+        { path: "/pos/penjualan", label: "Penjualan", icon: Store },
         { path: "/pos/stok", label: "Stok Barang", icon: Package },
-        { path: "/pos/inventori", label: "Inventori", icon: Archive },
+        { path: "/pos/inventori", label: "Inventori", icon: ShoppingBag },
         { path: "/pos/kasir", label: "Nama Kasir", icon: User },
         { path: "/pos/riwayat", label: "Riwayat Transaksi", icon: History },
         { path: "/pos/kuitansi", label: "Kuitansi Pembayaran", icon: Receipt },
