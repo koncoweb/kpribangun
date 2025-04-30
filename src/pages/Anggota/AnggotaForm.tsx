@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -18,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ArrowLeft, Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { createAnggota, getAnggotaById, updateAnggota } from "@/services/anggotaService";
+import { Anggota } from "@/types";
 
 export default function AnggotaForm() {
   const navigate = useNavigate();
@@ -26,13 +26,13 @@ export default function AnggotaForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
-  // Form state
+  // Form state with properly typed jenisKelamin
   const [formData, setFormData] = useState({
     nama: "",
     nik: "",
     alamat: "",
     noHp: "",
-    jenisKelamin: "L",
+    jenisKelamin: "L" as "L" | "P", // Explicitly type as "L" | "P"
     agama: "",
     pekerjaan: "",
     foto: ""
@@ -75,7 +75,15 @@ export default function AnggotaForm() {
   };
   
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === "jenisKelamin") {
+      // For jenisKelamin, ensure it's either "L" or "P"
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value as "L" | "P" 
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
   
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
