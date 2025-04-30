@@ -2,6 +2,7 @@
 import { ReactNode } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import "@/styles/form-styles.css";
 
 type LayoutProps = {
   children: ReactNode;
