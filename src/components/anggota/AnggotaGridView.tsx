@@ -1,5 +1,4 @@
 
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Pencil, Trash, User, Phone, Briefcase, CreditCard } from "lucide-react";
@@ -39,12 +38,12 @@ export function AnggotaGridView({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {anggota.map((item) => (
-        <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
+        <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow h-full">
           <CardContent className="p-0">
-            <div className="flex items-center p-6 border-b">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+            <div className="flex items-center p-4 border-b">
+              <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 {item.foto ? (
                   <img 
                     src={item.foto} 
@@ -52,12 +51,12 @@ export function AnggotaGridView({
                     className="w-full h-full object-cover" 
                   />
                 ) : (
-                  <User className="h-8 w-8 text-gray-400" />
+                  <User className="h-6 w-6 text-gray-400" />
                 )}
               </div>
-              <div className="ml-4 flex-1 min-w-0">
-                <h3 className="font-semibold text-lg truncate">{item.nama}</h3>
-                <p className="text-sm text-muted-foreground">ID: {item.id}</p>
+              <div className="ml-3 flex-1 min-w-0">
+                <h3 className="font-semibold truncate">{item.nama}</h3>
+                <p className="text-xs text-muted-foreground">ID: {item.id}</p>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -79,70 +78,72 @@ export function AnggotaGridView({
               </DropdownMenu>
             </div>
             
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center space-x-2">
-                  <CreditCard className="h-5 w-5 text-muted-foreground" />
+                  <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">NIK</p>
-                    <p className="font-medium">{item.nik}</p>
+                    <p className="text-sm font-medium truncate">{item.nik}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Phone className="h-5 w-5 text-muted-foreground" />
+                  <Phone className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">No HP</p>
-                    <p className="font-medium">{item.noHp || "-"}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Jenis Kelamin</p>
-                    <p className="font-medium">{item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Briefcase className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Pekerjaan</p>
-                    <p className="font-medium">{item.pekerjaan || "-"}</p>
+                    <p className="text-sm font-medium truncate">{item.noHp || "-"}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t pt-4 mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Jenis Kelamin</p>
+                    <p className="text-sm font-medium truncate">{item.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Pekerjaan</p>
+                    <p className="text-sm font-medium truncate">{item.pekerjaan || "-"}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-3 mt-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground">Total Simpanan</p>
-                    <p className="font-semibold text-lg text-green-600">{getTotalSimpanan(item.id)}</p>
+                    <p className="font-semibold text-green-600 truncate">{getTotalSimpanan(item.id)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Total Pinjaman</p>
-                    <p className="font-semibold text-lg text-amber-600">{getTotalPinjaman(item.id)}</p>
+                    <p className="font-semibold text-amber-600 truncate">{getTotalPinjaman(item.id)}</p>
                   </div>
                 </div>
               </div>
               
-              <div className="flex gap-2 pt-2 mt-2">
+              <div className="flex gap-2 pt-2">
                 <Button
                   variant="default"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs h-8"
                   onClick={() => onViewDetail(item.id)}
                 >
-                  Detail Anggota
+                  Detail
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1"
+                  className="flex-1 text-xs h-8"
                   onClick={() => onEdit(item.id)}
                 >
-                  Edit Data
+                  Edit
                 </Button>
               </div>
             </div>
