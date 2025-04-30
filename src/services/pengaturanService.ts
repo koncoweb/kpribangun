@@ -57,6 +57,44 @@ export function updatePengaturan(pengaturan: Partial<Pengaturan>): Pengaturan {
 }
 
 /**
+ * Calculate flat interest rate
+ */
+function calculateFlatInterest(jumlahPinjaman: number, tenor: number, bungaPerBulan: number): {
+  angsuranPerBulan: number;
+  totalBayar: number;
+} {
+  const bunga = jumlahPinjaman * bungaPerBulan * tenor;
+  const totalBayar = jumlahPinjaman + bunga;
+  const angsuranPerBulan = totalBayar / tenor;
+  
+  return { angsuranPerBulan, totalBayar };
+}
+
+/**
+ * Calculate sliding/declining interest rate
+ */
+function calculateSlidingInterest(jumlahPinjaman: number, tenor: number, bungaPerBulan: number): {
+  angsuranPerBulan: number;
+  totalBayar: number;
+} {
+  const pokokPerBulan = jumlahPinjaman / tenor;
+  let sisaPinjaman = jumlahPinjaman;
+  let totalBungaSliding = 0;
+  
+  for (let i = 0; i < tenor; i++) {
+    const bungaBulanIni = sisaPinjaman * bungaPerBulan;
+    totalBungaSliding += bungaBulanIni;
+    sisaPinjaman -= pokokPerBulan;
+  }
+  
+  const totalBayar = jumlahPinjaman + totalBungaSliding;
+  // Adjust monthly payment to include average interest
+  const angsuranPerBulan = totalBayar / tenor;
+  
+  return { angsuranPerBulan, totalBayar };
+}
+
+/**
  * Calculate angsuran per bulan
  */
 export function calculateAngsuran(jumlahPinjaman: number, tenor: number): {
@@ -66,33 +104,9 @@ export function calculateAngsuran(jumlahPinjaman: number, tenor: number): {
   const pengaturan = getPengaturan();
   const bungaPerBulan = pengaturan.sukuBunga.pinjaman / 100;
   
-  let angsuranPerBulan = 0;
-  let totalBayar = 0;
-  
   if (pengaturan.sukuBunga.metodeBunga === "flat") {
-    // Flat rate calculation
-    const bunga = jumlahPinjaman * bungaPerBulan * tenor;
-    totalBayar = jumlahPinjaman + bunga;
-    angsuranPerBulan = totalBayar / tenor;
+    return calculateFlatInterest(jumlahPinjaman, tenor, bungaPerBulan);
   } else {
-    // Sliding/declining rate calculation (simplified)
-    angsuranPerBulan = jumlahPinjaman / tenor;
-    let sisaPinjaman = jumlahPinjaman;
-    let totalBungaSliding = 0;
-    
-    for (let i = 0; i < tenor; i++) {
-      const bungaBulanIni = sisaPinjaman * bungaPerBulan;
-      totalBungaSliding += bungaBulanIni;
-      sisaPinjaman -= angsuranPerBulan;
-    }
-    
-    totalBayar = jumlahPinjaman + totalBungaSliding;
-    // Adjust monthly payment to include average interest
-    angsuranPerBulan = totalBayar / tenor;
+    return calculateSlidingInterest(jumlahPinjaman, tenor, bungaPerBulan);
   }
-  
-  return {
-    angsuranPerBulan,
-    totalBayar
-  };
 }
