@@ -9,6 +9,9 @@ type LayoutProps = {
 };
 
 export default function Layout({ children, pageTitle }: LayoutProps) {
+  // Set document title when page changes
+  document.title = `${pageTitle} | Koperasi Simpan Pinjam`;
+  
   return (
     <div className="flex h-screen bg-background">
       <Sidebar />

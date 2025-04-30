@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,42 +16,244 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-
-type Anggota = {
-  id: string;
-  nama: string;
-};
+import { getAllAnggota } from "@/services/anggotaService";
+import { createTransaksi } from "@/services/transaksiService";
+import { calculateAngsuran, getPengaturan } from "@/services/pengaturanService";
+import { Anggota } from "@/types";
 
 export default function TransaksiForm() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [transaksiType, setTransaksiType] = useState<string>("simpan");
+  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [pengaturan, setPengaturan] = useState(getPengaturan());
   
-  // Data contoh
-  const anggotaList: Anggota[] = [
-    { id: "AG0001", nama: "Budi Santoso" },
-    { id: "AG0002", nama: "Dewi Lestari" },
-    { id: "AG0003", nama: "Ahmad Hidayat" },
-    { id: "AG0004", nama: "Sri Wahyuni" },
-    { id: "AG0005", nama: "Agus Setiawan" },
-  ];
+  // Form state for simpanan
+  const [simpananForm, setSimpananForm] = useState({
+    tanggal: new Date().toISOString().split('T')[0],
+    anggotaId: "",
+    jenisSimpanan: "",
+    jumlah: 0,
+    keterangan: ""
+  });
   
-  const handleSubmit = (e: React.FormEvent) => {
+  // Form state for pinjaman
+  const [pinjamanForm, setPinjamanForm] = useState({
+    tanggal: new Date().toISOString().split('T')[0],
+    anggotaId: "",
+    jumlah: 0,
+    tenor: pengaturan.tenor.defaultTenor.toString(),
+    sukuBunga: pengaturan.sukuBunga.pinjaman,
+    tujuanPinjaman: "",
+    keterangan: ""
+  });
+  
+  // Calculated values for pinjaman preview
+  const [pinjamanPreview, setPinjamanPreview] = useState({
+    angsuranPerBulan: 0,
+    totalBayar: 0
+  });
+  
+  useEffect(() => {
+    // Load anggota from local storage
+    const loadedAnggota = getAllAnggota();
+    setAnggotaList(loadedAnggota);
+    
+    // Load pengaturan
+    const loadedPengaturan = getPengaturan();
+    setPengaturan(loadedPengaturan);
+    
+    // Set default tenor
+    setPinjamanForm(prev => ({
+      ...prev,
+      tenor: loadedPengaturan.tenor.defaultTenor.toString(),
+      sukuBunga: loadedPengaturan.sukuBunga.pinjaman
+    }));
+  }, []);
+  
+  // Calculate pinjaman preview when amount or tenor changes
+  useEffect(() => {
+    if (pinjamanForm.jumlah > 0 && pinjamanForm.tenor) {
+      const result = calculateAngsuran(
+        pinjamanForm.jumlah, 
+        parseInt(pinjamanForm.tenor)
+      );
+      setPinjamanPreview(result);
+    }
+  }, [pinjamanForm.jumlah, pinjamanForm.tenor]);
+  
+  const handleSimpananChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setSimpananForm(prev => ({ ...prev, [id]: id === "jumlah" ? Number(value) : value }));
+  };
+  
+  const handlePinjamanChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setPinjamanForm(prev => ({ ...prev, [id]: id === "jumlah" ? Number(value) : value }));
+  };
+  
+  const handleSelectChange = (formType: "simpanan" | "pinjaman", name: string, value: string) => {
+    if (formType === "simpanan") {
+      setSimpananForm(prev => ({ ...prev, [name]: value }));
+    } else {
+      setPinjamanForm(prev => ({ ...prev, [name]: value }));
+    }
+  };
+  
+  const validateSimpananForm = () => {
+    if (!simpananForm.tanggal) {
+      toast({
+        title: "Tanggal wajib diisi",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!simpananForm.anggotaId) {
+      toast({
+        title: "Anggota wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!simpananForm.jenisSimpanan) {
+      toast({
+        title: "Jenis simpanan wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!simpananForm.jumlah || simpananForm.jumlah <= 0) {
+      toast({
+        title: "Jumlah harus lebih dari 0",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const validatePinjamanForm = () => {
+    if (!pinjamanForm.tanggal) {
+      toast({
+        title: "Tanggal wajib diisi",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!pinjamanForm.anggotaId) {
+      toast({
+        title: "Anggota wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!pinjamanForm.jumlah || pinjamanForm.jumlah <= 0) {
+      toast({
+        title: "Jumlah pinjaman harus lebih dari 0",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!pinjamanForm.tenor) {
+      toast({
+        title: "Tenor wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!pinjamanForm.tujuanPinjaman) {
+      toast({
+        title: "Tujuan pinjaman wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const handleSubmitSimpanan = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateSimpananForm()) return;
+    
     setIsSubmitting(true);
     
-    // Simulasi proses penyimpanan
-    setTimeout(() => {
-      setIsSubmitting(false);
-      toast({
-        title: "Transaksi berhasil",
-        description: `Data transaksi ${transaksiType === "simpan" ? "simpanan" : "pinjaman"} telah berhasil disimpan`,
+    try {
+      const newTransaksi = createTransaksi({
+        tanggal: simpananForm.tanggal,
+        anggotaId: simpananForm.anggotaId,
+        jenis: "Simpan",
+        jumlah: simpananForm.jumlah,
+        keterangan: `${simpananForm.jenisSimpanan} - ${simpananForm.keterangan || ""}`.trim(),
+        status: "Sukses"
       });
-      navigate("/transaksi");
-    }, 1000);
+      
+      if (newTransaksi) {
+        toast({
+          title: "Transaksi simpanan berhasil",
+          description: `Transaksi simpanan dengan ID ${newTransaksi.id} telah berhasil disimpan`,
+        });
+        navigate("/transaksi");
+      } else {
+        throw new Error("Gagal membuat transaksi simpanan");
+      }
+    } catch (error) {
+      toast({
+        title: "Terjadi kesalahan",
+        description: "Gagal menyimpan transaksi simpanan. Silakan coba lagi.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleSubmitPinjaman = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validatePinjamanForm()) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      const newTransaksi = createTransaksi({
+        tanggal: pinjamanForm.tanggal,
+        anggotaId: pinjamanForm.anggotaId,
+        jenis: "Pinjam",
+        jumlah: pinjamanForm.jumlah,
+        keterangan: `Tenor: ${pinjamanForm.tenor} bulan, Bunga: ${pinjamanForm.sukuBunga}%, Tujuan: ${pinjamanForm.tujuanPinjaman}${pinjamanForm.keterangan ? `, ${pinjamanForm.keterangan}` : ''}`,
+        status: "Sukses"
+      });
+      
+      if (newTransaksi) {
+        toast({
+          title: "Transaksi pinjaman berhasil",
+          description: `Transaksi pinjaman dengan ID ${newTransaksi.id} telah berhasil disimpan`,
+        });
+        navigate("/transaksi");
+      } else {
+        throw new Error("Gagal membuat transaksi pinjaman");
+      }
+    } catch (error) {
+      toast({
+        title: "Terjadi kesalahan",
+        description: "Gagal menyimpan transaksi pinjaman. Silakan coba lagi.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -78,12 +280,18 @@ export default function TransaksiForm() {
             </TabsList>
             
             <TabsContent value="simpan">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmitSimpanan}>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="tanggal" className="required">Tanggal</Label>
-                      <Input id="tanggal" type="date" required />
+                      <Input 
+                        id="tanggal" 
+                        type="date"
+                        value={simpananForm.tanggal}
+                        onChange={handleSimpananChange}
+                        required 
+                      />
                     </div>
                     
                     <div>
@@ -94,7 +302,11 @@ export default function TransaksiForm() {
                   
                   <div>
                     <Label htmlFor="anggota" className="required">Pilih Anggota</Label>
-                    <Select required>
+                    <Select 
+                      value={simpananForm.anggotaId}
+                      onValueChange={(value) => handleSelectChange("simpanan", "anggotaId", value)}
+                      required
+                    >
                       <SelectTrigger id="anggota">
                         <SelectValue placeholder="Pilih anggota" />
                       </SelectTrigger>
@@ -111,25 +323,31 @@ export default function TransaksiForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="jenisSimpanan" className="required">Jenis Simpanan</Label>
-                      <Select required>
+                      <Select 
+                        value={simpananForm.jenisSimpanan}
+                        onValueChange={(value) => handleSelectChange("simpanan", "jenisSimpanan", value)}
+                        required
+                      >
                         <SelectTrigger id="jenisSimpanan">
                           <SelectValue placeholder="Pilih jenis simpanan" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pokok">Simpanan Pokok</SelectItem>
-                          <SelectItem value="wajib">Simpanan Wajib</SelectItem>
-                          <SelectItem value="sukarela">Simpanan Sukarela</SelectItem>
+                          <SelectItem value="Simpanan Pokok">Simpanan Pokok</SelectItem>
+                          <SelectItem value="Simpanan Wajib">Simpanan Wajib</SelectItem>
+                          <SelectItem value="Simpanan Sukarela">Simpanan Sukarela</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     
                     <div>
-                      <Label htmlFor="jumlahSimpanan" className="required">Jumlah (Rp)</Label>
+                      <Label htmlFor="jumlah" className="required">Jumlah (Rp)</Label>
                       <Input 
-                        id="jumlahSimpanan" 
+                        id="jumlah" 
                         placeholder="Contoh: 500000" 
                         type="number" 
                         min="0" 
+                        value={simpananForm.jumlah || ""}
+                        onChange={handleSimpananChange}
                         required 
                       />
                     </div>
@@ -137,7 +355,13 @@ export default function TransaksiForm() {
                   
                   <div>
                     <Label htmlFor="keterangan">Keterangan</Label>
-                    <Textarea id="keterangan" placeholder="Masukkan keterangan (opsional)" rows={3} />
+                    <Textarea 
+                      id="keterangan" 
+                      placeholder="Masukkan keterangan (opsional)" 
+                      rows={3}
+                      value={simpananForm.keterangan}
+                      onChange={handleSimpananChange}
+                    />
                   </div>
                   
                   <div className="flex items-center justify-end gap-2 pt-4">
@@ -155,24 +379,34 @@ export default function TransaksiForm() {
             </TabsContent>
             
             <TabsContent value="pinjam">
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmitPinjaman}>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="tanggalPinjam" className="required">Tanggal</Label>
-                      <Input id="tanggalPinjam" type="date" required />
+                      <Label htmlFor="tanggal" className="required">Tanggal</Label>
+                      <Input 
+                        id="tanggal" 
+                        type="date"
+                        value={pinjamanForm.tanggal}
+                        onChange={handlePinjamanChange}
+                        required 
+                      />
                     </div>
                     
                     <div>
-                      <Label htmlFor="idTransaksiPinjam">ID Transaksi</Label>
-                      <Input id="idTransaksiPinjam" placeholder="ID akan digenerate otomatis" disabled />
+                      <Label htmlFor="idTransaksi">ID Transaksi</Label>
+                      <Input id="idTransaksi" placeholder="ID akan digenerate otomatis" disabled />
                     </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="anggotaPinjam" className="required">Pilih Anggota</Label>
-                    <Select required>
-                      <SelectTrigger id="anggotaPinjam">
+                    <Label htmlFor="anggotaId" className="required">Pilih Anggota</Label>
+                    <Select 
+                      value={pinjamanForm.anggotaId}
+                      onValueChange={(value) => handleSelectChange("pinjaman", "anggotaId", value)}
+                      required
+                    >
+                      <SelectTrigger id="anggotaId">
                         <SelectValue placeholder="Pilih anggota" />
                       </SelectTrigger>
                       <SelectContent>
@@ -187,28 +421,34 @@ export default function TransaksiForm() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="jumlahPinjaman" className="required">Jumlah Pinjaman (Rp)</Label>
+                      <Label htmlFor="jumlah" className="required">Jumlah Pinjaman (Rp)</Label>
                       <Input 
-                        id="jumlahPinjaman" 
+                        id="jumlah" 
                         placeholder="Contoh: 5000000" 
                         type="number" 
-                        min="0" 
+                        min="0"
+                        value={pinjamanForm.jumlah || ""}
+                        onChange={handlePinjamanChange}
                         required 
                       />
                     </div>
                     
                     <div>
-                      <Label htmlFor="tenorPinjaman" className="required">Tenor (Bulan)</Label>
-                      <Select required>
-                        <SelectTrigger id="tenorPinjaman">
+                      <Label htmlFor="tenor" className="required">Tenor (Bulan)</Label>
+                      <Select 
+                        value={pinjamanForm.tenor}
+                        onValueChange={(value) => handleSelectChange("pinjaman", "tenor", value)}
+                        required
+                      >
+                        <SelectTrigger id="tenor">
                           <SelectValue placeholder="Pilih tenor" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="3">3 Bulan</SelectItem>
-                          <SelectItem value="6">6 Bulan</SelectItem>
-                          <SelectItem value="12">12 Bulan</SelectItem>
-                          <SelectItem value="24">24 Bulan</SelectItem>
-                          <SelectItem value="36">36 Bulan</SelectItem>
+                          {pengaturan.tenor.tenorOptions.map((option) => (
+                            <SelectItem key={option} value={option.toString()}>
+                              {option} Bulan
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -217,7 +457,13 @@ export default function TransaksiForm() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="sukuBunga">Suku Bunga (%)</Label>
-                      <Input id="sukuBunga" placeholder="1.5" type="number" step="0.1" disabled defaultValue="1.5" />
+                      <Input 
+                        id="sukuBunga" 
+                        type="number" 
+                        step="0.1" 
+                        disabled 
+                        value={pinjamanForm.sukuBunga}
+                      />
                       <p className="text-xs text-muted-foreground mt-1">
                         *Suku bunga mengikuti pengaturan sistem
                       </p>
@@ -225,24 +471,34 @@ export default function TransaksiForm() {
                     
                     <div>
                       <Label htmlFor="tujuanPinjaman" className="required">Tujuan Pinjaman</Label>
-                      <Select required>
+                      <Select 
+                        value={pinjamanForm.tujuanPinjaman}
+                        onValueChange={(value) => handleSelectChange("pinjaman", "tujuanPinjaman", value)}
+                        required
+                      >
                         <SelectTrigger id="tujuanPinjaman">
                           <SelectValue placeholder="Pilih tujuan pinjaman" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="modal">Modal Usaha</SelectItem>
-                          <SelectItem value="pendidikan">Pendidikan</SelectItem>
-                          <SelectItem value="renovasi">Renovasi Rumah</SelectItem>
-                          <SelectItem value="kesehatan">Biaya Kesehatan</SelectItem>
-                          <SelectItem value="lainnya">Lainnya</SelectItem>
+                          <SelectItem value="Modal Usaha">Modal Usaha</SelectItem>
+                          <SelectItem value="Pendidikan">Pendidikan</SelectItem>
+                          <SelectItem value="Renovasi Rumah">Renovasi Rumah</SelectItem>
+                          <SelectItem value="Biaya Kesehatan">Biaya Kesehatan</SelectItem>
+                          <SelectItem value="Lainnya">Lainnya</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
                   
                   <div>
-                    <Label htmlFor="keteranganPinjaman">Keterangan</Label>
-                    <Textarea id="keteranganPinjaman" placeholder="Masukkan keterangan (opsional)" rows={3} />
+                    <Label htmlFor="keterangan">Keterangan</Label>
+                    <Textarea 
+                      id="keterangan" 
+                      placeholder="Masukkan keterangan (opsional)" 
+                      rows={3}
+                      value={pinjamanForm.keterangan}
+                      onChange={handlePinjamanChange}
+                    />
                   </div>
                   
                   <div className="bg-muted/50 p-4 rounded-lg">
@@ -250,11 +506,15 @@ export default function TransaksiForm() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <p className="text-sm text-muted-foreground">Angsuran per bulan</p>
-                        <p className="font-medium">Rp 875.000</p>
+                        <p className="font-medium">
+                          Rp {pinjamanPreview.angsuranPerBulan.toLocaleString("id-ID", { maximumFractionDigits: 0 })}
+                        </p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total yang harus dibayar</p>
-                        <p className="font-medium">Rp 5.250.000</p>
+                        <p className="font-medium">
+                          Rp {pinjamanPreview.totalBayar.toLocaleString("id-ID", { maximumFractionDigits: 0 })}
+                        </p>
                       </div>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -20,80 +21,71 @@ import {
   TabsList,
   TabsTrigger
 } from "@/components/ui/tabs";
-import { Link } from "react-router-dom";
-import { Plus, Search, FileText, Eye } from "lucide-react";
-import { useState } from "react";
-
-type Transaksi = {
-  id: string;
-  tanggal: string;
-  anggotaId: string;
-  anggotaNama: string;
-  jenis: "Simpan" | "Pinjam" | "Angsuran";
-  jumlah: string;
-  keterangan?: string;
-  status: "Sukses" | "Pending" | "Ditolak";
-};
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Link, useNavigate } from "react-router-dom";
+import { Plus, Search, FileText, Eye, Trash } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { getAllTransaksi, deleteTransaksi } from "@/services/transaksiService";
+import { Transaksi } from "@/types";
 
 export default function TransaksiList() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [transaksiList, setTransaksiList] = useState<Transaksi[]>([]);
+  const [transaksiToDelete, setTransaksiToDelete] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
-  // Data contoh
-  const transaksiList: Transaksi[] = [
-    { 
-      id: "TR0001", 
-      tanggal: "20 Apr 2025",
-      anggotaId: "AG0001",
-      anggotaNama: "Budi Santoso",
-      jenis: "Simpan",
-      jumlah: "Rp 500.000",
-      status: "Sukses"
-    },
-    { 
-      id: "TR0002", 
-      tanggal: "18 Apr 2025",
-      anggotaId: "AG0004",
-      anggotaNama: "Sri Wahyuni",
-      jenis: "Pinjam",
-      jumlah: "Rp 2.000.000",
-      keterangan: "Pinjaman untuk modal usaha",
-      status: "Sukses"
-    },
-    { 
-      id: "TR0003", 
-      tanggal: "17 Apr 2025",
-      anggotaId: "AG0003",
-      anggotaNama: "Ahmad Hidayat",
-      jenis: "Angsuran",
-      jumlah: "Rp 250.000",
-      status: "Sukses"
-    },
-    { 
-      id: "TR0004", 
-      tanggal: "15 Apr 2025",
-      anggotaId: "AG0002",
-      anggotaNama: "Dewi Lestari",
-      jenis: "Simpan",
-      jumlah: "Rp 750.000",
-      status: "Sukses"
-    },
-    { 
-      id: "TR0005", 
-      tanggal: "12 Apr 2025",
-      anggotaId: "AG0005",
-      anggotaNama: "Agus Setiawan",
-      jenis: "Pinjam",
-      jumlah: "Rp 5.000.000",
-      keterangan: "Pinjaman untuk renovasi rumah",
-      status: "Sukses"
-    },
-  ];
+  useEffect(() => {
+    // Load transaksi from local storage
+    const loadedTransaksi = getAllTransaksi();
+    setTransaksiList(loadedTransaksi);
+  }, []);
+  
+  const handleDeleteClick = (id: string) => {
+    setTransaksiToDelete(id);
+    setIsConfirmOpen(true);
+  };
+  
+  const handleDeleteConfirm = () => {
+    if (transaksiToDelete) {
+      const success = deleteTransaksi(transaksiToDelete);
+      
+      if (success) {
+        toast({
+          title: "Transaksi berhasil dihapus",
+          description: "Data transaksi telah dihapus dari sistem",
+        });
+        
+        // Refresh the list
+        setTransaksiList(getAllTransaksi());
+      } else {
+        toast({
+          title: "Gagal menghapus transaksi",
+          description: "Terjadi kesalahan saat menghapus data transaksi",
+          variant: "destructive",
+        });
+      }
+      
+      setIsConfirmOpen(false);
+      setTransaksiToDelete(null);
+    }
+  };
   
   const filterTransaksi = (tab: string) => {
     let filtered = transaksiList;
     
     if (tab !== "semua") {
-      filtered = filtered.filter(t => t.jenis.toLowerCase() === tab);
+      filtered = filtered.filter(t => t.jenis.toLowerCase() === tab.toLowerCase());
     }
     
     if (searchQuery) {
@@ -105,6 +97,14 @@ export default function TransaksiList() {
     }
     
     return filtered;
+  };
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
   };
 
   return (
@@ -140,29 +140,68 @@ export default function TransaksiList() {
               </TabsList>
               
               <TabsContent value="semua">
-                <TransaksiTable transaksiList={filterTransaksi("semua")} />
+                <TransaksiTable 
+                  transaksiList={filterTransaksi("semua")} 
+                  onDeleteClick={handleDeleteClick} 
+                  formatDate={formatDate}
+                />
               </TabsContent>
               
               <TabsContent value="simpan">
-                <TransaksiTable transaksiList={filterTransaksi("simpan")} />
+                <TransaksiTable 
+                  transaksiList={filterTransaksi("simpan")} 
+                  onDeleteClick={handleDeleteClick}
+                  formatDate={formatDate}
+                />
               </TabsContent>
               
               <TabsContent value="pinjam">
-                <TransaksiTable transaksiList={filterTransaksi("pinjam")} />
+                <TransaksiTable 
+                  transaksiList={filterTransaksi("pinjam")} 
+                  onDeleteClick={handleDeleteClick}
+                  formatDate={formatDate}
+                />
               </TabsContent>
               
               <TabsContent value="angsuran">
-                <TransaksiTable transaksiList={filterTransaksi("angsuran")} />
+                <TransaksiTable 
+                  transaksiList={filterTransaksi("angsuran")} 
+                  onDeleteClick={handleDeleteClick}
+                  formatDate={formatDate}
+                />
               </TabsContent>
             </Tabs>
           </div>
         </CardContent>
       </Card>
+      
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }
 
-function TransaksiTable({ transaksiList }: { transaksiList: Transaksi[] }) {
+type TransaksiTableProps = {
+  transaksiList: Transaksi[];
+  onDeleteClick: (id: string) => void;
+  formatDate: (date: string) => string;
+};
+
+function TransaksiTable({ transaksiList, onDeleteClick, formatDate }: TransaksiTableProps) {
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -189,7 +228,7 @@ function TransaksiTable({ transaksiList }: { transaksiList: Transaksi[] }) {
             transaksiList.map((transaksi) => (
               <TableRow key={transaksi.id}>
                 <TableCell className="font-medium">{transaksi.id}</TableCell>
-                <TableCell>{transaksi.tanggal}</TableCell>
+                <TableCell>{formatDate(transaksi.tanggal)}</TableCell>
                 <TableCell>{transaksi.anggotaId}</TableCell>
                 <TableCell>{transaksi.anggotaNama}</TableCell>
                 <TableCell>
@@ -201,7 +240,7 @@ function TransaksiTable({ transaksiList }: { transaksiList: Transaksi[] }) {
                     {transaksi.jenis}
                   </span>
                 </TableCell>
-                <TableCell className="font-medium">{transaksi.jumlah}</TableCell>
+                <TableCell className="font-medium">Rp {transaksi.jumlah.toLocaleString("id-ID")}</TableCell>
                 <TableCell>
                   <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                     transaksi.status === "Sukses" ? "bg-green-100 text-green-800" : 
@@ -219,6 +258,15 @@ function TransaksiTable({ transaksiList }: { transaksiList: Transaksi[] }) {
                   </Link>
                   <Button variant="ghost" size="icon" title="Cetak Bukti">
                     <FileText size={16} />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    title="Hapus Transaksi" 
+                    className="text-destructive hover:text-destructive" 
+                    onClick={() => onDeleteClick(transaksi.id)}
+                  >
+                    <Trash size={16} />
                   </Button>
                 </TableCell>
               </TableRow>

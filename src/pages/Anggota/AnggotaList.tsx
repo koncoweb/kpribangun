@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { 
@@ -20,89 +21,76 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { Link } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, MoreHorizontal, Edit, Trash, Eye } from "lucide-react";
-import { useState } from "react";
-
-type Anggota = {
-  id: string;
-  nama: string;
-  nik: string;
-  alamat: string;
-  noHp: string;
-  jenisKelamin: "L" | "P";
-  agama: string;
-  pekerjaan: string;
-  simpanan: string;
-  pinjaman: string;
-};
+import { useToast } from "@/components/ui/use-toast";
+import { getAllAnggota, deleteAnggota } from "@/services/anggotaService";
+import { calculateTotalSimpanan, calculateTotalPinjaman } from "@/services/transaksiService";
+import { Anggota } from "@/types";
 
 export default function AnggotaList() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [anggotaToDelete, setAnggotaToDelete] = useState<string | null>(null);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
-  // Data contoh
-  const anggotaList: Anggota[] = [
-    { 
-      id: "AG0001", 
-      nama: "Budi Santoso", 
-      nik: "3201011001800001",
-      alamat: "Jl. Merdeka No. 123, Jakarta",
-      noHp: "081234567890",
-      jenisKelamin: "L",
-      agama: "Islam",
-      pekerjaan: "PNS",
-      simpanan: "Rp 2.500.000",
-      pinjaman: "Rp 5.000.000",
-    },
-    { 
-      id: "AG0002", 
-      nama: "Dewi Lestari", 
-      nik: "3201012002800002",
-      alamat: "Jl. Pahlawan No. 45, Bandung",
-      noHp: "081234567891",
-      jenisKelamin: "P",
-      agama: "Kristen",
-      pekerjaan: "Guru",
-      simpanan: "Rp 3.750.000",
-      pinjaman: "Rp 0",
-    },
-    { 
-      id: "AG0003", 
-      nama: "Ahmad Hidayat", 
-      nik: "3201013003800003",
-      alamat: "Jl. Sudirman No. 78, Surabaya",
-      noHp: "081234567892",
-      jenisKelamin: "L",
-      agama: "Islam",
-      pekerjaan: "Wiraswasta",
-      simpanan: "Rp 1.250.000",
-      pinjaman: "Rp 2.500.000",
-    },
-    { 
-      id: "AG0004", 
-      nama: "Sri Wahyuni", 
-      nik: "3201014004800004",
-      alamat: "Jl. Gatot Subroto No. 55, Medan",
-      noHp: "081234567893",
-      jenisKelamin: "P",
-      agama: "Hindu",
-      pekerjaan: "Dosen",
-      simpanan: "Rp 5.000.000",
-      pinjaman: "Rp 10.000.000",
-    },
-    { 
-      id: "AG0005", 
-      nama: "Agus Setiawan", 
-      nik: "3201015005800005",
-      alamat: "Jl. Ahmad Yani No. 12, Semarang",
-      noHp: "081234567894",
-      jenisKelamin: "L",
-      agama: "Katolik",
-      pekerjaan: "Pedagang",
-      simpanan: "Rp 8.750.000",
-      pinjaman: "Rp 15.000.000",
-    },
-  ];
+  useEffect(() => {
+    // Load anggota from local storage
+    const loadedAnggota = getAllAnggota();
+    setAnggotaList(loadedAnggota);
+  }, []);
+  
+  const handleDeleteClick = (id: string) => {
+    setAnggotaToDelete(id);
+    setIsConfirmOpen(true);
+  };
+  
+  const handleDeleteConfirm = () => {
+    if (anggotaToDelete) {
+      const success = deleteAnggota(anggotaToDelete);
+      
+      if (success) {
+        toast({
+          title: "Anggota berhasil dihapus",
+          description: "Data anggota telah dihapus dari sistem",
+        });
+        
+        // Refresh the list
+        setAnggotaList(getAllAnggota());
+      } else {
+        toast({
+          title: "Gagal menghapus anggota",
+          description: "Terjadi kesalahan saat menghapus data anggota",
+          variant: "destructive",
+        });
+      }
+      
+      setIsConfirmOpen(false);
+      setAnggotaToDelete(null);
+    }
+  };
+  
+  const getTotalSimpanan = (anggotaId: string): string => {
+    const total = calculateTotalSimpanan(anggotaId);
+    return `Rp ${total.toLocaleString("id-ID")}`;
+  };
+  
+  const getTotalPinjaman = (anggotaId: string): string => {
+    const total = calculateTotalPinjaman(anggotaId);
+    return total > 0 ? `Rp ${total.toLocaleString("id-ID")}` : "Rp 0";
+  };
   
   const filteredAnggota = anggotaList.filter(anggota => 
     anggota.nama.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -151,47 +139,77 @@ export default function AnggotaList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredAnggota.map((anggota) => (
-                  <TableRow key={anggota.id}>
-                    <TableCell className="font-medium">{anggota.id}</TableCell>
-                    <TableCell>{anggota.nama}</TableCell>
-                    <TableCell>{anggota.nik}</TableCell>
-                    <TableCell>{anggota.noHp}</TableCell>
-                    <TableCell>{anggota.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</TableCell>
-                    <TableCell>{anggota.pekerjaan}</TableCell>
-                    <TableCell className="text-green-600">{anggota.simpanan}</TableCell>
-                    <TableCell className="text-amber-600">{anggota.pinjaman}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal size={16} />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/anggota/${anggota.id}`} className="flex items-center gap-2">
-                              <Eye size={16} /> Lihat Detail
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to={`/anggota/${anggota.id}/edit`} className="flex items-center gap-2">
-                              <Edit size={16} /> Edit
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive">
-                            <Trash size={16} /> Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                {filteredAnggota.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center py-10">
+                      Tidak ada data anggota yang ditemukan
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredAnggota.map((anggota) => (
+                    <TableRow key={anggota.id}>
+                      <TableCell className="font-medium">{anggota.id}</TableCell>
+                      <TableCell>{anggota.nama}</TableCell>
+                      <TableCell>{anggota.nik}</TableCell>
+                      <TableCell>{anggota.noHp}</TableCell>
+                      <TableCell>{anggota.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</TableCell>
+                      <TableCell>{anggota.pekerjaan}</TableCell>
+                      <TableCell className="text-green-600">{getTotalSimpanan(anggota.id)}</TableCell>
+                      <TableCell className="text-amber-600">{getTotalPinjaman(anggota.id)}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal size={16} />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem 
+                              onClick={() => navigate(`/anggota/${anggota.id}`)}
+                              className="flex items-center gap-2"
+                            >
+                              <Eye size={16} /> Lihat Detail
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => navigate(`/anggota/${anggota.id}/edit`)}
+                              className="flex items-center gap-2"
+                            >
+                              <Edit size={16} /> Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleDeleteClick(anggota.id)}
+                              className="flex items-center gap-2 text-destructive focus:text-destructive"
+                            >
+                              <Trash size={16} /> Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
+      
+      <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+            <AlertDialogDescription>
+              Apakah Anda yakin ingin menghapus anggota ini? Tindakan ini tidak dapat dibatalkan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 }
