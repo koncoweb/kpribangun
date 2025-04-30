@@ -24,7 +24,7 @@ import { Search, ShoppingCart, Receipt, Check } from "lucide-react";
 import { ProductCard } from "@/components/pos/ProductCard";
 import { CartItem } from "@/components/pos/CartItem";
 import { CartSummary } from "@/components/pos/CartSummary";
-import { ProdukItem, PenjualanItem, Penjualan } from "@/types";
+import { ProdukItem, PenjualanItem, type Penjualan as PenjualanType } from "@/types"; // Fixed import conflict
 import { getAllProdukItems, getProdukItemById, initSampleProdukData } from "@/services/produkService";
 import { getAllKasir, initSampleKasirData } from "@/services/kasirService";
 import { createPenjualan, calculateTotal } from "@/services/penjualanService";
@@ -40,7 +40,7 @@ export default function Penjualan() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [completedSale, setCompletedSale] = useState<Penjualan | null>(null);
+  const [completedSale, setCompletedSale] = useState<PenjualanType | null>(null); // Fixed type
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Cart totals

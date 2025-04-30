@@ -10,17 +10,20 @@ export interface Anggota {
   pekerjaan: string;
   foto?: string;
   createdAt: string;
+  updatedAt: string; // Adding missing property
 }
 
 export interface Transaksi {
   id: string;
   tanggal: string;
   anggotaId: string;
+  anggotaNama?: string; // Adding missing property
   jenis: "Simpan" | "Pinjam" | "Angsuran";
   jumlah: number;
-  keterangan: string;
+  keterangan?: string;
   status: "Sukses" | "Pending" | "Gagal";
   createdAt: string;
+  updatedAt: string; // Adding missing property
 }
 
 export interface Pengaturan {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -148,7 +147,7 @@ export default function TransaksiDetail() {
                       </div>
                       <div>
                         <h3 className="text-sm font-medium">Informasi Anggota</h3>
-                        <p className="text-xl font-semibold">{transaksi.anggotaNama}</p>
+                        <p className="text-xl font-semibold">{transaksi.anggotaNama || 'Tidak ada nama'}</p>
                         <p className="text-sm text-muted-foreground">{transaksi.anggotaId}</p>
                         
                         {anggota && (
@@ -195,7 +194,7 @@ export default function TransaksiDetail() {
                       </div>
                       <div>
                         <h3 className="text-xs text-muted-foreground">Terakhir diperbarui</h3>
-                        <p>{new Date(transaksi.updatedAt).toLocaleDateString("id-ID", {
+                        <p>{new Date(transaksi.updatedAt || transaksi.createdAt).toLocaleDateString("id-ID", {
                           day: "numeric",
                           month: "long",
                           year: "numeric",

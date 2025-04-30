@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Anggota, PengaturanTenor } from "@/types";
+import { Anggota, Pengaturan } from "@/types"; // Fixed type import
 import { createTransaksi } from "@/services/transaksiService";
 import { calculateAngsuran, getPengaturan } from "@/services/pengaturanService";
 import { FormActions } from "@/components/anggota/FormActions";

@@ -3,7 +3,7 @@ import { ProdukItem, PenjualanItem } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatRupiah } from "@/lib/utils";
-import { Minus, Plus, Trash2 } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingCart } from "lucide-react"; // Added ShoppingCart import
 import { useState, useEffect } from "react";
 
 interface CartItemProps {

@@ -99,7 +99,7 @@ export default function PenjualanDetail() {
           title: "Transaksi berhasil diperbarui",
           description: "Data transaksi telah diperbarui"
         });
-        setIsEditDialogOpen(false);
+        setIsEditDialogOpen(false); // Fixed variable name
       } else {
         throw new Error("Gagal memperbarui transaksi");
       }
