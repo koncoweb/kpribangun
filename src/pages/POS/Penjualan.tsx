@@ -32,16 +32,17 @@ export default function Penjualan() {
     initSampleKasirData();
     initSamplePenjualanData();
     
-    loadProducts();
+    // Add sample restaurant images to products
+    const updatedProducts = loadProducts();
   }, []);
   
   return (
     <Layout pageTitle="Penjualan">
-      <div className="bg-gray-50 p-4 sm:p-6 -mt-6 -mx-6">
+      <div className="bg-gray-50 p-4 -mt-6 -mx-6">
         <div className="container mx-auto">
-          <h1 className="text-2xl font-bold mb-4 text-gray-800">Kasir Penjualan</h1>
+          <h1 className="text-xl font-bold mb-4 text-gray-800">Kasir Penjualan</h1>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Products Section */}
             <div className="lg:col-span-2">
               <ProductSection 

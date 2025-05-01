@@ -47,70 +47,33 @@ export function CartItem({ item, product, onUpdateQuantity, onRemove }: CartItem
   };
 
   return (
-    <div className="flex items-center gap-3 py-3 border-b group hover:bg-gray-50 px-2 rounded-md transition-colors">
-      <div className="h-14 w-14 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
-        {product.gambar ? (
-          <img
-            src={product.gambar}
-            alt={product.nama}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-50">
-            <ShoppingCart className="h-6 w-6 text-gray-300" />
+    <div className="flex items-center justify-between py-2 border-b last:border-b-0">
+      <div className="flex-1">
+        <h4 className="font-medium text-sm">{product.nama}</h4>
+        <div className="flex items-center text-xs text-gray-500 mt-1">
+          <div className="flex items-center mr-2">
+            <button 
+              onClick={decreaseQuantity}
+              className="w-5 h-5 flex items-center justify-center bg-gray-100 rounded-full"
+            >
+              <Minus className="h-3 w-3" />
+            </button>
+            <span className="mx-2 font-medium">× {quantity}</span>
+            <button 
+              onClick={increaseQuantity}
+              className="w-5 h-5 flex items-center justify-center bg-gray-100 rounded-full"
+              disabled={quantity >= product.stok}
+            >
+              <Plus className="h-3 w-3" />
+            </button>
           </div>
-        )}
+        </div>
       </div>
-
-      <div className="flex-1 min-w-0">
-        <h4 className="font-medium text-sm line-clamp-1">{product.nama}</h4>
-        <p className="text-xs text-gray-500">
-          {formatRupiah(product.hargaJual)} / {product.satuan}
-        </p>
+      
+      <div className="text-right">
+        <p className="font-semibold text-primary text-sm">{formatRupiah(item.total)}</p>
+        <p className="text-xs text-gray-500">{formatRupiah(item.hargaSatuan)} / item</p>
       </div>
-
-      <div className="flex items-center">
-        <Button
-          size="icon"
-          variant="outline"
-          className="h-8 w-8 rounded-l-md"
-          onClick={decreaseQuantity}
-        >
-          {quantity === 1 ? <Trash2 className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
-        </Button>
-        
-        <Input
-          type="number"
-          value={quantity}
-          onChange={handleQuantityChange}
-          className="h-8 w-12 px-0 text-center text-sm rounded-none focus:ring-0"
-          min={1}
-          max={product.stok}
-        />
-        
-        <Button
-          size="icon"
-          variant="outline"
-          className="h-8 w-8 rounded-r-md"
-          onClick={increaseQuantity}
-          disabled={quantity >= product.stok}
-        >
-          <Plus className="h-3 w-3" />
-        </Button>
-      </div>
-
-      <div className="w-24 text-right">
-        <p className="font-medium text-sm">{formatRupiah(item.total)}</p>
-      </div>
-
-      <Button
-        size="icon"
-        variant="ghost"
-        className="h-8 w-8 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-        onClick={() => onRemove(product.id)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
     </div>
   );
 }

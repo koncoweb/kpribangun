@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Save, Printer, CreditCard } from "lucide-react";
 import { PaymentMethodSelector, PaymentMethod } from "./payment-methods/PaymentMethodSelector";
 import { PaymentSummary } from "./payment-methods/PaymentSummary";
 import { CashPaymentFields } from "./payment-methods/CashPaymentFields";
@@ -20,8 +20,12 @@ import { formatRupiah } from "@/lib/utils";
 interface CartSummaryProps {
   items: PenjualanItem[];
   subtotal: number;
-  tax: number;
   discount: number;
+  discountAmount: number;
+  serviceFee: number;
+  serviceFeeAmount: number;
+  takeawayFee: number;
+  takeawayFeeAmount: number;
   total: number;
   onCheckout: (data: {
     kasirId: string;
@@ -37,8 +41,12 @@ interface CartSummaryProps {
 export function CartSummary({
   items,
   subtotal,
-  tax,
   discount,
+  discountAmount,
+  serviceFee,
+  serviceFeeAmount,
+  takeawayFee,
+  takeawayFeeAmount,
   total,
   onCheckout,
   kasirList,
@@ -78,15 +86,37 @@ export function CartSummary({
     (paymentMethod !== "cash" || amountPaid >= total);
   
   return (
-    <div className="space-y-5">
-      <PaymentSummary 
-        subtotal={subtotal}
-        discount={discount}
-        tax={tax}
-        total={total}
-      />
-      
-      <div className="space-y-4 bg-white p-4 rounded-md border">
+    <div className="space-y-4">
+      <div className="bg-white rounded-md p-3 border space-y-2">
+        <div className="flex justify-between items-center text-sm">
+          <span className="text-gray-500">Sub-Total</span>
+          <span className="font-medium">{formatRupiah(subtotal)}</span>
+        </div>
+        
+        {discount > 0 && (
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-500">Discounts</span>
+            <span className="text-destructive">({formatRupiah(discountAmount)})</span>
+          </div>
+        )}
+        
+        <div className="flex justify-between items-center text-sm text-gray-400">
+          <span>Service Charge ({serviceFee}%)</span>
+          <span>{formatRupiah(serviceFeeAmount)}</span>
+        </div>
+        
+        <div className="flex justify-between items-center text-sm text-gray-400">
+          <span>Take Away Fee ({takeawayFee}%)</span>
+          <span>{formatRupiah(takeawayFeeAmount)}</span>
+        </div>
+        
+        <div className="flex justify-between items-center pt-2 border-t">
+          <span className="font-semibold">Total</span>
+          <span className="font-bold text-lg text-primary">{formatRupiah(total)}</span>
+        </div>
+      </div>
+
+      <div className="space-y-4 bg-white p-3 rounded-md border">
         <div>
           <Label htmlFor="kasir" className="text-sm font-medium">Nama Kasir</Label>
           <Select value={kasirId} onValueChange={setKasirId}>
@@ -130,8 +160,28 @@ export function CartSummary({
           />
         </div>
         
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <Button
+            variant="outline"
+            className="py-5 w-full"
+            disabled={processing}
+          >
+            <Save className="mr-2 h-5 w-5" />
+            Save Bill
+          </Button>
+          
+          <Button
+            variant="outline"
+            className="py-5 w-full"
+            disabled={processing}
+          >
+            <Printer className="mr-2 h-5 w-5" />
+            Print Bill
+          </Button>
+        </div>
+        
         <Button
-          className="w-full gap-2 mt-4 py-6 text-lg font-medium bg-primary hover:bg-primary/90"
+          className="w-full gap-2 py-6 text-base font-medium bg-blue-600 hover:bg-blue-700 flex items-center justify-center"
           onClick={handleCheckout}
           disabled={!formIsValid || processing}
         >
@@ -141,7 +191,8 @@ export function CartSummary({
             </>
           ) : (
             <>
-              Bayar {formatRupiah(total)} <ArrowRight className="h-5 w-5" />
+              <CreditCard className="h-5 w-5" />
+              <span>Charge {formatRupiah(total)}</span>
             </>
           )}
         </Button>

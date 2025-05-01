@@ -16,6 +16,7 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
       <div 
         ref={ref} 
         className="p-6 bg-white border rounded-lg shadow-sm max-h-[70vh] overflow-y-auto"
+        style={{ fontFamily: '"Courier New", monospace' }}
       >
         {/* Receipt Header */}
         <div className="text-center mb-6">
@@ -24,9 +25,9 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
               <Check className="h-8 w-8 text-green-600" />
             </div>
           </div>
-          <h2 className="font-bold text-xl">Koperasi Sejahtera</h2>
-          <p className="text-sm text-muted-foreground">Jl. Raya Utama No. 123, Jakarta</p>
-          <p className="text-sm text-muted-foreground">Telp: 021-1234567</p>
+          <h2 className="font-bold text-xl">Ramen Ichiban</h2>
+          <p className="text-sm text-muted-foreground">Mal Central Park Lt.3 #B12</p>
+          <p className="text-sm text-muted-foreground">Telp: 021-5698234</p>
         </div>
         
         {/* Transaction Info */}
@@ -55,16 +56,15 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
         
         {/* Items */}
         <div className="mb-4">
-          <p className="font-medium text-sm mb-2">Rincian Pembelian:</p>
           <div className="space-y-2">
             {sale.items.map((item, index) => {
               const product = getProdukItemById(item.produkId);
               return (
-                <div key={index} className="flex justify-between items-start text-sm border-b border-dashed pb-2">
+                <div key={index} className="flex justify-between text-sm">
                   <div className="flex-1">
                     <div className="font-medium">{product?.nama || "Product"}</div>
                     <div className="text-xs text-muted-foreground">
-                      {item.jumlah} x {formatRupiah(item.hargaSatuan)}
+                      {item.jumlah > 1 && `× ${item.jumlah}`}
                     </div>
                   </div>
                   <div className="text-right ml-4">
@@ -79,28 +79,33 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
         {/* Summary */}
         <div className="border-t border-dashed py-2 space-y-1">
           <div className="flex justify-between text-sm">
-            <span className="text-muted-foreground">Subtotal</span>
+            <span className="text-muted-foreground">Sub-Total</span>
             <span>{formatRupiah(sale.subtotal)}</span>
           </div>
           
-          {sale.diskon > 0 && (
+          {sale.diskon && sale.diskon > 0 && (
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Diskon ({sale.diskon}%)</span>
-              <span>-{formatRupiah((sale.subtotal * sale.diskon) / 100)}</span>
+              <span className="text-muted-foreground">Discounts</span>
+              <span>({formatRupiah((sale.subtotal * (sale.diskon || 0)) / 100)})</span>
             </div>
           )}
           
-          {sale.pajak > 0 && (
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Pajak ({sale.pajak}%)</span>
-              <span>{formatRupiah((sale.subtotal * (1 - sale.diskon / 100) * sale.pajak) / 100)}</span>
-            </div>
-          )}
+          {/* Service Charge - Added for restaurant style */}
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Service Charge (15%)</span>
+            <span>{formatRupiah((sale.subtotal * 0.15))}</span>
+          </div>
+          
+          {/* Take Away Fee - Added for restaurant style */}
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Take Away Fee (5%)</span>
+            <span>{formatRupiah((sale.subtotal * 0.05))}</span>
+          </div>
         </div>
         
         {/* Total */}
         <div className="border-t mt-2 pt-3">
-          <div className="flex justify-between font-bold text-lg">
+          <div className="flex justify-between font-bold">
             <span>TOTAL</span>
             <span>{formatRupiah(sale.total)}</span>
           </div>
@@ -121,22 +126,19 @@ export const Receipt = React.forwardRef<HTMLDivElement, ReceiptProps>(
         
         {/* Footer */}
         <div className="mt-6 text-center">
-          <div className="flex items-center justify-center mb-2">
-            <ReceiptIcon className="h-4 w-4 text-muted-foreground mr-1" />
-            <p className="text-xs text-muted-foreground">
-              {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
           
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs text-muted-foreground mt-2">
             <p>Terima Kasih Atas Kunjungan Anda</p>
-            <p className="text-xs mt-1">Barang yang sudah dibeli tidak dapat dikembalikan</p>
+            <p className="mt-1">Selamat Menikmati</p>
           </div>
         </div>
         
         <div className="mt-5 text-center text-xs text-muted-foreground flex items-center justify-center">
           <Printer className="h-3 w-3 mr-1" />
-          <span>Struk ini merupakan bukti pembayaran yang sah</span>
+          <span>www.ramen-ichiban.id</span>
         </div>
       </div>
     );
