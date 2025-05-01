@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { User } from "@/types";
 import { toast } from "@/components/ui/use-toast";
-import { getUsers, createUser, updateUser, deleteUser } from "@/services/userManagementService";
+import { getUsers, createUser, updateUser } from "@/services/user-management";
 import { Button } from "@/components/ui/button";
 import { UserTable } from "../UserTable";
 import { UserForm } from "../UserForm";

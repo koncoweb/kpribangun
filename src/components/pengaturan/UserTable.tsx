@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { User } from '@/types';
-import { getRoleById } from '@/services/userManagementService';
+import { getRoleById } from '@/services/user-management';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {

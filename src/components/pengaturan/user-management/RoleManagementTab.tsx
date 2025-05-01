@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Role } from "@/types";
 import { toast } from "@/components/ui/use-toast";
-import { getRoles, getPermissions, createRole, updateRole } from "@/services/userManagementService";
+import { getRoles, getPermissions, createRole, updateRole } from "@/services/user-management";
 import { Button } from "@/components/ui/button";
 import { RoleTable } from "../RoleTable";
 import { RoleForm } from "../RoleForm";
