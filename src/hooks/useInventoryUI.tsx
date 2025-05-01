@@ -10,11 +10,27 @@ export function useInventoryUI(products: ProdukItem[]) {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
   const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   // Get selected product details
   const selectedProduct = selectedProductId
     ? products.find((p) => p.id === selectedProductId) || null
     : null;
+
+  // Filtered products
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = searchQuery ? 
+      (product.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.kode.toLowerCase().includes(searchQuery.toLowerCase())) : true;
+    
+    const matchesCategory = categoryFilter === "all" || product.kategori === categoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  // Extract unique categories
+  const categories = Array.from(new Set(products.map(p => p.kategori)));
 
   // View product details
   const handleViewProduct = (id: string) => {
@@ -46,10 +62,16 @@ export function useInventoryUI(products: ProdukItem[]) {
     selectedProduct,
     isStockDialogOpen,
     isDeleteDialogOpen,
+    searchQuery,
+    categoryFilter,
+    filteredProducts,
+    categories,
     setViewMode,
     setSelectedProductId,
     setIsStockDialogOpen,
     setIsDeleteDialogOpen,
+    setSearchQuery,
+    setCategoryFilter,
     handleViewProduct,
     handleEditProduct,
     handleDeleteProduct,

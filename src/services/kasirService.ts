@@ -2,7 +2,7 @@
 import { Kasir } from "@/types";
 import { generateId } from "@/lib/utils";
 
-// Utility to get kasir from localStorage
+// Utility to get cashiers from localStorage
 const getKasirList = (): Kasir[] => {
   const kasirData = localStorage.getItem("kasirList");
   if (kasirData) {
@@ -11,19 +11,20 @@ const getKasirList = (): Kasir[] => {
   return [];
 };
 
-// Utility to save kasir to localStorage
+// Utility to save cashiers to localStorage
 const saveKasirList = (kasirList: Kasir[]): void => {
   localStorage.setItem("kasirList", JSON.stringify(kasirList));
 };
 
-// Get all kasir
+// Get all cashiers
 export const getAllKasir = (): Kasir[] => {
   return getKasirList();
 };
 
-// Create new kasir
+// Create new cashier
 export const createKasir = (kasirData: Omit<Kasir, "id" | "createdAt">): Kasir => {
   const kasirList = getKasirList();
+  
   const newKasir: Kasir = {
     id: generateId("KSR"),
     nama: kasirData.nama,
@@ -40,7 +41,7 @@ export const createKasir = (kasirData: Omit<Kasir, "id" | "createdAt">): Kasir =
   return newKasir;
 };
 
-// Get kasir by ID
+// Get cashier by ID
 export const getKasirById = (id: string): Kasir | null => {
   const kasirList = getKasirList();
   const kasir = kasirList.find(item => item.id === id);
@@ -48,7 +49,15 @@ export const getKasirById = (id: string): Kasir | null => {
   return kasir || null;
 };
 
-// Update kasir
+// Get cashier by username
+export const getKasirByUsername = (username: string): Kasir | null => {
+  const kasirList = getKasirList();
+  const kasir = kasirList.find(item => item.username === username);
+  
+  return kasir || null;
+};
+
+// Update cashier
 export const updateKasir = (id: string, kasirData: Partial<Kasir>): Kasir | null => {
   const kasirList = getKasirList();
   const index = kasirList.findIndex(item => item.id === id);
@@ -65,7 +74,7 @@ export const updateKasir = (id: string, kasirData: Partial<Kasir>): Kasir | null
   return kasirList[index];
 };
 
-// Delete kasir
+// Delete cashier
 export const deleteKasir = (id: string): boolean => {
   const kasirList = getKasirList();
   const newKasirList = kasirList.filter(item => item.id !== id);
@@ -90,11 +99,25 @@ export const initSampleKasirData = (): void => {
         aktif: true
       },
       {
-        nama: "Kasir 1",
-        noHp: "08198765432",
-        username: "kasir1",
+        nama: "Budi Santoso",
+        noHp: "08567891234",
+        username: "budi",
         role: "kasir",
         aktif: true
+      },
+      {
+        nama: "Siti Rahmawati",
+        noHp: "08123987654",
+        username: "siti",
+        role: "kasir",
+        aktif: true
+      },
+      {
+        nama: "Agus Darmawan",
+        noHp: "08765432190",
+        username: "agus",
+        role: "kasir",
+        aktif: false
       }
     ];
     

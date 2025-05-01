@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import Layout from "@/components/layout/Layout";
@@ -8,7 +7,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Receipt, Search, Printer, FileText, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Penjualan } from "@/types";
-import { getAllPenjualan } from "@/services/penjualanService";
+import { getAllPenjualan, initSamplePenjualanData } from "@/services/penjualanService";
+import { initSampleProdukData } from "@/services/produkService";
+import { initSampleKasirData, getKasirById } from "@/services/kasirService";
 import {
   Table,
   TableBody,
@@ -31,6 +32,11 @@ export default function KuitansiPembayaran() {
 
   // Load penjualan on component mount
   useEffect(() => {
+    // Initialize all sample data
+    initSampleProdukData();
+    initSampleKasirData();
+    initSamplePenjualanData();
+    
     loadPenjualan();
   }, []);
 
@@ -60,6 +66,12 @@ export default function KuitansiPembayaran() {
     setFilteredPenjualan(sorted);
   };
 
+  // Helper function to get cashier name
+  const getKasirName = (kasirId: string): string => {
+    const kasir = getKasirById(kasirId);
+    return kasir ? kasir.nama : "Unknown";
+  };
+
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -82,7 +94,7 @@ export default function KuitansiPembayaran() {
   };
   
   // Format date for display
-  const formatDate = (dateString: string) => {
+  function formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'short',
@@ -90,7 +102,7 @@ export default function KuitansiPembayaran() {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
+  }
   
   // Print receipt
   const handlePrint = () => {
@@ -148,7 +160,7 @@ export default function KuitansiPembayaran() {
                   <Input
                     placeholder="Cari nomor transaksi..."
                     value={searchQuery}
-                    onChange={handleSearchChange}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-8"
                   />
                 </div>
@@ -173,6 +185,7 @@ export default function KuitansiPembayaran() {
                     <TableRow>
                       <TableHead>Nomor</TableHead>
                       <TableHead>Tanggal</TableHead>
+                      <TableHead>Kasir</TableHead>
                       <TableHead>Total</TableHead>
                       <TableHead>Aksi</TableHead>
                     </TableRow>
@@ -185,6 +198,7 @@ export default function KuitansiPembayaran() {
                       >
                         <TableCell className="font-medium">{penjualan.nomorTransaksi}</TableCell>
                         <TableCell>{formatDate(penjualan.tanggal)}</TableCell>
+                        <TableCell>{getKasirName(penjualan.kasirId)}</TableCell>
                         <TableCell>{formatRupiah(penjualan.total)}</TableCell>
                         <TableCell>
                           <Button 
@@ -234,7 +248,7 @@ export default function KuitansiPembayaran() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Kasir:</span>
-                      <span>Admin</span>
+                      <span>{getKasirName(selectedPenjualan.kasirId)}</span>
                     </div>
                   </div>
                   

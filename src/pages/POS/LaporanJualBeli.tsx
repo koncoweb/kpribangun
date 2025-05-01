@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Penjualan, ProdukItem } from "@/types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { BarChart as BarChartIcon, Calendar, Download } from "lucide-react";
-import { getAllPenjualan } from "@/services/penjualanService";
-import { getAllProdukItems } from "@/services/produkService";
+import { getAllPenjualan, initSamplePenjualanData } from "@/services/penjualanService";
+import { getAllProdukItems, initSampleProdukData } from "@/services/produkService";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/lib/utils";
 import {
@@ -63,6 +63,10 @@ export default function LaporanJualBeli() {
 
   // Load data on component mount
   useEffect(() => {
+    // Initialize sample data
+    initSampleProdukData();
+    initSamplePenjualanData();
+    
     loadData();
   }, []);
   

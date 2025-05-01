@@ -8,7 +8,7 @@ import { SuccessDialog } from "@/components/pos/SuccessDialog";
 import { ProdukItem, PenjualanItem, type Penjualan as PenjualanType } from "@/types";
 import { getAllProdukItems, getProdukItemById, initSampleProdukData } from "@/services/produkService";
 import { getAllKasir, initSampleKasirData } from "@/services/kasirService";
-import { createPenjualan, calculateTotal } from "@/services/penjualanService";
+import { createPenjualan, calculateTotal, initSamplePenjualanData } from "@/services/penjualanService";
 
 export default function Penjualan() {
   const { toast } = useToast();
@@ -22,8 +22,10 @@ export default function Penjualan() {
   
   // Load initial data
   useEffect(() => {
+    // Initialize all sample data
     initSampleProdukData();
     initSampleKasirData();
+    initSamplePenjualanData();
     
     const products = getAllProdukItems();
     setProducts(products);
