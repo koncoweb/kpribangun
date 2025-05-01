@@ -88,6 +88,6 @@ export function deleteTransaksi(id: string): boolean {
   
   if (filteredList.length === transaksiList.length) return false;
   
-  saveItems(TRANSAKSI_KEY, filteredList);
+  saveItems(TRANSAKSI_KEY, transaksiList);
   return true;
 }

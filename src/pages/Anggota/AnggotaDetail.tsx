@@ -15,7 +15,7 @@ import {
   getUpcomingDueLoans,
   calculateJatuhTempo,
   calculatePenalty
-} from "@/services/transaksiService";
+} from "@/services/transaksi";
 import { Anggota, Transaksi } from "@/types";
 import { ProfileCard } from "@/components/anggota/detail/ProfileCard";
 import { InfoCard } from "@/components/anggota/detail/InfoCard";

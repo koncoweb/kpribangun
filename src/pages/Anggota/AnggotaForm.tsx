@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -13,6 +12,7 @@ import { FormActions } from "@/components/anggota/FormActions";
 import { DokumenUploadCard } from "@/components/anggota/DokumenUploadCard";
 import { KeluargaFormCard } from "@/components/anggota/KeluargaFormCard";
 import { StatusBadge } from "@/components/anggota/detail/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 
 export default function AnggotaForm() {
   const navigate = useNavigate();
