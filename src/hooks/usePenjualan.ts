@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { ProdukItem, PenjualanItem, type Penjualan } from "@/types";
-import { getAllProdukItems, getProdukItemById } from "@/services/produkService";
+import { getAllProdukItems, getProdukItemById } from "@/services/produk";
 import { createPenjualan, calculateTotal } from "@/services/penjualan";
 
 export function usePenjualan() {

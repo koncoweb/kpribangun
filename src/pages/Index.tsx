@@ -12,7 +12,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { initSampleProdukData } from "@/services/produkService";
+import { initSampleProdukData } from "@/services/produk";
 import { initSampleKasirData } from "@/services/kasirService";
 
 export default function Index() {

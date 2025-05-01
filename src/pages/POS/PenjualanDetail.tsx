@@ -5,7 +5,7 @@ import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { Penjualan } from "@/types";
 import { getPenjualanById, updatePenjualan } from "@/services/penjualan";
-import { getProdukItemById } from "@/services/produkService";
+import { getProdukItemById } from "@/services/produk";
 import { getKasirById, getAllKasir } from "@/services/kasirService";
 
 // Import refactored components

@@ -1,7 +1,7 @@
 
 import { Pembelian, PembelianItem } from "@/types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
-import { updateProdukStock } from "./produkService";
+import { updateProdukStock } from "./produk";
 import { generateId } from "@/lib/utils";
 import { getPemasokById } from "./pemasokService";
 

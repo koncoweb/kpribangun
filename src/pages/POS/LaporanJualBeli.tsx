@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Penjualan, ProdukItem } from "@/types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { BarChart as BarChartIcon, Calendar, Download } from "lucide-react";
-import { getAllPenjualan, initSamplePenjualanData } from "@/services/penjualanService";
-import { getAllProdukItems, initSampleProdukData } from "@/services/produkService";
+import { getAllPenjualan, initSamplePenjualanData } from "@/services/penjualan";
+import { getAllProdukItems, initSampleProdukData } from "@/services/produk";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/lib/utils";
 import {

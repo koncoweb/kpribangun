@@ -7,20 +7,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Receipt, Search, Printer, FileText, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Penjualan } from "@/types";
-import { getAllPenjualan, initSamplePenjualanData } from "@/services/penjualanService";
-import { initSampleProdukData } from "@/services/produkService";
+import { getAllPenjualan, initSamplePenjualanData } from "@/services/penjualan";
+import { initSampleProdukData } from "@/services/produk";
 import { initSampleKasirData, getKasirById } from "@/services/kasirService";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { formatRupiah } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 
 export default function KuitansiPembayaran() {
   const { toast } = useToast();

@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Penjualan, ProdukItem } from "@/types";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { LineChart as LineChartIcon, BarChart as BarChartIcon, Download, Calendar } from "lucide-react";
-import { getAllPenjualan } from "@/services/penjualanService";
-import { getAllProdukItems } from "@/services/produkService";
+import { Tab } from "@headlessui/react";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart as BarChartIcon, LineChart as LineChartIcon, Calendar, Download } from "lucide-react";
+import { getAllPenjualan } from "@/services/penjualan";
+import { getAllProdukItems } from "@/services/produk";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
@@ -53,11 +52,11 @@ interface SummaryData {
 }
 
 export default function LaporanRugiLaba() {
-  const [penjualanList, setPenjualanList] = useState<Penjualan[]>([]);
-  const [products, setProducts] = useState<ProdukItem[]>([]);
-  const [profitData, setProfitData] = useState<ProfitData[]>([]);
-  const [productProfitData, setProductProfitData] = useState<ProductProfitData[]>([]);
-  const [summaryData, setSummaryData] = useState<SummaryData>({
+  const [penjualanList, setPenjualanList] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [profitData, setProfitData] = useState([]);
+  const [productProfitData, setProductProfitData] = useState([]);
+  const [summaryData, setSummaryData] = useState({
     totalRevenue: 0,
     totalCost: 0,
     totalProfit: 0,
