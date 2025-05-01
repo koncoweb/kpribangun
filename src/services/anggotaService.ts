@@ -17,9 +17,10 @@ const initialAnggota: Anggota[] = [
     pekerjaan: "PNS",
     status: "active", // Adding status field
     tanggalBergabung: "2023-01-15", // Adding tanggalBergabung field
-    foto: null, // Adding foto field
-    dokumen: [], // Adding dokumen field
-    keluarga: [], // Adding keluarga field
+    foto: null,
+    email: "budi.santoso@example.com", // Added email field
+    dokumen: [],
+    keluarga: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -32,11 +33,12 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "P",
     agama: "Kristen",
     pekerjaan: "Guru",
-    status: "active", // Adding status field
-    tanggalBergabung: "2023-02-20", // Adding tanggalBergabung field
-    foto: null, // Adding foto field
-    dokumen: [], // Adding dokumen field
-    keluarga: [], // Adding keluarga field
+    status: "active",
+    tanggalBergabung: "2023-02-20",
+    foto: null,
+    email: "dewi.lestari@example.com", // Added email field
+    dokumen: [],
+    keluarga: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -49,11 +51,12 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "L",
     agama: "Islam",
     pekerjaan: "Wiraswasta",
-    status: "active", // Adding status field
-    tanggalBergabung: "2023-03-10", // Adding tanggalBergabung field
-    foto: null, // Adding foto field
-    dokumen: [], // Adding dokumen field
-    keluarga: [], // Adding keluarga field
+    status: "active",
+    tanggalBergabung: "2023-03-10",
+    foto: null,
+    email: "ahmad.hidayat@example.com", // Added email field
+    dokumen: [],
+    keluarga: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -66,11 +69,12 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "P",
     agama: "Hindu",
     pekerjaan: "Dosen",
-    status: "active", // Adding status field
-    tanggalBergabung: "2023-04-05", // Adding tanggalBergabung field
-    foto: null, // Adding foto field
-    dokumen: [], // Adding dokumen field
-    keluarga: [], // Adding keluarga field
+    status: "active",
+    tanggalBergabung: "2023-04-05",
+    foto: null,
+    email: "sri.wahyuni@example.com", // Added email field
+    dokumen: [],
+    keluarga: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -83,11 +87,12 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "L",
     agama: "Katolik",
     pekerjaan: "Pedagang",
-    status: "active", // Adding status field
-    tanggalBergabung: "2023-05-15", // Adding tanggalBergabung field
-    foto: null, // Adding foto field
-    dokumen: [], // Adding dokumen field
-    keluarga: [], // Adding keluarga field
+    status: "active",
+    tanggalBergabung: "2023-05-15",
+    foto: null,
+    email: "agus.setiawan@example.com", // Added email field
+    dokumen: [],
+    keluarga: [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },

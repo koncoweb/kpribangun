@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { createAnggota, updateAnggota } from "@/services/anggotaService";
@@ -13,6 +12,7 @@ interface FormData {
   agama: string;
   pekerjaan: string;
   foto: string;
+  email: string; // Added email field
 }
 
 interface HandlerParams {
@@ -118,6 +118,7 @@ export const useAnggotaFormHandlers = ({
         keluarga,
         status: 'active', // Adding the required status field
         tanggalBergabung: new Date().toISOString(), // Adding the required tanggalBergabung field
+        email: formData.email || `${formData.nama.replace(/\s+/g, '').toLowerCase()}@example.com`, // Ensure email is present
       };
       
       if (isEditMode && id) {

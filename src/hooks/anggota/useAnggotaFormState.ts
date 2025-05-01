@@ -12,7 +12,7 @@ export const useAnggotaFormState = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isFormDirty, setIsFormDirty] = useState(false);
   
-  // Form state with properly typed jenisKelamin
+  // Form state with properly typed jenisKelamin and added email field
   const [formData, setFormData] = useState({
     nama: "",
     nik: "",
@@ -21,7 +21,8 @@ export const useAnggotaFormState = () => {
     jenisKelamin: "L" as "L" | "P", 
     agama: "",
     pekerjaan: "",
-    foto: ""
+    foto: "",
+    email: "" // Added email field
   });
   
   const [dokumen, setDokumen] = useState<AnggotaDokumen[]>([]);
@@ -45,7 +46,8 @@ export const useAnggotaFormState = () => {
             jenisKelamin: anggota.jenisKelamin,
             agama: anggota.agama,
             pekerjaan: anggota.pekerjaan,
-            foto: anggota.foto || ""
+            foto: anggota.foto || "",
+            email: anggota.email || "" // Handle email property
           });
           
           if (anggota.foto) {
