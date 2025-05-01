@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,7 @@ const pemasokSchema = z.object({
   kontak: z.string().min(3, "Nama kontak harus diisi")
 });
 
-export function PemasokForm({ isOpen, onOpenChange, onSuccess, currentPemasok }: PemasokFormProps) {
+export function PemasokForm({ onOpenChange, onSuccess, currentPemasok }: PemasokFormProps) {
   const form = useForm<z.infer<typeof pemasokSchema>>({
     resolver: zodResolver(pemasokSchema),
     defaultValues: {
@@ -90,23 +90,49 @@ export function PemasokForm({ isOpen, onOpenChange, onSuccess, currentPemasok }:
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
-        <DialogHeader>
-          <DialogTitle>
-            {currentPemasok ? "Edit Pemasok" : "Tambah Pemasok Baru"}
-          </DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <DialogContent className="sm:max-w-[550px]">
+      <DialogHeader>
+        <DialogTitle>
+          {currentPemasok ? "Edit Pemasok" : "Tambah Pemasok Baru"}
+        </DialogTitle>
+      </DialogHeader>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="nama"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nama Pemasok</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nama perusahaan/toko pemasok" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="alamat"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Alamat</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Alamat lengkap pemasok" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="grid grid-cols-2 gap-4">
             <FormField
               control={form.control}
-              name="nama"
+              name="telepon"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nama Pemasok</FormLabel>
+                  <FormLabel>Telepon</FormLabel>
                   <FormControl>
-                    <Input placeholder="Nama perusahaan/toko pemasok" {...field} />
+                    <Input placeholder="Nomor telepon" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -114,69 +140,41 @@ export function PemasokForm({ isOpen, onOpenChange, onSuccess, currentPemasok }:
             />
             <FormField
               control={form.control}
-              name="alamat"
+              name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Alamat</FormLabel>
+                  <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Alamat lengkap pemasok" {...field} />
+                    <Input placeholder="Email pemasok" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="telepon"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Telepon</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nomor telepon" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Email pemasok" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="kontak"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nama Kontak Person</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nama orang yang dapat dihubungi" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-3 pt-3">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Batal
-              </Button>
-              <Button type="submit">
-                {currentPemasok ? "Perbarui" : "Simpan"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          </div>
+          <FormField
+            control={form.control}
+            name="kontak"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nama Kontak Person</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nama orang yang dapat dihubungi" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex justify-end gap-3 pt-3">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Batal
+            </Button>
+            <Button type="submit">
+              {currentPemasok ? "Perbarui" : "Simpan"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </DialogContent>
   );
 }

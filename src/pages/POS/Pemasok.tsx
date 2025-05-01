@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 import { toast } from "@/components/ui/sonner";
 import { Pemasok } from "@/types";
@@ -65,12 +65,20 @@ export default function PemasokPage() {
     <Layout pageTitle="Data Pemasok">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Data Pemasok / Supplier</h1>
-        <DialogTrigger asChild>
-          <Button onClick={openNewForm}>
-            <Plus className="mr-2 h-4 w-4" />
-            Tambah Pemasok
-          </Button>
-        </DialogTrigger>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={openNewForm}>
+              <Plus className="mr-2 h-4 w-4" />
+              Tambah Pemasok
+            </Button>
+          </DialogTrigger>
+          <PemasokForm 
+            isOpen={isFormOpen}
+            onOpenChange={setIsFormOpen}
+            onSuccess={loadPemasok}
+            currentPemasok={currentPemasok}
+          />
+        </Dialog>
       </div>
       
       <Card>
@@ -86,13 +94,6 @@ export default function PemasokPage() {
           />
         </CardContent>
       </Card>
-
-      <PemasokForm 
-        isOpen={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSuccess={loadPemasok}
-        currentPemasok={currentPemasok}
-      />
     </Layout>
   );
 }
