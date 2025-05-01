@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useInventory } from "@/hooks/useInventory";
+import { ProdukItem } from "@/types"; // Add this import
 
 // Import the components
 import { InventoryView } from "@/components/inventory/InventoryView";
