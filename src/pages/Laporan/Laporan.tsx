@@ -44,10 +44,11 @@ import {
 import { 
   getUpcomingDueLoans, 
   getOverdueLoans, 
-  calculatePenalty 
+  calculatePenalty,
+  getAllTransaksi,
+  getAllPinjaman,
+  calculateJatuhTempo 
 } from "@/services/transaksiService";
-import { getAllTransaksi } from "@/services/transaksiService";
-import { getAllPinjaman } from "@/services/transaksiService";
 import { getPengaturan } from "@/services/pengaturanService";
 import { Transaksi } from "@/types";
 
