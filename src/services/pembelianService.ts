@@ -1,4 +1,3 @@
-
 import { Pembelian, PembelianItem, Pemasok } from "@/types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { updateProdukStock } from "./produkService";
@@ -119,6 +118,43 @@ export const createPemasok = (pemasokData: Omit<Pemasok, "id" | "createdAt">): P
   return newPemasok;
 };
 
+export const updatePemasok = (id: string, pemasokData: Partial<Pemasok>): Pemasok | null => {
+  const pemasokList = getAllPemasok();
+  const index = pemasokList.findIndex((item) => item.id === id);
+  
+  if (index === -1) return null;
+  
+  const updatedPemasok: Pemasok = {
+    ...pemasokList[index],
+    ...pemasokData
+  };
+  
+  pemasokList[index] = updatedPemasok;
+  saveToLocalStorage(PEMASOK_KEY, pemasokList);
+  
+  return updatedPemasok;
+};
+
+export const deletePemasok = (id: string): boolean => {
+  // Check if supplier is referenced in any purchases
+  const pembelianList = getAllPembelian();
+  const isPemasokReferenced = pembelianList.some(item => item.pemasokId === id);
+  
+  if (isPemasokReferenced) {
+    return false; // Cannot delete if referenced
+  }
+  
+  const pemasokList = getAllPemasok();
+  const filteredList = pemasokList.filter((item) => item.id !== id);
+  
+  if (filteredList.length === pemasokList.length) {
+    return false;
+  }
+  
+  saveToLocalStorage(PEMASOK_KEY, filteredList);
+  return true;
+};
+
 // Initial sample data
 const initialPemasok: Pemasok[] = [
   {
@@ -147,6 +183,24 @@ const initialPemasok: Pemasok[] = [
     email: "info@berkahmakmur.id",
     kontak: "Anton Wijaya",
     createdAt: "2025-03-05T10:15:00.000Z"
+  },
+  {
+    id: "SUP004",
+    nama: "PT Maju Bersama Sejahtera",
+    alamat: "Jl. Diponegoro No. 78, Semarang",
+    telepon: "024-6714289",
+    email: "cs@majubersama.co.id",
+    kontak: "Siti Fatimah",
+    createdAt: "2025-03-12T11:20:00.000Z"
+  },
+  {
+    id: "SUP005",
+    nama: "CV Mulia Sentosa",
+    alamat: "Jl. Ahmad Yani No. 156, Malang",
+    telepon: "0341-556723",
+    email: "info@muliasentosa.com",
+    kontak: "Hendra Wijaya",
+    createdAt: "2025-03-20T14:30:00.000Z"
   }
 ];
 

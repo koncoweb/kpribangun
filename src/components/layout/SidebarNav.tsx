@@ -1,4 +1,3 @@
-
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { 
@@ -23,7 +22,8 @@ import {
   CreditCard, 
   Cog, 
   ChevronDown,
-  UserCheck
+  UserCheck,
+  Truck
 } from "lucide-react";
 
 import {
@@ -84,6 +84,7 @@ export function SidebarNav() {
       title: "KPRI Mart",
       icon: Store,
       items: [
+        { title: "Pemasok", path: "/pos/pemasok", icon: Truck },
         { title: "Pembelian", path: "/pos/pembelian", icon: ShoppingCart },
         { title: "Penjualan (PoS)", path: "/pos/penjualan", icon: ShoppingBag },
         { title: "Stok Barang", path: "/pos/stok", icon: Package },

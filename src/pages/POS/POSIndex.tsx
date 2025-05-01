@@ -10,7 +10,9 @@ import {
   History, 
   Receipt,
   BarChart, 
-  LineChart 
+  LineChart,
+  Truck,
+  ShoppingCart
 } from "lucide-react";
 
 export default function POSIndex() {
@@ -21,6 +23,20 @@ export default function POSIndex() {
       description: "Transaksi penjualan produk",
       path: "/pos/penjualan",
       color: "bg-blue-100 text-blue-800",
+    },
+    {
+      title: "Pemasok",
+      icon: Truck,
+      description: "Kelola data pemasok/supplier",
+      path: "/pos/pemasok",
+      color: "bg-purple-100 text-purple-800",
+    },
+    {
+      title: "Pembelian",
+      icon: ShoppingCart,
+      description: "Transaksi pembelian produk",
+      path: "/pos/pembelian",
+      color: "bg-emerald-100 text-emerald-800",
     },
     {
       title: "Daftar Penjualan",
