@@ -21,6 +21,7 @@ import { ProfileCard } from "@/components/anggota/detail/ProfileCard";
 import { InfoCard } from "@/components/anggota/detail/InfoCard";
 import { TransactionTabs } from "@/components/anggota/detail/TransactionTabs";
 import { Badge } from "@/components/ui/badge";
+import { KeluargaTable } from "@/components/anggota/detail/KeluargaTable";
 
 export default function AnggotaDetail() {
   const { id } = useParams<{ id: string }>();
@@ -149,12 +150,24 @@ export default function AnggotaDetail() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <ProfileCard anggota={anggota} />
-        <InfoCard anggota={anggota} totalSimpanan={totalSimpanan} totalPinjaman={totalPinjaman} />
+        
+        <div className="lg:col-span-2">
+          <Card className="h-full mb-6">
+            <CardHeader>
+              <CardTitle className="text-lg">Data Keluarga</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <KeluargaTable keluarga={anggota.keluarga || []} anggotaId={anggota.id} />
+            </CardContent>
+          </Card>
+          
+          <InfoCard anggota={anggota} totalSimpanan={totalSimpanan} totalPinjaman={totalPinjaman} />
+        </div>
       </div>
       
       <Card>
         <CardHeader>
-          <CardTitle>Histori Transaksi & Data Keluarga</CardTitle>
+          <CardTitle>Histori Transaksi</CardTitle>
         </CardHeader>
         <CardContent>
           <TransactionTabs
