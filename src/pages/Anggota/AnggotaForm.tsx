@@ -1,8 +1,7 @@
-
 import Layout from "@/components/layout/Layout";
 import { PhotoUploadCard } from "@/components/anggota/PhotoUploadCard";
 import { AnggotaDetailsForm } from "@/components/anggota/AnggotaDetailsForm";
-import { DokumenUploadCard } from "@/components/anggota/DokumenUploadCard";
+import { DokumenUploadCard } from "@/components/anggota/dokumen/DokumenUploadCard";
 import { KeluargaFormCard } from "@/components/anggota/KeluargaFormCard";
 import { FormHeader } from "@/components/anggota/form/FormHeader";
 import { FormActions } from "@/components/anggota/form/FormActions";
