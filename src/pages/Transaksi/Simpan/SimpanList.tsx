@@ -28,6 +28,7 @@ import { getAllTransaksi } from "@/services/transaksiService";
 import { getAllAnggota } from "@/services/anggotaService";
 import { TableColumnToggle } from "@/components/ui/table-column-toggle";
 import { Transaksi } from "@/types";
+import { formatDate } from "@/utils/formatters";
 
 export default function SimpanList() {
   const [searchQuery, setSearchQuery] = useState("");

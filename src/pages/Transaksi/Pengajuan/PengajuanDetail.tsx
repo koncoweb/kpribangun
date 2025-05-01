@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -11,6 +10,7 @@ import { PengajuanDetailCard } from "@/components/pengajuan/PengajuanDetailCard"
 import { PengajuanActionCard } from "@/components/pengajuan/PengajuanActionCard";
 import { DeletePengajuanDialog } from "@/components/pengajuan/DeletePengajuanDialog";
 import { StatusUpdateDialog } from "@/components/pengajuan/StatusUpdateDialog";
+import { formatDate, formatCurrency } from "@/utils/formatters";
 
 export default function PengajuanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -97,25 +97,6 @@ export default function PengajuanDetail() {
       }
       setIsStatusDialogOpen(false);
     }
-  };
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
   };
 
   if (loading) {

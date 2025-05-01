@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -16,6 +15,7 @@ import { getTransaksiById } from "@/services/transaksiService";
 import { getAnggotaById } from "@/services/anggotaService";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
+import { formatDate, formatCurrency } from "@/utils/formatters";
 
 export default function SimpanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -47,25 +47,6 @@ export default function SimpanDetail() {
     }
     setLoading(false);
   }, [id, navigate, toast]);
-
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    });
-  };
-
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
 
   if (loading) {
     return (

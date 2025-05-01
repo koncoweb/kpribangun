@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Anggota, Pengajuan } from "@/types";
+import { Anggota } from "@/types";
 import { FormActions } from "@/components/anggota/FormActions";
 import { StatusField } from "./StatusField";
 import { AnggotaField } from "./AnggotaField";
@@ -17,7 +17,7 @@ interface PengajuanFormContentProps {
   initialFormData: {
     tanggal: string;
     anggotaId: string;
-    jenis: "Simpan" | "Pinjam" | "";
+    jenis: "Simpan" | "Pinjam";
     jumlah: number;
     keterangan: string;
     status: "Menunggu" | "Disetujui" | "Ditolak";
@@ -49,9 +49,16 @@ export function PengajuanFormContent({
   
   const handleSelectChange = (name: string, value: string) => {
     if (name === "jenis") {
-      setFormData(prev => ({ ...prev, [name]: value as "Simpan" | "Pinjam" }));
+      // Ensure jenis is always a valid value
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value as "Simpan" | "Pinjam" 
+      }));
     } else if (name === "status") {
-      setFormData(prev => ({ ...prev, [name]: value as "Menunggu" | "Disetujui" | "Ditolak" }));
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value as "Menunggu" | "Disetujui" | "Ditolak" 
+      }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
@@ -97,7 +104,6 @@ export function PengajuanFormContent({
     e.preventDefault();
     
     if (!validateForm()) return;
-    if (!formData.jenis) return; // Additional type safety check
     
     onSubmit(formData);
   };
