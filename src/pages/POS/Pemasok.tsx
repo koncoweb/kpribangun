@@ -7,7 +7,6 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Pencil, Trash, Plus, Search } from "lucide-react";
@@ -127,8 +126,16 @@ export default function PemasokPage() {
         toast.error("Gagal memperbarui data pemasok");
       }
     } else {
-      // Create new supplier
-      createPemasok(values);
+      // Create new supplier - explicitly cast the values to ensure nama is not treated as optional
+      const newPemasokData = {
+        nama: values.nama,
+        alamat: values.alamat,
+        telepon: values.telepon,
+        email: values.email,
+        kontak: values.kontak
+      };
+      
+      createPemasok(newPemasokData);
       toast.success("Pemasok baru berhasil ditambahkan");
       loadPemasok();
       setIsFormOpen(false);
