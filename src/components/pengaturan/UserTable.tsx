@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { User } from '@/types';
-import { getRoleById } from '@/services/user-management';
+import { getRoleById } from '@/services/userManagementService';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,7 +22,9 @@ interface UserTableProps {
 }
 
 export function UserTable({ users, onEdit, onDelete, onToggleStatus }: UserTableProps) {
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return '-';
+    
     const date = new Date(dateString);
     return date.toLocaleDateString('id-ID', { 
       day: '2-digit', 
@@ -64,7 +66,7 @@ export function UserTable({ users, onEdit, onDelete, onToggleStatus }: UserTable
                     <Badge variant="destructive">Nonaktif</Badge>
                   )}
                 </TableCell>
-                <TableCell>{user.lastLogin ? formatDate(user.lastLogin) : '-'}</TableCell>
+                <TableCell>{formatDate(user.lastLogin)}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <Button 

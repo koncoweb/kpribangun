@@ -1,5 +1,4 @@
 
-import React from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,19 +21,23 @@ export function DeleteConfirmationDialog({
   isOpen,
   onOpenChange,
   itemType,
-  onConfirm,
+  onConfirm
 }: DeleteConfirmationDialogProps) {
-  const title = itemType === 'user' ? 'Hapus Pengguna' : 'Hapus Peran';
-  const description = itemType === 'user'
-    ? 'Apakah Anda yakin ingin menghapus pengguna ini? Tindakan ini tidak dapat dibatalkan.'
-    : 'Apakah Anda yakin ingin menghapus peran ini? Peran yang sedang digunakan oleh pengguna tidak dapat dihapus.';
-
+  const typeLabel = itemType === 'user' ? 'pengguna' : 'peran';
+  
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          <AlertDialogTitle>Hapus {typeLabel}</AlertDialogTitle>
+          <AlertDialogDescription>
+            Apakah Anda yakin ingin menghapus {typeLabel} ini? Tindakan ini tidak dapat dibatalkan.
+            {itemType === 'role' && (
+              <p className="mt-2 font-medium text-destructive">
+                Catatan: Peran yang sedang digunakan oleh pengguna tidak dapat dihapus.
+              </p>
+            )}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Batal</AlertDialogCancel>

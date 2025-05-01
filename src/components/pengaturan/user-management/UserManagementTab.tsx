@@ -1,10 +1,11 @@
+
 import { useState } from "react";
 import { User } from "@/types";
 import { toast } from "@/components/ui/use-toast";
-import { getUsers, createUser, updateUser } from "@/services/user-management";
+import { getUsers, getRoles, createUser, updateUser } from "@/services/userManagementService";
 import { Button } from "@/components/ui/button";
 import { UserTable } from "../UserTable";
-import { UserForm } from "../UserForm";
+import { UserForm } from "./UserForm";
 import { Card } from "@/components/ui/card";
 import {
   Dialog,
@@ -24,6 +25,7 @@ export function UserManagementTab({ onDelete }: UserManagementTabProps) {
   const [users, setUsers] = useState<User[]>(getUsers());
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
+  const roles = getRoles();
 
   const handleAddUser = () => {
     setCurrentUser(undefined);
@@ -56,7 +58,7 @@ export function UserManagementTab({ onDelete }: UserManagementTabProps) {
     }
   };
 
-  const handleSubmitUser = (data: Omit<User, "id" | "createdAt" | "updatedAt" | "lastLogin">) => {
+  const handleSubmitUser = (data: any) => {
     if (currentUser) {
       // Update existing user
       const result = updateUser(currentUser.id, data);
@@ -110,6 +112,7 @@ export function UserManagementTab({ onDelete }: UserManagementTabProps) {
             </DialogHeader>
             <UserForm 
               user={currentUser} 
+              roles={roles}
               onSubmit={handleSubmitUser} 
               onCancel={() => setUserDialogOpen(false)} 
             />

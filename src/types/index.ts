@@ -1,94 +1,151 @@
-
 export interface Anggota {
   id: string;
   nama: string;
-  nik: string;
+  noAnggota: string;
   alamat: string;
   noHp: string;
-  jenisKelamin: "L" | "P";
-  agama: string;
-  pekerjaan: string;
-  foto?: string;
-  dokumen?: AnggotaDokumen[];
-  keluarga?: AnggotaKeluarga[];
+  email: string;
+  tanggalMasuk: string;
+  status: "aktif" | "tidak aktif";
+  jenisKelamin: "pria" | "wanita";
+  foto: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export interface AnggotaDokumen {
-  id: string;
-  jenis: "KTP" | "KK" | "Sertifikat" | "BPKB" | "SK";
-  file: string; // base64 string
-  namaFile: string;
-  tanggalUpload: string;
-}
-
-export interface AnggotaKeluarga {
-  id: string;
-  nama: string;
-  hubungan: "Anak" | "Suami" | "Istri" | "Orang Tua" | "Saudara Kandung" | "Kerabat";
-  alamat: string;
-  noHp: string;
-}
-
 export interface Transaksi {
   id: string;
-  tanggal: string;
   anggotaId: string;
-  anggotaNama?: string;
-  jenis: "Simpan" | "Pinjam" | "Angsuran";
+  tanggal: string;
+  jenis: "simpanan" | "pinjaman" | "angsuran";
   jumlah: number;
-  keterangan?: string;
-  status: "Sukses" | "Pending" | "Gagal";
+  keterangan: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Simpanan {
+  id: string;
+  anggotaId: string;
+  tanggal: string;
+  jenis: "pokok" | "wajib" | "sukarela";
+  jumlah: number;
+  keterangan: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Pinjaman {
+  id: string;
+  anggotaId: string;
+  tanggal: string;
+  jumlah: number;
+  tenor: number;
+  sukuBunga: number;
+  keterangan: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Angsuran {
+  id: string;
+  pinjamanId: string;
+  tanggal: string;
+  jumlah: number;
+  keterangan: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Pengajuan {
   id: string;
-  tanggal: string;
   anggotaId: string;
-  anggotaNama: string;
-  jenis: "Simpan" | "Pinjam";
+  tanggal: string;
+  jenis: "simpanan" | "pinjaman";
   jumlah: number;
-  keterangan?: string;
-  status: "Menunggu" | "Disetujui" | "Ditolak";
+  keterangan: string;
+  status: "diajukan" | "disetujui" | "ditolak";
   createdAt: string;
   updatedAt: string;
 }
 
 export interface Pengaturan {
-  sukuBunga: {
-    pinjaman: number;
-    simpanan: number;
-    metodeBunga: "flat" | "menurun";
-  };
-  tenor: {
-    minTenor: number;
-    maxTenor: number;
-    defaultTenor: number;
-    tenorOptions: number[];
-  };
-  denda: {
-    persentase: number;
-    gracePeriod: number;
-    metodeDenda: "harian" | "bulanan";
-  };
+  id: string;
+  namaKoperasi: string;
+  alamatKoperasi: string;
+  noHpKoperasi: string;
+  emailKoperasi: string;
+  sukuBungaSimpanan: number;
+  sukuBungaPinjaman: number;
+  dendaKeterlambatan: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-// POS Types
 export interface ProdukItem {
   id: string;
   kode: string;
   nama: string;
-  kategori: string;
+  deskripsi: string;
   hargaBeli: number;
   hargaJual: number;
   stok: number;
-  satuan: string;
-  deskripsi?: string;
-  gambar?: string;
+  kategori: string;
+  gambar: string;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface Pemasok {
+  id: string;
+  nama: string;
+  alamat: string;
+  telepon: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Penjualan {
+  id: string;
+  tanggal: string;
+  totalHarga: number;
+  metodePembayaran: string;
+  status: "pending" | "selesai" | "batal";
+  detailPenjualan: DetailPenjualan[];
+  kasir: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DetailPenjualan {
+  id: string;
+  produkId: string;
+  namaProduk: string;
+  jumlah: number;
+  hargaSatuan: number;
+  subtotal: number;
+}
+
+export interface Pembelian {
+  id: string;
+  pemasokId: string;
+  tanggal: string;
+  totalHarga: number;
+  metodePembayaran: string;
+  status: "pending" | "selesai" | "batal";
+  detailPembelian: DetailPembelian[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DetailPembelian {
+  id: string;
+  produkId: string;
+  namaProduk: string;
+  jumlah: number;
+  hargaSatuan: number;
+  subtotal: number;
 }
 
 export interface Kasir {
@@ -99,71 +156,19 @@ export interface Kasir {
   role: "admin" | "kasir";
   aktif: boolean;
   createdAt: string;
-}
-
-export interface PenjualanItem {
-  produkId: string;
-  jumlah: number;
-  hargaSatuan: number;
-  total: number;
-  diskon?: number;
-}
-
-export interface Penjualan {
-  id: string;
-  nomorTransaksi: string;
-  tanggal: string;
-  kasirId: string;
-  items: PenjualanItem[];
-  subtotal: number;
-  diskon?: number;
-  pajak?: number;
-  total: number;
-  dibayar: number;
-  kembalian: number;
-  metodePembayaran: "cash" | "debit" | "kredit" | "qris";
-  status: "sukses" | "dibatalkan";
-  catatan?: string;
-  createdAt: string;
-}
-
-// Pembelian (Purchase) Types
-export interface PembelianItem {
-  produkId: string;
-  produkNama: string;
-  jumlah: number;
-  hargaSatuan: number;
-  total: number;
-}
-
-export interface Pembelian {
-  id: string;
-  nomorTransaksi: string;
-  tanggal: string;
-  pemasokId?: string;
-  pemasok: string;
-  items: PembelianItem[];
-  subtotal: number;
-  diskon?: number;
-  ppn?: number;
-  total: number;
-  status: "selesai" | "proses" | "dibatalkan";
-  catatan?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Pemasok {
-  id: string;
-  nama: string;
-  alamat?: string;
-  telepon?: string;
-  email?: string;
-  kontak?: string;
-  createdAt: string;
+  updatedAt: string;
 }
 
 // User Management Types
+export interface Role {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Permission {
   id: string;
   name: string;
@@ -172,24 +177,4 @@ export interface Permission {
   action: "read" | "create" | "update" | "delete" | "all";
 }
 
-export interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[]; // Permission IDs
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface User {
-  id: string;
-  username: string;
-  nama: string;
-  email: string;
-  roleId: string;
-  roleName?: string;
-  aktif: boolean;
-  lastLogin?: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// User Type is defined in user.ts

@@ -2,6 +2,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { useEffect } from "react";
+import { initUserManagementData } from "@/services/userManagementService";
 
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
@@ -51,6 +53,11 @@ import Pengaturan from "./pages/Pengaturan/Pengaturan";
 import Laporan from "./pages/Laporan/Laporan";
 
 function App() {
+  // Initialize user management data when app loads
+  useEffect(() => {
+    initUserManagementData();
+  }, []);
+  
   return (
     <ThemeProvider defaultTheme="light" storageKey="koperasi-theme">
       <BrowserRouter>

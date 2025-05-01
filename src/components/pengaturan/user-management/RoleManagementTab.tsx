@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Role } from "@/types";
 import { toast } from "@/components/ui/use-toast";
-import { getRoles, getPermissions, createRole, updateRole } from "@/services/user-management";
+import { getRoles, getPermissions, createRole, updateRole } from "@/services/userManagementService";
 import { Button } from "@/components/ui/button";
 import { RoleTable } from "../RoleTable";
 import { RoleForm } from "../RoleForm";
@@ -25,6 +25,7 @@ export function RoleManagementTab({ onDelete }: RoleManagementTabProps) {
   const [roles, setRoles] = useState<Role[]>(getRoles());
   const [currentRole, setCurrentRole] = useState<Role | undefined>(undefined);
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const permissions = getPermissions();
 
   const handleAddRole = () => {
     setCurrentRole(undefined);
@@ -94,7 +95,7 @@ export function RoleManagementTab({ onDelete }: RoleManagementTabProps) {
             </DialogHeader>
             <RoleForm 
               role={currentRole} 
-              permissions={getPermissions()} 
+              permissions={permissions} 
               onSubmit={handleSubmitRole} 
               onCancel={() => setRoleDialogOpen(false)} 
             />
@@ -107,6 +108,7 @@ export function RoleManagementTab({ onDelete }: RoleManagementTabProps) {
           roles={roles} 
           onEdit={handleEditRole} 
           onDelete={handleDeleteRole}
+          permissions={permissions}
         />
       </Card>
     </div>
