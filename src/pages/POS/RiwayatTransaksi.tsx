@@ -3,33 +3,18 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import Layout from "@/components/layout/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { History, Search, FileText, Trash } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { History } from "lucide-react";
 import { Penjualan } from "@/types";
 import { 
   getAllPenjualan, 
   deletePenjualan, 
   updatePenjualan 
 } from "@/services/penjualanService";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { formatRupiah } from "@/lib/utils";
+
+// Import refactored components
+import { TransactionFilters } from "@/components/transaksi/TransactionFilters";
+import { TransactionTable } from "@/components/transaksi/TransactionTable";
+import { EmptyTransactionAlert } from "@/components/transaksi/EmptyTransactionAlert";
 
 export default function RiwayatTransaksi() {
   const { toast } = useToast();
@@ -158,103 +143,28 @@ export default function RiwayatTransaksi() {
                 <History className="h-5 w-5 text-primary" />
                 <CardTitle>Riwayat Transaksi Penjualan</CardTitle>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="relative w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Cari transaksi..."
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    className="pl-8"
-                  />
-                </div>
-                <Select onValueChange={handleFilterStatusChange} defaultValue="all">
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Filter status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Semua Status</SelectItem>
-                    <SelectItem value="sukses">Sukses</SelectItem>
-                    <SelectItem value="dibatalkan">Dibatalkan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <TransactionFilters 
+                searchQuery={searchQuery}
+                filterStatus={filterStatus}
+                onSearchChange={handleSearchChange}
+                onFilterStatusChange={handleFilterStatusChange}
+              />
             </div>
           </CardHeader>
           <CardContent>
-            {penjualanList.length === 0 ? (
-              <Alert>
-                <AlertDescription>
-                  Belum ada data transaksi penjualan.
-                </AlertDescription>
-              </Alert>
-            ) : filteredPenjualan.length === 0 ? (
-              <Alert>
-                <AlertDescription>
-                  Tidak ada transaksi yang cocok dengan filter atau pencarian Anda.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nomor Transaksi</TableHead>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Pembayaran</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredPenjualan.map((penjualan) => (
-                    <TableRow key={penjualan.id}>
-                      <TableCell className="font-medium">{penjualan.nomorTransaksi}</TableCell>
-                      <TableCell>
-                        {new Date(penjualan.tanggal).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </TableCell>
-                      <TableCell>{formatRupiah(penjualan.total)}</TableCell>
-                      <TableCell>{formatPaymentMethod(penjualan.metodePembayaran)}</TableCell>
-                      <TableCell>
-                        <Badge variant={penjualan.status === "sukses" ? "success" : "destructive"}>
-                          {penjualan.status === "sukses" ? "Sukses" : "Dibatalkan"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right space-x-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleViewTransaction(penjualan.id)}
-                        >
-                          <FileText className="h-4 w-4 mr-1" /> Detail
-                        </Button>
-                        {penjualan.status === "sukses" && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleCancelTransaction(penjualan.id)}
-                          >
-                            Batalkan
-                          </Button>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => handleDeleteTransaction(penjualan.id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+            <EmptyTransactionAlert 
+              isEmpty={penjualanList.length === 0}
+              isFiltered={penjualanList.length > 0 && filteredPenjualan.length === 0}
+            />
+            
+            {penjualanList.length > 0 && filteredPenjualan.length > 0 && (
+              <TransactionTable 
+                transactions={filteredPenjualan}
+                formatPaymentMethod={formatPaymentMethod}
+                onViewTransaction={handleViewTransaction}
+                onCancelTransaction={handleCancelTransaction}
+                onDeleteTransaction={handleDeleteTransaction}
+              />
             )}
           </CardContent>
         </Card>
