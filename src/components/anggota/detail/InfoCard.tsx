@@ -2,7 +2,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Anggota } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { File } from "lucide-react";
+import { File, User } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -60,7 +60,10 @@ export function InfoCard({ anggota, totalSimpanan, totalPinjaman }: InfoCardProp
                 anggota.dokumen.map((doc) => (
                   <Dialog key={doc.id}>
                     <DialogTrigger asChild>
-                      <Badge variant="outline" className="cursor-pointer hover:bg-accent flex gap-1.5 items-center">
+                      <Badge 
+                        variant={doc.jenis === "KTP" || doc.jenis === "KK" ? "info" : "success"} 
+                        className="cursor-pointer hover:bg-accent flex gap-1.5 items-center py-1.5"
+                      >
                         <File size={14} /> {doc.jenis}
                       </Badge>
                     </DialogTrigger>
@@ -87,9 +90,40 @@ export function InfoCard({ anggota, totalSimpanan, totalPinjaman }: InfoCardProp
                   </Dialog>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">Tidak ada dokumen tersedia</p>
+                <div className="flex items-center text-sm text-muted-foreground gap-1.5">
+                  <File size={16} className="text-muted-foreground/70" />
+                  <span>Tidak ada dokumen tersedia</span>
+                </div>
               )}
             </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-medium mb-2">Data Keluarga</h3>
+            {anggota.keluarga && anggota.keluarga.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {anggota.keluarga.map((k) => (
+                  <div key={k.id} className="border p-3 rounded-md flex items-center gap-2">
+                    <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center">
+                      <User size={15} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{k.nama}</p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {k.hubungan}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center text-sm text-muted-foreground gap-1.5">
+                <User size={16} className="text-muted-foreground/70" />
+                <span>Tidak ada data keluarga</span>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

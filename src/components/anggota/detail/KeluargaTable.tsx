@@ -1,7 +1,8 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AnggotaKeluarga } from "@/types";
-import { User } from "lucide-react";
+import { User, Phone } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface KeluargaTableProps {
   keluarga: AnggotaKeluarga[];
@@ -37,8 +38,15 @@ export function KeluargaTable({ keluarga }: KeluargaTableProps) {
         {keluarga.map((k) => (
           <TableRow key={k.id}>
             <TableCell className="font-medium">{k.nama}</TableCell>
-            <TableCell>{k.hubungan}</TableCell>
-            <TableCell>{k.noHp}</TableCell>
+            <TableCell>
+              <Badge variant="outline" className="font-normal">
+                {k.hubungan}
+              </Badge>
+            </TableCell>
+            <TableCell className="flex items-center gap-1">
+              <Phone size={14} className="text-muted-foreground" />
+              {k.noHp}
+            </TableCell>
             <TableCell>{k.alamat}</TableCell>
           </TableRow>
         ))}

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -19,6 +20,7 @@ import { Anggota, Transaksi } from "@/types";
 import { ProfileCard } from "@/components/anggota/detail/ProfileCard";
 import { InfoCard } from "@/components/anggota/detail/InfoCard";
 import { TransactionTabs } from "@/components/anggota/detail/TransactionTabs";
+import { Badge } from "@/components/ui/badge";
 
 export default function AnggotaDetail() {
   const { id } = useParams<{ id: string }>();
@@ -95,6 +97,9 @@ export default function AnggotaDetail() {
   const pinjamanTransaksi = transaksi.filter(t => t.jenis === "Pinjam");
   const angsuranTransaksi = transaksi.filter(t => t.jenis === "Angsuran");
 
+  const keluargaCount = anggota.keluarga?.length || 0;
+  const dokumenCount = anggota.dokumen?.length || 0;
+
   return (
     <Layout pageTitle={`Detail Anggota - ${anggota.nama}`}>
       <div className="flex items-center gap-4 mb-6">
@@ -104,6 +109,18 @@ export default function AnggotaDetail() {
           </Button>
         </Link>
         <h1 className="page-title">Detail Anggota</h1>
+        <div className="ml-auto flex items-center gap-2">
+          {keluargaCount > 0 && (
+            <Badge variant="info" className="ml-2">
+              {keluargaCount} Anggota Keluarga
+            </Badge>
+          )}
+          {dokumenCount > 0 && (
+            <Badge variant="success" className="ml-2">
+              {dokumenCount} Dokumen
+            </Badge>
+          )}
+        </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

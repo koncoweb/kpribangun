@@ -12,6 +12,7 @@ import { AnggotaDetailsForm } from "@/components/anggota/AnggotaDetailsForm";
 import { FormActions } from "@/components/anggota/FormActions";
 import { DokumenUploadCard } from "@/components/anggota/DokumenUploadCard";
 import { KeluargaFormCard } from "@/components/anggota/KeluargaFormCard";
+import { StatusBadge } from "@/components/anggota/detail/StatusBadge";
 
 export default function AnggotaForm() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function AnggotaForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isFormDirty, setIsFormDirty] = useState(false);
   
   // Form state with properly typed jenisKelamin
   const [formData, setFormData] = useState({
@@ -33,9 +35,27 @@ export default function AnggotaForm() {
   });
   
   const [dokumen, setDokumen] = useState<AnggotaDokumen[]>([]);
+  const [initialDokumenCount, setInitialDokumenCount] = useState(0);
   const [keluarga, setKeluarga] = useState<AnggotaKeluarga[]>([]);
+  const [initialKeluargaCount, setInitialKeluargaCount] = useState(0);
   
   const isEditMode = !!id;
+  
+  // Handle browser back/navigation warning if form is dirty
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isFormDirty) {
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isFormDirty]);
   
   useEffect(() => {
     if (isEditMode) {
@@ -58,10 +78,12 @@ export default function AnggotaForm() {
         
         if (anggota.dokumen) {
           setDokumen(anggota.dokumen);
+          setInitialDokumenCount(anggota.dokumen.length);
         }
         
         if (anggota.keluarga) {
           setKeluarga(anggota.keluarga);
+          setInitialKeluargaCount(anggota.keluarga.length);
         }
       } else {
         toast({
@@ -72,11 +94,27 @@ export default function AnggotaForm() {
         navigate("/anggota");
       }
     }
+    
+    // Reset form dirty state after initial load
+    setIsFormDirty(false);
   }, [id, isEditMode, navigate, toast]);
+  
+  // Track changes to mark form as dirty
+  useEffect(() => {
+    if (isEditMode) {
+      const isDokumenChanged = dokumen.length !== initialDokumenCount;
+      const isKeluargaChanged = keluarga.length !== initialKeluargaCount;
+      
+      if (isDokumenChanged || isKeluargaChanged) {
+        setIsFormDirty(true);
+      }
+    }
+  }, [dokumen, keluarga, isEditMode, initialDokumenCount, initialKeluargaCount]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     setFormData(prev => ({ ...prev, [id]: value }));
+    setIsFormDirty(true);
   };
   
   const handleSelectChange = (name: string, value: string) => {
@@ -89,19 +127,33 @@ export default function AnggotaForm() {
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+    setIsFormDirty(true);
   };
   
   const handleImageChange = (imageDataUrl: string) => {
     setPreviewImage(imageDataUrl);
     setFormData(prev => ({ ...prev, foto: imageDataUrl }));
+    setIsFormDirty(true);
   };
   
   const handleDokumenChange = (updatedDokumen: AnggotaDokumen[]) => {
     setDokumen(updatedDokumen);
+    setIsFormDirty(true);
   };
   
   const handleKeluargaChange = (updatedKeluarga: AnggotaKeluarga[]) => {
     setKeluarga(updatedKeluarga);
+    setIsFormDirty(true);
+  };
+  
+  const handleCancel = () => {
+    if (isFormDirty) {
+      if (window.confirm("Perubahan yang belum disimpan akan hilang. Lanjutkan?")) {
+        navigate("/anggota");
+      }
+    } else {
+      navigate("/anggota");
+    }
   };
   
   const handleSubmit = (e: React.FormEvent) => {
@@ -135,7 +187,7 @@ export default function AnggotaForm() {
             title: "Anggota berhasil diperbarui",
             description: "Data anggota telah berhasil diperbarui",
           });
-          navigate("/anggota");
+          navigate(`/anggota/${id}`);
         } else {
           throw new Error("Gagal memperbarui anggota");
         }
@@ -147,8 +199,11 @@ export default function AnggotaForm() {
           title: "Anggota berhasil ditambahkan",
           description: `Anggota baru dengan ID ${newAnggota.id} telah berhasil disimpan`,
         });
-        navigate("/anggota");
+        navigate(`/anggota/${newAnggota.id}`);
       }
+      
+      // Reset form dirty state after successful submit
+      setIsFormDirty(false);
     } catch (error) {
       toast({
         title: "Terjadi kesalahan",
@@ -160,6 +215,9 @@ export default function AnggotaForm() {
     }
   };
 
+  const dokumenCount = dokumen.length;
+  const keluargaCount = keluarga.length;
+
   return (
     <Layout pageTitle={isEditMode ? "Edit Anggota" : "Tambah Anggota Baru"}>
       <div className="flex items-center gap-4 mb-6">
@@ -169,6 +227,17 @@ export default function AnggotaForm() {
           </Button>
         </Link>
         <h1 className="page-title">{isEditMode ? "Edit Anggota" : "Tambah Anggota Baru"}</h1>
+        <div className="ml-auto flex items-center gap-2">
+          {dokumenCount > 0 && (
+            <StatusBadge count={dokumenCount} type="dokumen" />
+          )}
+          {keluargaCount > 0 && (
+            <StatusBadge count={keluargaCount} type="keluarga" />
+          )}
+          {isFormDirty && (
+            <Badge variant="warning">Belum Disimpan</Badge>
+          )}
+        </div>
       </div>
       
       <form onSubmit={handleSubmit}>
@@ -199,11 +268,22 @@ export default function AnggotaForm() {
           />
         </div>
         
-        <FormActions 
-          isSubmitting={isSubmitting} 
-          isEditMode={isEditMode}
-          cancelHref="/anggota"
-        />
+        <div className="flex justify-end gap-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleCancel}
+            disabled={isSubmitting}
+          >
+            Batal
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting || (!isFormDirty && isEditMode)}
+          >
+            {isSubmitting ? "Menyimpan..." : isEditMode ? "Perbarui" : "Simpan"}
+          </Button>
+        </div>
       </form>
     </Layout>
   );
