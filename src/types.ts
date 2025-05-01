@@ -1,4 +1,3 @@
-
 // Anggota (Member) type
 export interface Anggota {
   id: string;
@@ -12,6 +11,7 @@ export interface Anggota {
   status: string; // Added status field
   tanggalBergabung?: string; // Added tanggalBergabung field
   foto?: string;
+  email: string; // Ensuring email is required
   dokumen?: AnggotaDokumen[];
   keluarga?: AnggotaKeluarga[];
   createdAt: string;
