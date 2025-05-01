@@ -1,19 +1,17 @@
 
 import React, { useState } from "react";
 import Layout from "@/components/layout/Layout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useInventory } from "@/hooks/useInventory";
-import { ProdukItem } from "@/types"; // Add this import
+import { ProdukItem } from "@/types";
 
 // Import the components
 import { InventoryView } from "@/components/inventory/InventoryView";
 import { ProductDetails } from "@/components/inventory/ProductDetails";
 import { ProductForm } from "@/components/inventory/ProductForm";
+import { ProductNotFound } from "@/components/inventory/ProductNotFound";
 import { StockAdjustmentDialog } from "@/components/inventory/StockAdjustmentDialog";
 import { DeleteConfirmDialog } from "@/components/inventory/DeleteConfirmDialog";
-import { ProductNotFound } from "@/components/inventory/ProductNotFound";
-
-type ViewMode = "list" | "details" | "add" | "edit";
+import { useInventoryUI } from "@/hooks/useInventoryUI";
 
 export default function StokBarang() {
   // Custom hook for inventory management
@@ -24,34 +22,32 @@ export default function StokBarang() {
     confirmDeleteProduct,
     handleAdjustStock 
   } = useInventory();
+  
+  // Custom hook for UI state management
+  const {
+    viewMode,
+    selectedProductId,
+    selectedProduct,
+    isStockDialogOpen,
+    isDeleteDialogOpen,
+    setViewMode,
+    setSelectedProductId,
+    setIsStockDialogOpen,
+    setIsDeleteDialogOpen,
+    handleViewProduct,
+    handleEditProduct,
+    handleDeleteProduct,
+    handleShowStockDialog
+  } = useInventoryUI(products);
 
-  // UI States
-  const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-
-  // Get selected product details
-  const selectedProduct = selectedProductId
-    ? products.find((p) => p.id === selectedProductId) || null
-    : null;
-
-  // View product details
-  const handleViewProduct = (id: string) => {
-    setSelectedProductId(id);
-    setViewMode("details");
-  };
-
-  // Start edit product
-  const handleEditProduct = (id: string) => {
-    setSelectedProductId(id);
-    setViewMode("edit");
-  };
-
-  // Delete product
-  const handleDeleteProduct = (id: string) => {
-    setSelectedProductId(id);
-    setIsDeleteDialogOpen(true);
+  // Handle form submission
+  const handleFormSubmit = async (productData: Omit<ProdukItem, "id" | "createdAt">) => {
+    const isEditing = viewMode === "edit";
+    const success = await handleSubmitProduct(productData, isEditing, selectedProductId || undefined);
+    
+    if (success) {
+      setViewMode("list");
+    }
   };
 
   // Confirm delete product
@@ -65,12 +61,6 @@ export default function StokBarang() {
     }
   };
 
-  // Show stock adjustment dialog
-  const handleShowStockDialog = (id: string) => {
-    setSelectedProductId(id);
-    setIsStockDialogOpen(true);
-  };
-
   // Handle stock adjustment
   const handleStockAdjustment = async (quantity: number) => {
     if (!selectedProductId) return;
@@ -78,16 +68,6 @@ export default function StokBarang() {
     const success = await handleAdjustStock(selectedProductId, quantity);
     if (success) {
       setIsStockDialogOpen(false);
-    }
-  };
-
-  // Handle form submission
-  const handleFormSubmit = async (productData: Omit<ProdukItem, "id" | "createdAt">) => {
-    const isEditing = viewMode === "edit";
-    const success = await handleSubmitProduct(productData, isEditing, selectedProductId || undefined);
-    
-    if (success) {
-      setViewMode("list");
     }
   };
 
