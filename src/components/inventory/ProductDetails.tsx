@@ -9,17 +9,24 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Edit, Package } from "lucide-react";
+import { Edit, Package, ArrowLeft, BarChart2 } from "lucide-react";
 
 interface ProductDetailsProps {
   product: ProdukItem;
   onEdit: () => void;
   onBack: () => void;
+  onAdjustStock: (id: string) => void;
 }
 
-export function ProductDetails({ product, onEdit, onBack }: ProductDetailsProps) {
+export function ProductDetails({ 
+  product, 
+  onEdit, 
+  onBack,
+  onAdjustStock 
+}: ProductDetailsProps) {
   return (
     <Card className="w-full">
       <CardHeader>
@@ -33,7 +40,7 @@ export function ProductDetails({ product, onEdit, onBack }: ProductDetailsProps)
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={onBack}>
-              Kembali
+              <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
             </Button>
             <Button onClick={onEdit}>
               <Edit className="mr-2 h-4 w-4" /> Edit
@@ -92,6 +99,15 @@ export function ProductDetails({ product, onEdit, onBack }: ProductDetailsProps)
           </div>
         )}
       </CardContent>
+      <CardFooter>
+        <Button 
+          variant="outline" 
+          className="w-full" 
+          onClick={() => onAdjustStock(product.id)}
+        >
+          <BarChart2 className="mr-2 h-4 w-4" /> Sesuaikan Stok
+        </Button>
+      </CardFooter>
     </Card>
   );
 }
