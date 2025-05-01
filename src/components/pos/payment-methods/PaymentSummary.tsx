@@ -17,7 +17,7 @@ export function PaymentSummary({
   total
 }: PaymentSummaryProps) {
   return (
-    <Card className="border-none shadow-none bg-muted">
+    <Card className="border bg-white">
       <CardContent className="p-4 space-y-2">
         <div className="flex justify-between">
           <span className="text-sm text-muted-foreground">Subtotal</span>
@@ -40,7 +40,7 @@ export function PaymentSummary({
         
         <div className="flex justify-between pt-2 border-t mt-1">
           <span className="font-semibold">Total</span>
-          <span className="font-bold text-lg">{formatRupiah(total)}</span>
+          <span className="font-bold text-lg text-primary">{formatRupiah(total)}</span>
         </div>
       </CardContent>
     </Card>

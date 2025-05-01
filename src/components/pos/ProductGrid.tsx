@@ -1,6 +1,7 @@
 
 import { ProdukItem } from "@/types";
 import { ProductCard } from "./ProductCard";
+import { ShoppingCart } from "lucide-react";
 
 interface ProductGridProps {
   products: ProdukItem[];
@@ -11,8 +12,8 @@ export function ProductGrid({ products, onAddToCart }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="py-12 text-center">
-        <div className="p-6 bg-gray-50 rounded-lg">
-          <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto" />
+        <div className="p-6 bg-primary/5 rounded-lg">
+          <ShoppingCart className="h-12 w-12 text-primary/30 mx-auto" />
           <p className="text-gray-500 mt-2">Tidak ada produk yang ditemukan</p>
         </div>
       </div>
@@ -31,6 +32,3 @@ export function ProductGrid({ products, onAddToCart }: ProductGridProps) {
     </div>
   );
 }
-
-// Add missing import
-import { ShoppingCart } from "lucide-react";

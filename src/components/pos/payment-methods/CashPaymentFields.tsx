@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatRupiah } from "@/lib/utils";
@@ -18,18 +18,11 @@ export function CashPaymentFields({
 }: CashPaymentFieldsProps) {
   // Predefined cash amount buttons
   const cashOptions = [
-    { label: formatRupiah(total), value: total },
-    { label: formatRupiah(5000), value: 5000 },
-    { label: formatRupiah(10000), value: 10000 },
+    { label: "Uang Pas", value: total },
     { label: formatRupiah(20000), value: 20000 },
     { label: formatRupiah(50000), value: 50000 },
     { label: formatRupiah(100000), value: 100000 }
   ];
-
-  // Set amount to total when total changes
-  useEffect(() => {
-    onChange(total);
-  }, [total, onChange]);
 
   // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,22 +37,22 @@ export function CashPaymentFields({
   return (
     <div className="space-y-3">
       <div>
-        <Label htmlFor="paid-amount" className="text-sm">Jumlah Dibayar</Label>
+        <Label htmlFor="paid-amount" className="text-sm font-medium">Jumlah Dibayar</Label>
         <Input
           id="paid-amount"
           type="text"
-          className="mt-1.5"
-          value={amountPaid.toString()}
+          className="mt-1.5 text-lg font-medium"
+          value={formatRupiah(amountPaid)}
           onChange={handleInputChange}
         />
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
         {cashOptions.map((option, index) => (
           <button
             key={index}
             type="button"
-            className={`py-1.5 px-2 text-xs rounded-md border transition-colors ${
+            className={`py-2 px-2 text-sm rounded-md border transition-colors ${
               amountPaid === option.value 
                 ? 'bg-primary text-white border-primary' 
                 : 'bg-background hover:bg-muted'
@@ -71,11 +64,11 @@ export function CashPaymentFields({
         ))}
       </div>
 
-      <Card className="border-none shadow-none bg-muted/50">
-        <CardContent className="p-3">
+      <Card className={`border ${change >= 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+        <CardContent className="p-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm">Kembalian:</span>
-            <span className={`font-medium ${amountPaid >= total ? 'text-green-600' : 'text-destructive'}`}>
+            <span className="text-sm font-medium">Kembalian:</span>
+            <span className={`text-lg font-bold ${amountPaid >= total ? 'text-green-600' : 'text-destructive'}`}>
               {amountPaid >= total ? formatRupiah(change) : 'Pembayaran Kurang'}
             </span>
           </div>

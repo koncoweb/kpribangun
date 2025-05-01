@@ -12,12 +12,12 @@ interface CartHeaderProps {
 
 export function CartHeader({ itemCount, onClear }: CartHeaderProps) {
   return (
-    <CardHeader className="border-b flex justify-between items-center">
+    <CardHeader className="border-b flex justify-between items-center bg-primary/5">
       <div className="flex items-center gap-2">
-        <ShoppingCart className="h-5 w-5" />
+        <ShoppingCart className="h-5 w-5 text-primary" />
         <h2 className="text-lg font-medium">Keranjang</h2>
         {itemCount > 0 && (
-          <Badge variant="secondary">
+          <Badge variant="secondary" className="bg-primary/20 text-primary hover:bg-primary/30">
             {itemCount} item
           </Badge>
         )}

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PenjualanItem, Kasir } from "@/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import { PaymentMethodSelector, PaymentMethod } from "./payment-methods/PaymentMethodSelector";
 import { PaymentSummary } from "./payment-methods/PaymentSummary";
 import { CashPaymentFields } from "./payment-methods/CashPaymentFields";
+import { formatRupiah } from "@/lib/utils";
 
 interface CartSummaryProps {
   items: PenjualanItem[];
@@ -48,6 +49,13 @@ export function CartSummary({
   const [amountPaid, setAmountPaid] = useState(total);
   const [notes, setNotes] = useState("");
   
+  // Update amount paid when total changes
+  useEffect(() => {
+    if (paymentMethod === "cash") {
+      setAmountPaid(total);
+    }
+  }, [total, paymentMethod]);
+  
   const change = amountPaid - total;
   
   const handleCheckout = () => {
@@ -63,6 +71,11 @@ export function CartSummary({
       catatan: notes
     });
   };
+
+  const formIsValid = 
+    items.length > 0 &&
+    kasirId !== "" &&
+    (paymentMethod !== "cash" || amountPaid >= total);
   
   return (
     <div className="space-y-5">
@@ -73,9 +86,9 @@ export function CartSummary({
         total={total}
       />
       
-      <div className="space-y-4">
+      <div className="space-y-4 bg-white p-4 rounded-md border">
         <div>
-          <Label htmlFor="kasir" className="text-sm">Kasir</Label>
+          <Label htmlFor="kasir" className="text-sm font-medium">Nama Kasir</Label>
           <Select value={kasirId} onValueChange={setKasirId}>
             <SelectTrigger id="kasir" className="mt-1.5">
               <SelectValue placeholder="Pilih kasir" />
@@ -91,7 +104,7 @@ export function CartSummary({
         </div>
         
         <div className="space-y-1.5">
-          <Label className="text-sm">Metode Pembayaran</Label>
+          <Label className="text-sm font-medium">Metode Pembayaran</Label>
           <PaymentMethodSelector
             selectedMethod={paymentMethod}
             onMethodChange={setPaymentMethod}
@@ -107,7 +120,7 @@ export function CartSummary({
         )}
         
         <div>
-          <Label htmlFor="notes" className="text-sm">Catatan</Label>
+          <Label htmlFor="notes" className="text-sm font-medium">Catatan</Label>
           <Input
             id="notes"
             placeholder="Tambahkan catatan (opsional)"
@@ -118,23 +131,17 @@ export function CartSummary({
         </div>
         
         <Button
-          className="w-full gap-2 mt-2"
-          size="lg"
+          className="w-full gap-2 mt-4 py-6 text-lg font-medium bg-primary hover:bg-primary/90"
           onClick={handleCheckout}
-          disabled={
-            items.length === 0 ||
-            !kasirId ||
-            (paymentMethod === "cash" && amountPaid < total) ||
-            processing
-          }
+          disabled={!formIsValid || processing}
         >
           {processing ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" /> Memproses...
+              <Loader2 className="h-5 w-5 animate-spin" /> Memproses...
             </>
           ) : (
             <>
-              Bayar Sekarang <ArrowRight className="h-4 w-4" />
+              Bayar {formatRupiah(total)} <ArrowRight className="h-5 w-5" />
             </>
           )}
         </Button>

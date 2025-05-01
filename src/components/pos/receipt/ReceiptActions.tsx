@@ -1,4 +1,5 @@
 
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Penjualan } from "@/types";
@@ -19,7 +20,7 @@ export function ReceiptActions({ receiptRef, sale, onClose }: ReceiptActionsProp
     documentTitle: `Receipt-${sale.nomorTransaksi}`,
     onAfterPrint: () => {
       toast({
-        title: "Struk telah dicetak",
+        title: "Struk Dicetak",
         description: `Struk ${sale.nomorTransaksi} berhasil dicetak.`,
       });
     },
@@ -29,43 +30,48 @@ export function ReceiptActions({ receiptRef, sale, onClose }: ReceiptActionsProp
 
   // Handle sharing
   const handleShare = async () => {
-    try {
-      if (navigator.share) {
+    if (navigator.share) {
+      try {
         await navigator.share({
-          title: `Struk Pembayaran ${sale.nomorTransaksi}`,
-          text: `Pembayaran sebesar ${sale.total} berhasil dilakukan.`,
+          title: "Struk Pembelian",
+          text: `Struk pembelian dengan nomor ${sale.nomorTransaksi}`,
         });
-      } else {
-        throw new Error("Web Share API not supported");
+      } catch (error) {
+        toast({
+          title: "Sharing tidak tersedia",
+          description: "Fitur share tidak tersedia di perangkat Anda",
+          variant: "destructive",
+        });
       }
-    } catch (error) {
+    } else {
       toast({
-        title: "Berbagi struk",
-        description: "Maaf, berbagi struk tidak didukung di perangkat ini.",
+        title: "Sharing tidak tersedia",
+        description: "Fitur share tidak tersedia di perangkat Anda",
+        variant: "destructive",
       });
     }
   };
 
   return (
     <>
-      <Button
+      <Button 
         variant="outline"
-        className="gap-2 w-full sm:w-auto"
+        className="flex-1 gap-2"
         onClick={handlePrint}
       >
         <Printer className="h-4 w-4" /> Cetak Struk
       </Button>
-
-      <Button
+      
+      <Button 
         variant="outline"
-        className="gap-2 w-full sm:w-auto"
+        className="flex-1 gap-2"
         onClick={handleShare}
       >
         <Share2 className="h-4 w-4" /> Bagikan
       </Button>
-
-      <Button
-        className="gap-2 w-full sm:w-auto"
+      
+      <Button 
+        className="flex-1 gap-2"
         onClick={onClose}
       >
         <Check className="h-4 w-4" /> Selesai
