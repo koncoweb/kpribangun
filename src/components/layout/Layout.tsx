@@ -1,6 +1,6 @@
 
 import { ReactNode } from "react";
-import Sidebar from "./Sidebar";
+import SidebarMenu from "./SidebarMenu";
 import Header from "./Header";
 import "@/styles/form-styles.css";
 
@@ -15,7 +15,7 @@ export default function Layout({ children, pageTitle }: LayoutProps) {
   
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar />
+      <SidebarMenu />
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header pageTitle={pageTitle} />
