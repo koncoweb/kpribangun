@@ -71,10 +71,10 @@ export function SidebarNav() {
           path: "/transaksi", 
           icon: CreditCard, 
           subItems: [
-            { title: "Pengajuan", path: "/transaksi/pengajuan", icon: CreditCard },
-            { title: "Simpan", path: "/transaksi/simpan", icon: CreditCard },
-            { title: "Pinjam", path: "/transaksi/pinjam", icon: CreditCard },
-            { title: "Angsuran", path: "/transaksi/angsuran", icon: CreditCard }
+            { title: "Pengajuan", path: "/transaksi/pengajuan", icon: FileText },
+            { title: "Simpan", path: "/transaksi/simpan", icon: FileText },
+            { title: "Pinjam", path: "/transaksi/pinjam", icon: FileText },
+            { title: "Angsuran", path: "/transaksi/angsuran", icon: FileText }
           ] 
         },
         { title: "Laporan", path: "/laporan", icon: FileText }
