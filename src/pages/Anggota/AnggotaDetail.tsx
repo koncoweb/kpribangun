@@ -8,7 +8,8 @@ import {
   calculateTotalSimpanan, 
   calculateTotalPinjaman,
   getOverdueLoans,
-  getUpcomingDueLoans 
+  getUpcomingDueLoans,
+  calculatePenalty
 } from "@/services/transaksi";
 import Layout from "@/components/layout/Layout";
 import AnggotaLayout from "@/components/layout/AnggotaLayout";
@@ -51,11 +52,16 @@ export default function AnggotaDetail() {
     const totalSimpanan = id ? calculateTotalSimpanan(id) : 0;
     const totalPinjaman = id ? calculateTotalPinjaman(id) : 0;
     const jatuhTempo = id ? getUpcomingDueLoans(30) : [];
-    const tunggakan = id ? getOverdueLoans() : [];
+    const rawTunggakan = id ? getOverdueLoans() : [];
     
-    // Filter data specific to this member
+    // Filter data specific to this member and add penalty information
     const filteredJatuhTempo = jatuhTempo.filter(item => item.transaksi.anggotaId === id);
-    const filteredTunggakan = tunggakan.filter(item => item.transaksi.anggotaId === id);
+    const filteredTunggakan = rawTunggakan
+      .filter(item => item.transaksi.anggotaId === id)
+      .map(item => ({
+        ...item,
+        penalty: calculatePenalty(item.transaksi.jumlah, item.daysOverdue)
+      }));
     
     const keluargaCount = anggota?.keluarga?.length || 0;
     const dokumenCount = anggota?.dokumen?.length || 0;
