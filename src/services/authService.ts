@@ -77,7 +77,7 @@ export const loginWithAnggotaId = async (anggotaId: string, password: string): P
       id: `anggota-${anggota.id}`,
       username: anggota.nama,
       nama: anggota.nama,
-      email: anggota.email || "",  // Use optional chaining and provide a default empty string
+      email: anggota.email || "",  // Handle potentially missing email with a default empty string
       roleId: "anggota", // Special role for anggota
       anggotaId: anggota.id,
       aktif: true, // Using "aktif" instead of "active" to match the User type
