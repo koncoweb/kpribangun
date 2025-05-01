@@ -1,3 +1,4 @@
+
 import { useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { 
@@ -23,7 +24,8 @@ import {
   Cog, 
   ChevronDown,
   UserCheck,
-  Truck
+  Truck,
+  LayoutDashboard
 } from "lucide-react";
 
 import {
@@ -61,6 +63,13 @@ export function SidebarNav() {
 
   // Define menu structure
   const menuSections: MenuSectionType[] = [
+    {
+      title: "Menu Utama",
+      icon: LayoutDashboard,
+      items: [
+        { title: "Dashboard", path: "/", icon: LayoutDashboard },
+      ]
+    },
     {
       title: "Koperasi",
       icon: PiggyBank,

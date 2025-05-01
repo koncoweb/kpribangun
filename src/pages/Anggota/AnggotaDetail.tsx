@@ -13,10 +13,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, User, Phone, MapPin, Calendar } from "lucide-react";
+import { ArrowLeft, Edit, User, Phone, MapPin, Calendar, AlertTriangle, Clock } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAnggotaById } from "@/services/anggotaService";
-import { getTransaksiByAnggotaId, calculateTotalSimpanan, calculateTotalPinjaman } from "@/services/transaksiService";
+import { 
+  getTransaksiByAnggotaId, 
+  calculateTotalSimpanan, 
+  calculateTotalPinjaman, 
+  getOverdueLoans,
+  getUpcomingDueLoans,
+  calculateJatuhTempo,
+  calculatePenalty
+} from "@/services/transaksiService";
 import { Anggota, Transaksi } from "@/types";
 
 export default function AnggotaDetail() {
@@ -25,13 +33,48 @@ export default function AnggotaDetail() {
   const { toast } = useToast();
   const [anggota, setAnggota] = useState<Anggota | null>(null);
   const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
+  const [jatuhTempo, setJatuhTempo] = useState<{
+    transaksi: Transaksi;
+    jatuhTempo: string;
+    daysUntilDue: number;
+  }[]>([]);
+  const [tunggakan, setTunggakan] = useState<{
+    transaksi: Transaksi;
+    jatuhTempo: string;
+    daysOverdue: number;
+    penalty: number;
+  }[]>([]);
   
   useEffect(() => {
     if (id) {
       const foundAnggota = getAnggotaById(id);
       if (foundAnggota) {
         setAnggota(foundAnggota);
-        setTransaksi(getTransaksiByAnggotaId(id));
+        
+        // Get all transactions for this member
+        const anggotaTransaksi = getTransaksiByAnggotaId(id);
+        setTransaksi(anggotaTransaksi);
+        
+        // Get upcoming due loans
+        const upcomingDue = getUpcomingDueLoans()
+          .filter(item => item.transaksi.anggotaId === id)
+          .map(item => ({
+            transaksi: item.transaksi,
+            jatuhTempo: item.jatuhTempo,
+            daysUntilDue: item.daysUntilDue
+          }));
+        setJatuhTempo(upcomingDue);
+        
+        // Get overdue loans
+        const overdue = getOverdueLoans()
+          .filter(item => item.transaksi.anggotaId === id)
+          .map(item => ({
+            transaksi: item.transaksi,
+            jatuhTempo: item.jatuhTempo,
+            daysOverdue: item.daysOverdue,
+            penalty: calculatePenalty(item.transaksi.jumlah, item.daysOverdue)
+          }));
+        setTunggakan(overdue);
       } else {
         toast({
           title: "Anggota tidak ditemukan",
@@ -171,6 +214,8 @@ export default function AnggotaDetail() {
               <TabsTrigger value="simpanan">Simpanan</TabsTrigger>
               <TabsTrigger value="pinjaman">Pinjaman</TabsTrigger>
               <TabsTrigger value="angsuran">Angsuran</TabsTrigger>
+              <TabsTrigger value="jatuhTempo">Jatuh Tempo</TabsTrigger>
+              <TabsTrigger value="tunggakan">Tunggakan</TabsTrigger>
             </TabsList>
             
             <TabsContent value="semua">
@@ -184,6 +229,12 @@ export default function AnggotaDetail() {
             </TabsContent>
             <TabsContent value="angsuran">
               <TransaksiTable transaksi={angsuranTransaksi} />
+            </TabsContent>
+            <TabsContent value="jatuhTempo">
+              <JatuhTempoTable jatuhTempo={jatuhTempo} />
+            </TabsContent>
+            <TabsContent value="tunggakan">
+              <TunggakanTable tunggakan={tunggakan} />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -246,6 +297,135 @@ function TransaksiTable({ transaksi }: { transaksi: Transaksi[] }) {
                     {tr.status}
                   </span>
                 </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function JatuhTempoTable({ jatuhTempo }: { 
+  jatuhTempo: {
+    transaksi: Transaksi;
+    jatuhTempo: string;
+    daysUntilDue: number;
+  }[] 
+}) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+  };
+  
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Tanggal Pinjam</TableHead>
+            <TableHead>Jumlah</TableHead>
+            <TableHead>Jatuh Tempo</TableHead>
+            <TableHead>Sisa Hari</TableHead>
+            <TableHead>Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {jatuhTempo.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-10">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <Clock className="h-8 w-8 text-gray-400" />
+                  <p>Tidak ada pinjaman yang akan jatuh tempo</p>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : (
+            jatuhTempo.map((item) => (
+              <TableRow key={item.transaksi.id}>
+                <TableCell className="font-medium">{item.transaksi.id}</TableCell>
+                <TableCell>{formatDate(item.transaksi.tanggal)}</TableCell>
+                <TableCell>Rp {item.transaksi.jumlah.toLocaleString("id-ID")}</TableCell>
+                <TableCell>{formatDate(item.jatuhTempo)}</TableCell>
+                <TableCell>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                    item.daysUntilDue <= 7 ? "bg-red-100 text-red-800" : 
+                    item.daysUntilDue <= 14 ? "bg-amber-100 text-amber-800" : 
+                    "bg-blue-100 text-blue-800"
+                  }`}>
+                    {item.daysUntilDue} hari
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                    Akan Jatuh Tempo
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function TunggakanTable({ tunggakan }: { 
+  tunggakan: {
+    transaksi: Transaksi;
+    jatuhTempo: string;
+    daysOverdue: number;
+    penalty: number;
+  }[] 
+}) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+  };
+  
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>ID</TableHead>
+            <TableHead>Tanggal Pinjam</TableHead>
+            <TableHead>Jumlah</TableHead>
+            <TableHead>Jatuh Tempo</TableHead>
+            <TableHead>Keterlambatan</TableHead>
+            <TableHead>Denda</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {tunggakan.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-10">
+                <div className="flex flex-col items-center justify-center gap-2">
+                  <AlertTriangle className="h-8 w-8 text-gray-400" />
+                  <p>Tidak ada pinjaman yang menunggak</p>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : (
+            tunggakan.map((item) => (
+              <TableRow key={item.transaksi.id}>
+                <TableCell className="font-medium">{item.transaksi.id}</TableCell>
+                <TableCell>{formatDate(item.transaksi.tanggal)}</TableCell>
+                <TableCell>Rp {item.transaksi.jumlah.toLocaleString("id-ID")}</TableCell>
+                <TableCell>{formatDate(item.jatuhTempo)}</TableCell>
+                <TableCell>
+                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800`}>
+                    {item.daysOverdue} hari
+                  </span>
+                </TableCell>
+                <TableCell>Rp {item.penalty.toLocaleString("id-ID")}</TableCell>
               </TableRow>
             ))
           )}
