@@ -114,6 +114,7 @@ function App() {
           
           {/* Admin routes */}
           <Route path="/user-management" element={<UserManagement />} />
+          <Route path="/users" element={<UserManagement />} /> {/* Add this route to match sidebar menu */}
           <Route path="/pengaturan" element={<Pengaturan />} />
           
           {/* Laporan route */}

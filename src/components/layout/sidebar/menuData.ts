@@ -91,7 +91,7 @@ export const menuSections: MenuSectionType[] = [
     title: "Pengaturan",
     icon: Settings,
     items: [
-      { title: "User Management", path: "/users", icon: UserCheck },
+      { title: "User Management", path: "/user-management", icon: UserCheck },
       { title: "Hak Akses", path: "/pengaturan/roles", icon: Shield },
       { 
         title: "Koperasi", 
