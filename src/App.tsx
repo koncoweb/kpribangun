@@ -30,6 +30,20 @@ import KuitansiPembayaran from "./pages/POS/KuitansiPembayaran";
 import LaporanJualBeli from "./pages/POS/LaporanJualBeli";
 import LaporanRugiLaba from "./pages/POS/LaporanRugiLaba";
 
+// Transaksi Subsection Pages
+import PengajuanList from "./pages/Transaksi/Pengajuan/PengajuanList";
+import PengajuanForm from "./pages/Transaksi/Pengajuan/PengajuanForm";
+import PengajuanDetail from "./pages/Transaksi/Pengajuan/PengajuanDetail";
+import SimpanList from "./pages/Transaksi/Simpan/SimpanList";
+import SimpanForm from "./pages/Transaksi/Simpan/SimpanForm";
+import SimpanDetail from "./pages/Transaksi/Simpan/SimpanDetail";
+import PinjamList from "./pages/Transaksi/Pinjam/PinjamList";
+import PinjamForm from "./pages/Transaksi/Pinjam/PinjamForm";
+import PinjamDetail from "./pages/Transaksi/Pinjam/PinjamDetail";
+import AngsuranList from "./pages/Transaksi/Angsuran/AngsuranList";
+import AngsuranForm from "./pages/Transaksi/Angsuran/AngsuranForm";
+import AngsuranDetail from "./pages/Transaksi/Angsuran/AngsuranDetail";
+
 // Placeholder components for new routes
 const Placeholder = ({ title }: { title: string }) => (
   <div className="p-8 text-center">
@@ -57,10 +71,28 @@ const App = () => (
           <Route path="/transaksi" element={<TransaksiList />} />
           <Route path="/transaksi/baru" element={<TransaksiForm />} />
           <Route path="/transaksi/:id" element={<TransaksiDetail />} />
-          <Route path="/transaksi/pengajuan" element={<Placeholder title="Pengajuan" />} />
-          <Route path="/transaksi/simpan" element={<Placeholder title="Simpan" />} />
-          <Route path="/transaksi/pinjam" element={<Placeholder title="Pinjam" />} />
-          <Route path="/transaksi/angsuran" element={<Placeholder title="Angsuran" />} />
+          
+          {/* Pengajuan Routes */}
+          <Route path="/transaksi/pengajuan" element={<PengajuanList />} />
+          <Route path="/transaksi/pengajuan/tambah" element={<PengajuanForm />} />
+          <Route path="/transaksi/pengajuan/:id" element={<PengajuanDetail />} />
+          <Route path="/transaksi/pengajuan/:id/edit" element={<PengajuanForm />} />
+          
+          {/* Simpan Routes */}
+          <Route path="/transaksi/simpan" element={<SimpanList />} />
+          <Route path="/transaksi/simpan/tambah" element={<SimpanForm />} />
+          <Route path="/transaksi/simpan/:id" element={<SimpanDetail />} />
+          
+          {/* Pinjam Routes */}
+          <Route path="/transaksi/pinjam" element={<PinjamList />} />
+          <Route path="/transaksi/pinjam/tambah" element={<PinjamForm />} />
+          <Route path="/transaksi/pinjam/:id" element={<PinjamDetail />} />
+          
+          {/* Angsuran Routes */}
+          <Route path="/transaksi/angsuran" element={<AngsuranList />} />
+          <Route path="/transaksi/angsuran/tambah" element={<AngsuranForm />} />
+          <Route path="/transaksi/angsuran/:id" element={<AngsuranDetail />} />
+          
           <Route path="/laporan" element={<Laporan />} />
           
           {/* KPRI Mart Routes */}

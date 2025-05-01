@@ -1,0 +1,410 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import Layout from "@/components/layout/Layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { getAllAnggota } from "@/services/anggotaService";
+import { Anggota, Transaksi } from "@/types";
+import { FormActions } from "@/components/anggota/FormActions";
+import { 
+  calculateTotalPinjaman, 
+  createTransaksi, 
+  getAllTransaksi, 
+  getTransaksiById 
+} from "@/services/transaksiService";
+
+export default function AngsuranForm() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [pinjamanList, setPinjamanList] = useState<Transaksi[]>([]);
+  
+  // Get pinjamanId from location state if available
+  const initialPinjamanId = location.state?.pinjamanId || "";
+  const [selectedAnggotaId, setSelectedAnggotaId] = useState<string>("");
+  
+  const [formData, setFormData] = useState({
+    tanggal: new Date().toISOString().split('T')[0],
+    anggotaId: "",
+    pinjamanId: initialPinjamanId,
+    jumlah: 0,
+    keterangan: ""
+  });
+  
+  const [pinjamanInfo, setPinjamanInfo] = useState({
+    total: 0,
+    terbayar: 0,
+    sisaPinjaman: 0
+  });
+  
+  useEffect(() => {
+    // Load anggota list
+    const loadedAnggota = getAllAnggota();
+    setAnggotaList(loadedAnggota);
+    
+    // Load all transaksi for pinjaman options
+    const allTransaksi = getAllTransaksi();
+    const pinjamanTransaksi = allTransaksi.filter(t => t.jenis === "Pinjam" && t.status === "Sukses");
+    setPinjamanList(pinjamanTransaksi);
+    
+    // If pinjamanId is provided from state, load the pinjaman details
+    if (initialPinjamanId) {
+      const pinjaman = getTransaksiById(initialPinjamanId);
+      if (pinjaman) {
+        setFormData(prev => ({
+          ...prev,
+          anggotaId: pinjaman.anggotaId,
+        }));
+        setSelectedAnggotaId(pinjaman.anggotaId);
+        loadPinjamanInfo(pinjaman.anggotaId);
+      }
+    }
+  }, [initialPinjamanId]);
+  
+  // Load pinjaman info when anggota changes
+  const loadPinjamanInfo = (anggotaId: string) => {
+    const totalPinjaman = calculateTotalPinjaman(anggotaId);
+    const allTransaksi = getAllTransaksi();
+    
+    // Calculate total pinjaman
+    const totalPinjamanAmount = allTransaksi
+      .filter(t => t.anggotaId === anggotaId && t.jenis === "Pinjam" && t.status === "Sukses")
+      .reduce((total, t) => total + t.jumlah, 0);
+    
+    // Calculate total angsuran already paid
+    const totalAngsuran = allTransaksi
+      .filter(t => t.anggotaId === anggotaId && t.jenis === "Angsuran" && t.status === "Sukses")
+      .reduce((total, t) => total + t.jumlah, 0);
+    
+    setPinjamanInfo({
+      total: totalPinjamanAmount,
+      terbayar: totalAngsuran,
+      sisaPinjaman: totalPinjaman
+    });
+    
+    // Filter pinjaman list to only show this anggota's pinjaman
+    const anggotaPinjaman = pinjamanList.filter(p => p.anggotaId === anggotaId);
+    setPinjamanList(anggotaPinjaman);
+    
+    // If there's only one pinjaman, select it automatically
+    if (anggotaPinjaman.length === 1) {
+      setFormData(prev => ({
+        ...prev,
+        pinjamanId: anggotaPinjaman[0].id
+      }));
+    }
+  };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [id]: id === "jumlah" ? Number(value) : value
+    }));
+  };
+  
+  const handleSelectAnggota = (anggotaId: string) => {
+    setSelectedAnggotaId(anggotaId);
+    setFormData(prev => ({ 
+      ...prev, 
+      anggotaId,
+      pinjamanId: "" // Reset pinjamanId when anggota changes
+    }));
+    
+    loadPinjamanInfo(anggotaId);
+  };
+  
+  const handleSelectPinjaman = (pinjamanId: string) => {
+    setFormData(prev => ({ ...prev, pinjamanId }));
+    
+    // Get pinjaman details to suggest angsuran amount
+    const pinjaman = getTransaksiById(pinjamanId);
+    if (pinjaman) {
+      // Try to parse the installment amount from the keterangan
+      try {
+        const angsuranMatch = pinjaman.keterangan?.match(/Angsuran per bulan: Rp ([0-9,.]+)/);
+        if (angsuranMatch && angsuranMatch[1]) {
+          const suggestedAmount = parseInt(angsuranMatch[1].replace(/[,.]/g, ""));
+          if (!isNaN(suggestedAmount)) {
+            setFormData(prev => ({ ...prev, jumlah: suggestedAmount }));
+          }
+        }
+      } catch (error) {
+        console.error("Failed to parse angsuran amount", error);
+      }
+    }
+  };
+  
+  const validateForm = () => {
+    if (!formData.tanggal) {
+      toast({
+        title: "Tanggal wajib diisi",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!formData.anggotaId) {
+      toast({
+        title: "Anggota wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!formData.pinjamanId) {
+      toast({
+        title: "Pinjaman wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!formData.jumlah || formData.jumlah <= 0) {
+      toast({
+        title: "Jumlah angsuran harus lebih dari 0",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (formData.jumlah > pinjamanInfo.sisaPinjaman) {
+      toast({
+        title: "Jumlah angsuran melebihi sisa pinjaman",
+        description: `Sisa pinjaman yang harus dibayar adalah Rp ${pinjamanInfo.sisaPinjaman.toLocaleString("id-ID")}`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsSubmitting(true);
+    
+    try {
+      // Get pinjaman details for reference
+      const pinjaman = getTransaksiById(formData.pinjamanId);
+      const keteranganPinjaman = pinjaman ? `Angsuran untuk pinjaman #${formData.pinjamanId}` : "";
+      
+      // Create angsuran transaksi
+      const newTransaksi = createTransaksi({
+        tanggal: formData.tanggal,
+        anggotaId: formData.anggotaId,
+        jenis: "Angsuran",
+        jumlah: formData.jumlah,
+        keterangan: formData.keterangan ? `${keteranganPinjaman}: ${formData.keterangan}` : keteranganPinjaman,
+        status: "Sukses"
+      });
+      
+      if (newTransaksi) {
+        toast({
+          title: "Angsuran berhasil disimpan",
+          description: `Angsuran dengan ID ${newTransaksi.id} telah berhasil disimpan`,
+        });
+        navigate("/transaksi/angsuran");
+      } else {
+        throw new Error("Gagal menyimpan angsuran");
+      }
+    } catch (error) {
+      toast({
+        title: "Terjadi kesalahan",
+        description: "Gagal menyimpan angsuran. Silakan coba lagi.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
+  return (
+    <Layout pageTitle="Tambah Angsuran">
+      <div className="flex items-center gap-4 mb-6">
+        <Link to="/transaksi/angsuran">
+          <Button variant="outline" size="icon">
+            <ArrowLeft size={16} />
+          </Button>
+        </Link>
+        <h1 className="page-title">Tambah Angsuran</h1>
+      </div>
+      
+      <Card>
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="tanggal" className="required">Tanggal</Label>
+                  <Input 
+                    id="tanggal" 
+                    type="date"
+                    value={formData.tanggal}
+                    onChange={handleInputChange}
+                    required 
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="idTransaksi">ID Transaksi</Label>
+                  <Input id="idTransaksi" placeholder="ID akan digenerate otomatis" disabled />
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="anggotaId" className="required">Pilih Anggota</Label>
+                <Select 
+                  value={formData.anggotaId}
+                  onValueChange={handleSelectAnggota}
+                  required
+                  disabled={!!initialPinjamanId} // Disable if pinjamanId is provided
+                >
+                  <SelectTrigger id="anggotaId">
+                    <SelectValue placeholder="Pilih anggota" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {anggotaList.map((anggota) => (
+                      <SelectItem key={anggota.id} value={anggota.id}>
+                        {anggota.nama} ({anggota.id})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedAnggotaId && pinjamanInfo.sisaPinjaman > 0 && (
+                <div className="bg-amber-50 p-4 rounded-md">
+                  <p className="font-semibold mb-2">Informasi Pinjaman</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Total Pinjaman:</p>
+                      <p className="font-medium">{formatCurrency(pinjamanInfo.total)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Total Terbayar:</p>
+                      <p className="font-medium">{formatCurrency(pinjamanInfo.terbayar)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Sisa Pinjaman:</p>
+                      <p className="font-medium">{formatCurrency(pinjamanInfo.sisaPinjaman)}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {selectedAnggotaId && pinjamanInfo.sisaPinjaman <= 0 && (
+                <div className="bg-green-50 p-4 rounded-md">
+                  <p className="text-green-800">
+                    Anggota ini tidak memiliki pinjaman yang perlu dibayar.
+                  </p>
+                </div>
+              )}
+              
+              {selectedAnggotaId && pinjamanList.length > 0 && (
+                <>
+                  <div>
+                    <Label htmlFor="pinjamanId" className="required">Pilih Pinjaman</Label>
+                    <Select 
+                      value={formData.pinjamanId}
+                      onValueChange={handleSelectPinjaman}
+                      required
+                      disabled={pinjamanList.length === 0}
+                    >
+                      <SelectTrigger id="pinjamanId">
+                        <SelectValue placeholder="Pilih pinjaman" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {pinjamanList.map((pinjaman) => (
+                          <SelectItem key={pinjaman.id} value={pinjaman.id}>
+                            {pinjaman.id} - {formatCurrency(pinjaman.jumlah)} ({new Date(pinjaman.tanggal).toLocaleDateString("id-ID")})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="jumlah" className="required">Jumlah Angsuran (Rp)</Label>
+                    <Input 
+                      id="jumlah" 
+                      placeholder="Contoh: 500000" 
+                      type="number" 
+                      min="0" 
+                      max={pinjamanInfo.sisaPinjaman}
+                      value={formData.jumlah || ""}
+                      onChange={handleInputChange}
+                      required 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="keterangan">Keterangan</Label>
+                    <Textarea 
+                      id="keterangan" 
+                      placeholder="Masukkan keterangan (opsional)" 
+                      rows={3}
+                      value={formData.keterangan}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                  
+                  <FormActions 
+                    isSubmitting={isSubmitting} 
+                    isEditMode={false}
+                    cancelHref="/transaksi/angsuran"
+                  />
+                </>
+              )}
+              
+              {selectedAnggotaId && pinjamanList.length === 0 && (
+                <div className="bg-yellow-50 p-4 rounded-md">
+                  <p className="text-yellow-800">
+                    Anggota ini tidak memiliki catatan pinjaman aktif. Silakan pilih anggota lain atau buat pinjaman terlebih dahulu.
+                  </p>
+                  <div className="mt-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate("/transaksi/pinjam/tambah")}
+                    >
+                      Buat Pinjaman Baru
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </Layout>
+  );
+}

@@ -10,20 +10,33 @@ export interface Anggota {
   pekerjaan: string;
   foto?: string;
   createdAt: string;
-  updatedAt: string; // Adding missing property
+  updatedAt: string;
 }
 
 export interface Transaksi {
   id: string;
   tanggal: string;
   anggotaId: string;
-  anggotaNama?: string; // Adding missing property
+  anggotaNama?: string;
   jenis: "Simpan" | "Pinjam" | "Angsuran";
   jumlah: number;
   keterangan?: string;
   status: "Sukses" | "Pending" | "Gagal";
   createdAt: string;
-  updatedAt: string; // Adding missing property
+  updatedAt: string;
+}
+
+export interface Pengajuan {
+  id: string;
+  tanggal: string;
+  anggotaId: string;
+  anggotaNama: string;
+  jenis: "Simpan" | "Pinjam";
+  jumlah: number;
+  keterangan?: string;
+  status: "Menunggu" | "Disetujui" | "Ditolak";
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Pengaturan {
