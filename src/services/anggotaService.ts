@@ -15,6 +15,8 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "L",
     agama: "Islam",
     pekerjaan: "PNS",
+    status: "active", // Adding status field
+    tanggalBergabung: "2023-01-15", // Adding tanggalBergabung field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -27,6 +29,8 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "P",
     agama: "Kristen",
     pekerjaan: "Guru",
+    status: "active", // Adding status field
+    tanggalBergabung: "2023-02-20", // Adding tanggalBergabung field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -39,6 +43,8 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "L",
     agama: "Islam",
     pekerjaan: "Wiraswasta",
+    status: "active", // Adding status field
+    tanggalBergabung: "2023-03-10", // Adding tanggalBergabung field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -51,6 +57,8 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "P",
     agama: "Hindu",
     pekerjaan: "Dosen",
+    status: "active", // Adding status field
+    tanggalBergabung: "2023-04-05", // Adding tanggalBergabung field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -63,6 +71,8 @@ const initialAnggota: Anggota[] = [
     jenisKelamin: "L",
     agama: "Katolik",
     pekerjaan: "Pedagang",
+    status: "active", // Adding status field
+    tanggalBergabung: "2023-05-15", // Adding tanggalBergabung field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -73,6 +83,11 @@ const initialAnggota: Anggota[] = [
  */
 export function getAllAnggota(): Anggota[] {
   return getFromLocalStorage<Anggota[]>(ANGGOTA_KEY, initialAnggota);
+}
+
+// Alias function for getAllAnggota to fix the import issue
+export function getAnggotaList(): Anggota[] {
+  return getAllAnggota();
 }
 
 /**
