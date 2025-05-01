@@ -1,3 +1,4 @@
+
 import { ProdukItem, PenjualanItem } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,8 +47,8 @@ export function CartItem({ item, product, onUpdateQuantity, onRemove }: CartItem
   };
 
   return (
-    <div className="flex items-center gap-3 py-3 border-b">
-      <div className="h-14 w-14 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+    <div className="flex items-center gap-3 py-3 border-b group hover:bg-gray-50 px-2 rounded-md transition-colors">
+      <div className="h-14 w-14 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
         {product.gambar ? (
           <img
             src={product.gambar}
@@ -72,7 +73,7 @@ export function CartItem({ item, product, onUpdateQuantity, onRemove }: CartItem
         <Button
           size="icon"
           variant="outline"
-          className="h-8 w-8 rounded-r-none"
+          className="h-8 w-8 rounded-l-md"
           onClick={decreaseQuantity}
         >
           {quantity === 1 ? <Trash2 className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
@@ -82,7 +83,7 @@ export function CartItem({ item, product, onUpdateQuantity, onRemove }: CartItem
           type="number"
           value={quantity}
           onChange={handleQuantityChange}
-          className="h-8 w-12 px-0 text-center text-sm rounded-none"
+          className="h-8 w-12 px-0 text-center text-sm rounded-none focus:ring-0"
           min={1}
           max={product.stok}
         />
@@ -90,7 +91,7 @@ export function CartItem({ item, product, onUpdateQuantity, onRemove }: CartItem
         <Button
           size="icon"
           variant="outline"
-          className="h-8 w-8 rounded-l-none"
+          className="h-8 w-8 rounded-r-md"
           onClick={increaseQuantity}
           disabled={quantity >= product.stok}
         >
@@ -105,7 +106,7 @@ export function CartItem({ item, product, onUpdateQuantity, onRemove }: CartItem
       <Button
         size="icon"
         variant="ghost"
-        className="h-8 w-8 text-destructive hover:text-destructive"
+        className="h-8 w-8 text-destructive hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
         onClick={() => onRemove(product.id)}
       >
         <Trash2 className="h-4 w-4" />

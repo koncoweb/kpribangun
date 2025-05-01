@@ -1,12 +1,16 @@
 
-import React from "react";
 import { ShoppingCart } from "lucide-react";
 
 export function EmptyCart() {
   return (
-    <div className="flex flex-col items-center justify-center h-full p-6">
-      <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
-      <p className="text-gray-500">Keranjang belanja kosong</p>
+    <div className="h-full flex flex-col items-center justify-center py-12 px-4 text-center">
+      <div className="bg-gray-50 p-6 rounded-full mb-4">
+        <ShoppingCart className="h-12 w-12 text-gray-300" />
+      </div>
+      <h3 className="text-lg font-medium text-gray-900">Keranjang Kosong</h3>
+      <p className="text-sm text-gray-500 mt-2 max-w-xs">
+        Tambahkan produk ke keranjang untuk mulai membuat transaksi penjualan
+      </p>
     </div>
   );
 }

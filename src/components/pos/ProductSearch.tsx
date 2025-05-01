@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { CardHeader } from "@/components/ui/card";
 
 interface ProductSearchProps {
   searchQuery: string;
@@ -25,7 +26,9 @@ export function ProductSearch({
   categories
 }: ProductSearchProps) {
   return (
-    <div className="p-4 border-b">
+    <CardHeader className="border-b pb-4 space-y-3">
+      <h2 className="text-lg font-medium">Produk</h2>
+      
       <div className="flex flex-wrap gap-4">
         <div className="flex-1 relative min-w-[200px]">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
@@ -53,6 +56,6 @@ export function ProductSearch({
           </Select>
         </div>
       </div>
-    </div>
+    </CardHeader>
   );
 }

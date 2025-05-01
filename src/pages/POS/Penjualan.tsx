@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { ProductSection } from "@/components/pos/ProductSection";
@@ -36,28 +37,32 @@ export default function Penjualan() {
   
   return (
     <Layout pageTitle="Penjualan">
-      <h1 className="page-title">Penjualan</h1>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Products Section */}
-        <div className="lg:col-span-2">
-          <ProductSection 
-            products={products}
-            onAddToCart={handleAddToCart}
-          />
-        </div>
-        
-        {/* Cart Section */}
-        <div className="lg:col-span-1">
-          <CartSection
-            items={cartItems}
-            onUpdateQuantity={handleUpdateQuantity}
-            onRemove={handleRemoveFromCart}
-            onClear={handleClearCart}
-            onCheckout={handleCheckout}
-            kasirList={getAllKasir()}
-            processing={isProcessing}
-          />
+      <div className="bg-gray-50 p-4 sm:p-6 -mt-6 -mx-6">
+        <div className="container mx-auto">
+          <h1 className="text-2xl font-bold mb-4 text-gray-800">Kasir Penjualan</h1>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Products Section */}
+            <div className="lg:col-span-2">
+              <ProductSection 
+                products={products}
+                onAddToCart={handleAddToCart}
+              />
+            </div>
+            
+            {/* Cart Section */}
+            <div className="lg:col-span-1">
+              <CartSection
+                items={cartItems}
+                onUpdateQuantity={handleUpdateQuantity}
+                onRemove={handleRemoveFromCart}
+                onClear={handleClearCart}
+                onCheckout={handleCheckout}
+                kasirList={getAllKasir()}
+                processing={isProcessing}
+              />
+            </div>
+          </div>
         </div>
       </div>
       

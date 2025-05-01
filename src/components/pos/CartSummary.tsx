@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { PenjualanItem, Kasir } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { calculateTotal } from "@/services/penjualan";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { PaymentMethodSelector, PaymentMethod } from "./payment-methods/PaymentMethodSelector";
 import { PaymentSummary } from "./payment-methods/PaymentSummary";
@@ -65,7 +65,7 @@ export function CartSummary({
   };
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <PaymentSummary 
         subtotal={subtotal}
         discount={discount}
@@ -73,11 +73,11 @@ export function CartSummary({
         total={total}
       />
       
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div>
-          <Label htmlFor="kasir">Kasir</Label>
+          <Label htmlFor="kasir" className="text-sm">Kasir</Label>
           <Select value={kasirId} onValueChange={setKasirId}>
-            <SelectTrigger id="kasir">
+            <SelectTrigger id="kasir" className="mt-1.5">
               <SelectValue placeholder="Pilih kasir" />
             </SelectTrigger>
             <SelectContent>
@@ -90,8 +90,8 @@ export function CartSummary({
           </Select>
         </div>
         
-        <div>
-          <Label>Metode Pembayaran</Label>
+        <div className="space-y-1.5">
+          <Label className="text-sm">Metode Pembayaran</Label>
           <PaymentMethodSelector
             selectedMethod={paymentMethod}
             onMethodChange={setPaymentMethod}
@@ -107,17 +107,18 @@ export function CartSummary({
         )}
         
         <div>
-          <Label htmlFor="notes">Catatan</Label>
+          <Label htmlFor="notes" className="text-sm">Catatan</Label>
           <Input
             id="notes"
             placeholder="Tambahkan catatan (opsional)"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
+            className="mt-1.5"
           />
         </div>
         
         <Button
-          className="w-full gap-2 mt-4"
+          className="w-full gap-2 mt-2"
           size="lg"
           onClick={handleCheckout}
           disabled={

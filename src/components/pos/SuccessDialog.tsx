@@ -32,12 +32,15 @@ export function SuccessDialog({ open, onOpenChange, sale }: SuccessDialogProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-green-600">
-            <Check className="h-5 w-5" /> Pembayaran Berhasil
+          <DialogTitle className="flex items-center gap-2 text-green-600 text-center justify-center">
+            <div className="bg-green-100 rounded-full p-1">
+              <Check className="h-5 w-5" />
+            </div>
+            Transaksi Berhasil
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto p-1">
           <Receipt ref={receiptRef} sale={sale} kasirName={kasirName} />
         </div>
         

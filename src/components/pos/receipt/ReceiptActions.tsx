@@ -1,72 +1,74 @@
 
-import { Printer, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import html2canvas from "html2canvas";
-import { useReactToPrint } from "react-to-print";
-import React, { useState, RefObject } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import { Penjualan } from "@/types";
+import { useRef } from "react";
+import { useReactToPrint } from "react-to-print";
+import { Printer, Share2, Check } from "lucide-react";
 
 interface ReceiptActionsProps {
-  receiptRef: RefObject<HTMLDivElement>;
+  receiptRef: React.RefObject<HTMLDivElement>;
   sale: Penjualan;
   onClose: () => void;
 }
 
 export function ReceiptActions({ receiptRef, sale, onClose }: ReceiptActionsProps) {
-  const [isDownloading, setIsDownloading] = useState(false);
-  
+  const { toast } = useToast();
+
+  // Handle printing
   const handlePrint = useReactToPrint({
+    content: () => receiptRef.current,
     documentTitle: `Receipt-${sale.nomorTransaksi}`,
     onAfterPrint: () => {
-      console.log("Print completed");
-    },
-    contentRef: receiptRef
-  });
-  
-  const handleDownload = async () => {
-    if (!receiptRef.current) return;
-    
-    setIsDownloading(true);
-    try {
-      const canvas = await html2canvas(receiptRef.current, {
-        scale: 2,
-        backgroundColor: "#ffffff",
+      toast({
+        title: "Struk telah dicetak",
+        description: `Struk ${sale.nomorTransaksi} berhasil dicetak.`,
       });
-      
-      const image = canvas.toDataURL("image/png");
-      const link = document.createElement("a");
-      link.href = image;
-      link.download = `Receipt-${sale.nomorTransaksi}.png`;
-      link.click();
+    },
+  });
+
+  // Handle sharing
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Struk Pembayaran ${sale.nomorTransaksi}`,
+          text: `Pembayaran sebesar ${sale.total} berhasil dilakukan.`,
+        });
+      } else {
+        throw new Error("Web Share API not supported");
+      }
     } catch (error) {
-      console.error("Error generating receipt image:", error);
-    } finally {
-      setIsDownloading(false);
+      toast({
+        title: "Berbagi struk",
+        description: "Maaf, berbagi struk tidak didukung di perangkat ini.",
+      });
     }
   };
-  
+
   return (
     <>
-      <Button 
-        className="w-full sm:w-auto gap-2" 
+      <Button
         variant="outline"
+        className="gap-2 w-full sm:w-auto"
         onClick={handlePrint}
       >
-        <Printer className="h-4 w-4" /> Print
+        <Printer className="h-4 w-4" /> Cetak Struk
       </Button>
-      <Button 
-        className="w-full sm:w-auto gap-2" 
+
+      <Button
         variant="outline"
-        onClick={handleDownload}
-        disabled={isDownloading}
+        className="gap-2 w-full sm:w-auto"
+        onClick={handleShare}
       >
-        <Download className="h-4 w-4" /> {isDownloading ? "Processing..." : "Download"}
+        <Share2 className="h-4 w-4" /> Bagikan
       </Button>
-      <Button 
-        className="w-full sm:w-auto" 
+
+      <Button
+        className="gap-2 w-full sm:w-auto"
         onClick={onClose}
       >
-        Tutup
+        <Check className="h-4 w-4" /> Selesai
       </Button>
     </>
   );

@@ -10,14 +10,17 @@ interface ProductGridProps {
 export function ProductGrid({ products, onAddToCart }: ProductGridProps) {
   if (products.length === 0) {
     return (
-      <div className="text-center py-10">
-        <p className="text-gray-500">Tidak ada produk yang ditemukan</p>
+      <div className="py-12 text-center">
+        <div className="p-6 bg-gray-50 rounded-lg">
+          <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto" />
+          <p className="text-gray-500 mt-2">Tidak ada produk yang ditemukan</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
       {products.map(product => (
         <ProductCard 
           key={product.id}
@@ -28,3 +31,6 @@ export function ProductGrid({ products, onAddToCart }: ProductGridProps) {
     </div>
   );
 }
+
+// Add missing import
+import { ShoppingCart } from "lucide-react";

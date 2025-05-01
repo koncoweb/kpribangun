@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CartItem } from "./CartItem";
@@ -9,6 +10,7 @@ import { calculateTotal } from "@/services/penjualan";
 import { CartHeader } from "./cart/CartHeader";
 import { EmptyCart } from "./cart/EmptyCart";
 import { DiscountTaxInputs } from "./cart/DiscountTaxInputs";
+import { Card } from "@/components/ui/card";
 
 interface CartSectionProps {
   items: PenjualanItem[];
@@ -43,7 +45,7 @@ export function CartSection({
   const itemCount = items.reduce((sum, item) => sum + item.jumlah, 0);
   
   return (
-    <div className="bg-white rounded-lg border shadow-sm h-full flex flex-col">
+    <Card className="shadow-md h-full flex flex-col">
       <CartHeader itemCount={itemCount} onClear={onClear} />
       
       <div className="flex-1 overflow-auto">
@@ -99,6 +101,6 @@ export function CartSection({
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </Card>
   );
 }

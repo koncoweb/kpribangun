@@ -1,7 +1,7 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { CreditCard, Wallet, Receipt, QrCode } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { CreditCard, Wallet, Banknote, QrCode } from "lucide-react";
 
 export type PaymentMethod = "cash" | "debit" | "kredit" | "qris";
 
@@ -10,50 +10,46 @@ interface PaymentMethodSelectorProps {
   onMethodChange: (method: PaymentMethod) => void;
 }
 
+const paymentOptions = [
+  { id: "cash", name: "Tunai", icon: Banknote },
+  { id: "debit", name: "Debit", icon: CreditCard },
+  { id: "kredit", name: "Kredit", icon: Wallet },
+  { id: "qris", name: "QRIS", icon: QrCode },
+];
+
 export function PaymentMethodSelector({
   selectedMethod,
-  onMethodChange
+  onMethodChange,
 }: PaymentMethodSelectorProps) {
   return (
-    <div>
-      <div className="grid grid-cols-4 gap-2 mt-1">
-        <Button
-          type="button"
-          variant={selectedMethod === "cash" ? "default" : "outline"}
-          className="flex flex-col h-auto py-2 items-center justify-center"
-          onClick={() => onMethodChange("cash")}
-        >
-          <Wallet className="h-5 w-5 mb-1" />
-          <span className="text-xs">Tunai</span>
-        </Button>
-        <Button
-          type="button"
-          variant={selectedMethod === "debit" ? "default" : "outline"}
-          className="flex flex-col h-auto py-2 items-center justify-center"
-          onClick={() => onMethodChange("debit")}
-        >
-          <Receipt className="h-5 w-5 mb-1" />
-          <span className="text-xs">Debit</span>
-        </Button>
-        <Button
-          type="button"
-          variant={selectedMethod === "kredit" ? "default" : "outline"}
-          className="flex flex-col h-auto py-2 items-center justify-center"
-          onClick={() => onMethodChange("kredit")}
-        >
-          <CreditCard className="h-5 w-5 mb-1" />
-          <span className="text-xs">Kredit</span>
-        </Button>
-        <Button
-          type="button"
-          variant={selectedMethod === "qris" ? "default" : "outline"}
-          className="flex flex-col h-auto py-2 items-center justify-center"
-          onClick={() => onMethodChange("qris")}
-        >
-          <QrCode className="h-5 w-5 mb-1" />
-          <span className="text-xs">QRIS</span>
-        </Button>
-      </div>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {paymentOptions.map((option) => {
+        const IconComponent = option.icon;
+        return (
+          <Card
+            key={option.id}
+            className={`cursor-pointer transition-colors ${
+              selectedMethod === option.id
+                ? "border-primary bg-primary/5"
+                : "hover:bg-gray-50"
+            }`}
+            onClick={() => onMethodChange(option.id as PaymentMethod)}
+          >
+            <CardContent className="p-3 flex flex-col items-center justify-center">
+              <IconComponent
+                className={`h-6 w-6 mb-1 ${
+                  selectedMethod === option.id ? "text-primary" : "text-gray-500"
+                }`}
+              />
+              <span className={`text-sm ${
+                selectedMethod === option.id ? "font-medium text-primary" : "text-gray-600"
+              }`}>
+                {option.name}
+              </span>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { ProdukItem } from "@/types";
 import { ProductSearch } from "./ProductSearch";
 import { ProductGrid } from "./ProductGrid";
 import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface ProductSectionProps {
   products: ProdukItem[];
@@ -30,7 +31,7 @@ export function ProductSection({ products, onAddToCart }: ProductSectionProps) {
   });
   
   return (
-    <div className="bg-white rounded-lg border shadow-sm">
+    <Card className="shadow-md h-full flex flex-col">
       <ProductSearch 
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -39,12 +40,12 @@ export function ProductSection({ products, onAddToCart }: ProductSectionProps) {
         categories={categories}
       />
       
-      <div className="p-4">
+      <CardContent className="flex-1 overflow-auto p-4">
         <ProductGrid 
           products={filteredProducts} 
           onAddToCart={onAddToCart} 
         />
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
