@@ -15,6 +15,10 @@ export function AuthGuard({ children, allowedRoles }: AuthGuardProps) {
   
   // If user is not authenticated, redirect to login
   if (!isAuth || !currentUser) {
+    // Redirect to appropriate login page
+    if (location.pathname.includes('/anggota/') && !location.pathname.includes('/anggota/new')) {
+      return <Navigate to="/anggota-login" state={{ from: location }} replace />;
+    }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
@@ -44,7 +48,7 @@ export function AnggotaGuard({ children }: { children: ReactNode }) {
   const anggotaIdFromUrl = location.pathname.split("/").pop();
   
   if (!currentUser) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/anggota-login" replace />;
   }
   
   // Super admin and admin can access all anggota pages

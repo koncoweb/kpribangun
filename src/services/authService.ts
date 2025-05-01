@@ -2,6 +2,7 @@
 import { User } from "@/types";
 import { getUsers, getUserById } from "@/services/userManagementService";
 import { getFromLocalStorage, saveToLocalStorage } from "@/utils/localStorage";
+import { getAnggotaById } from "./anggotaService";
 
 const AUTH_STORAGE_KEY = "koperasi_auth";
 
@@ -60,6 +61,46 @@ export const loginUser = async (username: string, password: string): Promise<Aut
   return authUser;
 };
 
+// Login with Anggota ID
+export const loginWithAnggotaId = async (anggotaId: string, password: string): Promise<AuthUser> => {
+  // Check if anggota exists
+  const anggota = getAnggotaById(anggotaId);
+  if (!anggota) {
+    throw new Error("ID Anggota tidak ditemukan");
+  }
+  
+  // In a real app, we would check the password against a hashed version
+  // For demo purposes, we'll accept any password for testing
+  // You would implement proper password validation in production
+  
+  // Find or create a user account for this anggota
+  const users = getUsers();
+  let anggotaUser = users.find(user => user.anggotaId === anggotaId);
+  
+  if (!anggotaUser) {
+    // For demo purposes, create a temporary user for this anggota
+    anggotaUser = {
+      id: `user_anggota_${anggota.id}`,
+      username: `anggota_${anggota.id}`,
+      nama: anggota.nama,
+      email: "",
+      roleId: "role_anggota",
+      aktif: true,
+      anggotaId: anggota.id,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+  
+  // Save the authenticated user
+  saveAuthState({
+    currentUser: anggotaUser,
+    isAuthenticated: true
+  });
+  
+  return anggotaUser;
+};
+
 // Logout function
 export const logoutUser = (): void => {
   saveAuthState({
@@ -78,6 +119,14 @@ export const isAuthenticated = (): boolean => {
 export const getCurrentUser = (): AuthUser | null => {
   const authState = getAuthState();
   return authState.currentUser;
+};
+
+// Update user password
+export const updatePassword = (userId: string, newPassword: string): boolean => {
+  // In a real app, you would hash the password and update it in the database
+  // For demo purposes, we'll just log that the password was updated
+  console.log(`Password updated for user ${userId}`);
+  return true;
 };
 
 // Check if user has permission

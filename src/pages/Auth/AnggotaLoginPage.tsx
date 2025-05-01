@@ -1,10 +1,10 @@
 
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, User, Key, Shield } from "lucide-react";
+import { User, Key, Shield, Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,15 +25,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { loginUser } from "@/services/authService";
+import { loginWithAnggotaId } from "@/services/authService";
+import { Link } from "react-router-dom";
 
 // Create schema for form validation
 const formSchema = z.object({
-  username: z.string().min(3, "Username minimal 3 karakter"),
+  anggotaId: z.string().min(2, "ID Anggota minimal 2 karakter"),
   password: z.string().min(3, "Password minimal 3 karakter"),
 });
 
-export default function LoginPage() {
+export default function AnggotaLoginPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -43,7 +44,7 @@ export default function LoginPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: "",
+      anggotaId: "",
       password: "",
     },
   });
@@ -52,7 +53,7 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      const user = await loginUser(values.username, values.password);
+      const user = await loginWithAnggotaId(values.anggotaId, values.password);
       
       if (user) {
         toast({
@@ -60,19 +61,13 @@ export default function LoginPage() {
           description: `Selamat datang, ${user.nama}`,
         });
         
-        // Redirect based on user role
-        if (user.roleId === 'role_superadmin') {
-          navigate('/');
-        } else if (user.roleId === 'role_admin') {
-          navigate('/');
-        } else {
-          navigate(`/anggota/${user.anggotaId}`);
-        }
+        // Redirect to anggota profile
+        navigate(`/anggota/${user.anggotaId}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Login gagal",
-        description: "Username atau password salah",
+        description: error.message || "ID Anggota atau password salah",
         variant: "destructive",
       });
     } finally {
@@ -81,24 +76,9 @@ export default function LoginPage() {
   }
 
   // Function to handle demo login
-  const handleDemoLogin = (role: "superadmin" | "admin" | "anggota") => {
-    let username = "";
-    let password = "password123"; // Using a common password for demo
-    
-    switch(role) {
-      case "superadmin":
-        username = "superadmin";
-        break;
-      case "admin":
-        username = "admin";
-        break;
-      case "anggota":
-        username = "anggota1";
-        break;
-    }
-    
-    form.setValue("username", username);
-    form.setValue("password", password);
+  const handleDemoLogin = () => {
+    form.setValue("anggotaId", "AG0001");
+    form.setValue("password", "password123");
   };
 
   return (
@@ -106,10 +86,10 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg border-0">
         <CardHeader className="space-y-1 text-center pb-2">
           <CardTitle className="text-2xl font-bold tracking-tight">
-            DEMO KPRI BANGUN
+            KPRI BANGUN
           </CardTitle>
           <CardDescription>
-            Login Admin
+            Login Anggota
           </CardDescription>
         </CardHeader>
         
@@ -118,15 +98,15 @@ export default function LoginPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="username"
+                name="anggotaId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>ID Anggota</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder="Masukkan username"
+                          placeholder="Masukkan ID Anggota"
                           className="pl-10"
                           {...field}
                         />
@@ -184,38 +164,22 @@ export default function LoginPage() {
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-card px-2 text-muted-foreground">
-                Demo Login
+                Demo
               </span>
             </div>
           </div>
           
-          <div className="grid w-full grid-cols-3 gap-2">
-            <Button 
-              variant="outline" 
-              onClick={() => handleDemoLogin("superadmin")}
-              className="text-xs h-auto py-1"
-            >
-              <Shield className="mr-1 h-3 w-3" /> Super Admin
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleDemoLogin("admin")}
-              className="text-xs h-auto py-1"
-            >
-              <User className="mr-1 h-3 w-3" /> Admin
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => handleDemoLogin("anggota")}
-              className="text-xs h-auto py-1"
-            >
-              <User className="mr-1 h-3 w-3" /> Anggota
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleDemoLogin}
+            className="w-full text-sm"
+          >
+            <Shield className="mr-2 h-4 w-4" /> Demo Login Anggota
+          </Button>
           
           <div className="flex justify-center w-full mt-4">
-            <Link to="/anggota-login" className="text-xs text-blue-600 hover:underline">
-              Login sebagai Anggota (ID Anggota)
+            <Link to="/login" className="text-xs text-blue-600 hover:underline">
+              Login sebagai Admin/Superadmin
             </Link>
           </div>
           

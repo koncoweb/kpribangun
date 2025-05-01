@@ -6,6 +6,7 @@ import { initUserManagementData } from "@/services/user-management";
 
 // Authentication
 import LoginPage from "@/pages/Auth/LoginPage";
+import AnggotaLoginPage from "@/pages/Auth/AnggotaLoginPage";
 import { AuthGuard, AnggotaGuard } from "@/components/auth/AuthGuard";
 
 // Pages
@@ -14,6 +15,7 @@ import NotFound from "@/pages/NotFound";
 import AnggotaList from "@/pages/Anggota/AnggotaList";
 import AnggotaForm from "@/pages/Anggota/AnggotaForm";
 import AnggotaDetail from "@/pages/Anggota/AnggotaDetail";
+import AnggotaChangePassword from "@/pages/Anggota/AnggotaChangePassword";
 import TransaksiList from "@/pages/Transaksi/TransaksiList";
 import Pengaturan from "@/pages/Pengaturan/Pengaturan";
 import UserManagement from "@/pages/UserManagement/UserManagement";
@@ -40,6 +42,7 @@ function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/anggota-login" element={<AnggotaLoginPage />} />
 
           {/* Protected routes */}
           <Route path="/" element={<AuthGuard><Index /></AuthGuard>} />
@@ -53,6 +56,7 @@ function App() {
           <Route path="/anggota/new" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><AnggotaForm /></AuthGuard>} />
           <Route path="/anggota/:id/edit" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><AnggotaForm /></AuthGuard>} />
           <Route path="/anggota/:id" element={<AnggotaGuard><AnggotaDetail /></AnggotaGuard>} />
+          <Route path="/anggota/change-password" element={<AuthGuard><AnggotaChangePassword /></AuthGuard>} />
 
           {/* Transaksi routes */}
           <Route path="/transaksi" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><TransaksiList /></AuthGuard>} />

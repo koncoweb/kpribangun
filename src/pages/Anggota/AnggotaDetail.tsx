@@ -1,150 +1,88 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import Layout from "@/components/layout/Layout";
-import { useToast } from "@/components/ui/use-toast";
+import { useParams } from "react-router-dom";
 import { getAnggotaById } from "@/services/anggotaService";
-import { 
-  getTransaksiByAnggotaId, 
-  calculateTotalSimpanan, 
-  calculateTotalPinjaman, 
-  getOverdueLoans,
-  getUpcomingDueLoans,
-  calculatePenalty
-} from "@/services/transaksi";
-import { Anggota, Transaksi } from "@/types";
-import { LoadingState } from "@/components/anggota/detail/LoadingState";
+import { getCurrentUser } from "@/services/authService";
+import Layout from "@/components/layout/Layout";
+import AnggotaLayout from "@/components/layout/AnggotaLayout";
 import { AnggotaDetailHeader } from "@/components/anggota/detail/AnggotaDetailHeader";
 import { MainInfoSection } from "@/components/anggota/detail/MainInfoSection";
-import { KeluargaSection } from "@/components/anggota/detail/KeluargaSection";
+import { ProfileCard } from "@/components/anggota/detail/ProfileCard";
 import { TransactionSection } from "@/components/anggota/detail/TransactionSection";
+import { KeluargaSection } from "@/components/anggota/detail/KeluargaSection";
+import { LoadingState } from "@/components/anggota/detail/LoadingState";
 
 export default function AnggotaDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [anggota, setAnggota] = useState<Anggota | null>(null);
-  const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
-  const [jatuhTempo, setJatuhTempo] = useState<{
-    transaksi: Transaksi;
-    jatuhTempo: string;
-    daysUntilDue: number;
-  }[]>([]);
-  const [tunggakan, setTunggakan] = useState<{
-    transaksi: Transaksi;
-    jatuhTempo: string;
-    daysOverdue: number;
-    penalty: number;
-  }[]>([]);
+  const [anggota, setAnggota] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const currentUser = getCurrentUser();
+  const isAnggotaUser = currentUser?.roleId !== 'role_superadmin' && currentUser?.roleId !== 'role_admin';
   
+  // Load anggota data
   useEffect(() => {
-    if (id) {
-      try {
-        const foundAnggota = getAnggotaById(id);
-        if (foundAnggota) {
-          setAnggota(foundAnggota);
-          
-          // Get all transactions for this member
-          const anggotaTransaksi = getTransaksiByAnggotaId(id);
-          setTransaksi(anggotaTransaksi);
-          
-          try {
-            // Get upcoming due loans
-            const upcomingDue = getUpcomingDueLoans()
-              .filter(item => item.transaksi.anggotaId === id)
-              .map(item => ({
-                transaksi: item.transaksi,
-                jatuhTempo: item.jatuhTempo,
-                daysUntilDue: item.daysUntilDue
-              }));
-            setJatuhTempo(upcomingDue);
-            
-            // Get overdue loans
-            const overdue = getOverdueLoans()
-              .filter(item => item.transaksi.anggotaId === id)
-              .map(item => ({
-                transaksi: item.transaksi,
-                jatuhTempo: item.jatuhTempo,
-                daysOverdue: item.daysOverdue,
-                penalty: calculatePenalty(item.transaksi.jumlah, item.daysOverdue)
-              }));
-            setTunggakan(overdue);
-          } catch (error) {
-            console.error("Error processing loan data:", error);
-            toast({
-              title: "Warning",
-              description: "Terjadi kesalahan saat memuat data pinjaman",
-              variant: "destructive",
-            });
-          }
-        } else {
-          toast({
-            title: "Anggota tidak ditemukan",
-            description: "Data anggota yang dicari tidak ditemukan",
-            variant: "destructive",
-          });
-          navigate("/anggota");
-        }
-      } catch (error) {
-        console.error("Error loading data:", error);
-        toast({
-          title: "Error",
-          description: "Terjadi kesalahan saat memuat data. Silakan coba lagi.",
-          variant: "destructive",
-        });
-        navigate("/anggota");
-      }
+    if (!id) return;
+    
+    setIsLoading(true);
+    const anggotaData = getAnggotaById(id);
+    
+    if (anggotaData) {
+      setAnggota(anggotaData);
     }
-  }, [id, navigate, toast]);
-  
-  if (!anggota) {
-    return (
-      <Layout pageTitle="Detail Anggota">
+    
+    // Simulate loading delay for demo
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+  }, [id]);
+
+  const Content = () => (
+    <>
+      {isLoading ? (
         <LoadingState />
-      </Layout>
+      ) : anggota ? (
+        <>
+          <AnggotaDetailHeader anggota={anggota} />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <ProfileCard anggota={anggota} />
+            </div>
+            
+            <div className="lg:col-span-2">
+              <MainInfoSection anggota={anggota} />
+              <div className="mt-6">
+                <TransactionSection anggotaId={anggota.id} />
+              </div>
+              <div className="mt-6">
+                <KeluargaSection anggotaId={anggota.id} />
+              </div>
+            </div>
+          </div>
+        </>
+      ) : (
+        <div className="text-center p-12">
+          <h2 className="text-2xl font-bold text-gray-800">Data Anggota tidak ditemukan</h2>
+          <p className="text-gray-600 mt-2">
+            Anggota dengan ID {id} tidak terdaftar dalam sistem
+          </p>
+        </div>
+      )}
+    </>
+  );
+
+  // Use appropriate layout based on user role
+  if (isAnggotaUser) {
+    return (
+      <AnggotaLayout pageTitle="Profil Anggota">
+        <Content />
+      </AnggotaLayout>
     );
   }
-  
-  const totalSimpanan = calculateTotalSimpanan(anggota.id);
-  const totalPinjaman = calculateTotalPinjaman(anggota.id);
-  const simpananTransaksi = transaksi.filter(t => t.jenis === "Simpan");
-  const pinjamanTransaksi = transaksi.filter(t => t.jenis === "Pinjam");
-  const angsuranTransaksi = transaksi.filter(t => t.jenis === "Angsuran");
-
-  const keluargaCount = anggota.keluarga?.length || 0;
-  const dokumenCount = anggota.dokumen?.length || 0;
 
   return (
-    <Layout pageTitle={`Detail Anggota - ${anggota.nama}`}>
-      <AnggotaDetailHeader 
-        nama={anggota.nama}
-        keluargaCount={keluargaCount}
-        dokumenCount={dokumenCount}
-        anggotaId={anggota.id}
-      />
-      
-      <MainInfoSection
-        anggota={anggota}
-        totalSimpanan={totalSimpanan}
-        totalPinjaman={totalPinjaman}
-      />
-      
-      <div className="grid grid-cols-1 gap-6 mb-6">
-        <KeluargaSection 
-          anggota={anggota} 
-          onAnggotaUpdate={setAnggota} 
-        />
-      </div>
-      
-      <TransactionSection
-        transaksi={transaksi}
-        simpananTransaksi={simpananTransaksi}
-        pinjamanTransaksi={pinjamanTransaksi}
-        angsuranTransaksi={angsuranTransaksi}
-        jatuhTempo={jatuhTempo}
-        tunggakan={tunggakan}
-        anggotaId={anggota.id}
-      />
+    <Layout pageTitle="Detail Anggota">
+      <Content />
     </Layout>
   );
 }
