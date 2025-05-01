@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { createAnggota, updateAnggota } from "@/services/anggotaService";
@@ -114,7 +115,9 @@ export const useAnggotaFormHandlers = ({
       const anggotaData = {
         ...formData,
         dokumen,
-        keluarga
+        keluarga,
+        status: 'active', // Adding the required status field
+        tanggalBergabung: new Date().toISOString(), // Adding the required tanggalBergabung field
       };
       
       if (isEditMode && id) {
@@ -163,75 +166,4 @@ export const useAnggotaFormHandlers = ({
     handleCancel,
     handleSubmit
   };
-};
-
-export const handleFinishBasicForm = (data: BasicFormData, navigation: NavigationControls) => {
-  const { setFormData, formData } = useFormStore();
-  
-  setFormData({
-    ...formData,
-    ...data
-  });
-  
-  navigation.next();
-};
-
-export const handleFinishKeluargaForm = (data: KeluargaFormData, navigation: NavigationControls) => {
-  const { setFormData, formData } = useFormStore();
-  
-  setFormData({
-    ...formData,
-    keluarga: data.keluarga
-  });
-  
-  navigation.next();
-};
-
-export const handleFinishDokumenForm = (data: DokumenFormData) => {
-  const { formData } = useFormStore();
-  const isEditing = !!formData.id;
-  
-  // Complete the form submission process
-  try {
-    if (isEditing) {
-      updateAnggota(formData.id!, {
-        ...formData,
-        dokumen: data.dokumen
-      });
-      toast({
-        title: "Anggota berhasil diperbarui",
-        description: `Data anggota ${formData.nama} telah diperbarui.`
-      });
-    } else {
-      // Add the required status field for creating new Anggota
-      createAnggota({
-        ...formData,
-        dokumen: data.dokumen,
-        keluarga: formData.keluarga || [],
-        nama: formData.nama,
-        nik: formData.nik,
-        alamat: formData.alamat,
-        noHp: formData.noHp,
-        jenisKelamin: formData.jenisKelamin,
-        agama: formData.agama,
-        pekerjaan: formData.pekerjaan,
-        foto: formData.foto || '',
-        status: 'active', // Add the missing status field
-        tanggalBergabung: new Date().toISOString() // Add the missing tanggalBergabung field
-      });
-      toast({
-        title: "Anggota berhasil ditambahkan",
-        description: `Anggota baru ${formData.nama} telah ditambahkan.`
-      });
-    }
-    
-    // Navigate to the anggota list page after successful submission
-    window.location.href = "/anggota";
-  } catch (error) {
-    toast({
-      title: "Error",
-      description: "Terjadi kesalahan saat menyimpan data anggota.",
-      variant: "destructive"
-    });
-  }
 };
