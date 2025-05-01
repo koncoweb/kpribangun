@@ -6,9 +6,9 @@ import {
   getAllPembelian, 
   createPembelian, 
   updatePembelian, 
-  deletePembelian, 
-  getAllPemasok 
+  deletePembelian
 } from "@/services/pembelianService";
+import { getAllPemasok } from "@/services/pemasokService";
 
 export function usePembelian() {
   const [pembelianList, setPembelianList] = useState<Pembelian[]>([]);
