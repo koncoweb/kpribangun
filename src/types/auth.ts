@@ -1,4 +1,6 @@
 
+import { User } from "@/types";
+
 // Authentication related types
 export interface LoginCredentials {
   username: string;
