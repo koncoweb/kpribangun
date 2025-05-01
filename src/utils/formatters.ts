@@ -15,3 +15,25 @@ export const formatDate = formatDateUtil;
  * Format date and time to Indonesian locale format (DD MMMM YYYY, HH:MM)
  */
 export const formatFullDateTime = formatDateTime;
+
+/**
+ * Calculate if a payment is past due
+ */
+export const isPastDue = (dueDate: string): boolean => {
+  const today = new Date();
+  const due = new Date(dueDate);
+  return today > due;
+};
+
+/**
+ * Calculate days overdue
+ */
+export const getDaysOverdue = (dueDate: string): number => {
+  const today = new Date();
+  const due = new Date(dueDate);
+  
+  if (today <= due) return 0;
+  
+  const diffTime = Math.abs(today.getTime() - due.getTime());
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+};

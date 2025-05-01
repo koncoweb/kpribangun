@@ -1,4 +1,3 @@
-
 import { Pengajuan } from "../types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { getAnggotaById } from "./anggotaService";
@@ -179,4 +178,20 @@ export function rejectPengajuan(id: string): boolean {
   const updatedPengajuan = updatePengajuan(id, { status: "Ditolak" });
   
   return !!updatedPengajuan;
+}
+
+/**
+ * Get pengajuan by status
+ */
+export function getPengajuanByStatus(status: "Menunggu" | "Disetujui" | "Ditolak"): Pengajuan[] {
+  const pengajuanList = getPengajuanList();
+  return pengajuanList.filter(pengajuan => pengajuan.status === status);
+}
+
+/**
+ * Get pengajuan by jenis
+ */
+export function getPengajuanByJenis(jenis: "Simpan" | "Pinjam"): Pengajuan[] {
+  const pengajuanList = getPengajuanList();
+  return pengajuanList.filter(pengajuan => pengajuan.jenis === jenis);
 }
