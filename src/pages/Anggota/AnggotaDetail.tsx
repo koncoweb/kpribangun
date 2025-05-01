@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -15,7 +14,7 @@ import {
   getUpcomingDueLoans,
   calculateJatuhTempo,
   calculatePenalty
-} from "@/services/transaksi";
+} from "@/services/transaksiService";
 import { Anggota, Transaksi } from "@/types";
 import { ProfileCard } from "@/components/anggota/detail/ProfileCard";
 import { InfoCard } from "@/components/anggota/detail/InfoCard";
