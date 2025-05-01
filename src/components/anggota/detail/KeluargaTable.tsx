@@ -53,13 +53,17 @@ export function KeluargaTable({ keluarga, anggotaId, readOnly = true, onEdit, on
                 {k.hubungan}
               </Badge>
             </TableCell>
-            <TableCell className="flex items-center gap-1.5">
-              <Phone size={14} className="text-muted-foreground" />
-              {k.noHp}
+            <TableCell>
+              <div className="flex items-center gap-1.5">
+                <Phone size={14} className="text-muted-foreground" />
+                {k.noHp}
+              </div>
             </TableCell>
-            <TableCell className="flex items-start gap-1.5">
-              <MapPin size={14} className="mt-1 text-muted-foreground" />
-              <span className="line-clamp-2">{k.alamat}</span>
+            <TableCell>
+              <div className="flex items-start gap-1.5">
+                <MapPin size={14} className="mt-1 text-muted-foreground" />
+                <span className="line-clamp-2">{k.alamat}</span>
+              </div>
             </TableCell>
             {!readOnly && onEdit && onDelete && (
               <TableCell className="text-right">
