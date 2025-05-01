@@ -1,10 +1,8 @@
 
 import { useState, useEffect } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowLeft } from "lucide-react";
 import { Penjualan } from "@/types";
 import { getPenjualanById, updatePenjualan } from "@/services/penjualanService";
 import { getProdukItemById } from "@/services/produkService";
@@ -16,6 +14,8 @@ import { ReceiptCard } from "@/components/pos/detail/ReceiptCard";
 import { ItemsTable } from "@/components/pos/detail/ItemsTable";
 import { EditTransactionDialog } from "@/components/pos/detail/EditTransactionDialog";
 import { StatusDialog } from "@/components/pos/detail/StatusDialog";
+import { DetailPageHeader } from "@/components/pos/detail/DetailPageHeader";
+import { LoadingState } from "@/components/pos/detail/LoadingState";
 
 export default function PenjualanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -142,26 +142,12 @@ export default function PenjualanDetail() {
   
   // Show loading state if data is not yet loaded
   if (!penjualan) {
-    return (
-      <Layout pageTitle="Detail Penjualan">
-        <div className="flex justify-center items-center h-64">
-          <p>Memuat data penjualan...</p>
-        </div>
-      </Layout>
-    );
+    return <LoadingState pageTitle="Detail Penjualan" />;
   }
   
   return (
     <Layout pageTitle={`Detail Penjualan - ${penjualan.nomorTransaksi}`}>
-      {/* Header Section */}
-      <div className="flex items-center gap-4 mb-6">
-        <Link to="/pos/penjualan-list">
-          <Button variant="outline" size="icon">
-            <ArrowLeft size={16} />
-          </Button>
-        </Link>
-        <h1 className="page-title">Detail Penjualan</h1>
-      </div>
+      <DetailPageHeader title="Detail Penjualan" backLink="/pos/penjualan-list" />
       
       {/* Transaction Info and Receipt Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
