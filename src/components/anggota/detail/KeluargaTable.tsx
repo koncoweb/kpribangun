@@ -1,7 +1,7 @@
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AnggotaKeluarga } from "@/types";
-import { User, Phone, MapPin } from "lucide-react";
+import { User, Phone, MapPin, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -11,9 +11,11 @@ interface KeluargaTableProps {
   keluarga: AnggotaKeluarga[];
   anggotaId?: string;
   readOnly?: boolean;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-export function KeluargaTable({ keluarga, anggotaId, readOnly = true }: KeluargaTableProps) {
+export function KeluargaTable({ keluarga, anggotaId, readOnly = true, onEdit, onDelete }: KeluargaTableProps) {
   if (!keluarga || keluarga.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -24,21 +26,9 @@ export function KeluargaTable({ keluarga, anggotaId, readOnly = true }: Keluarga
         <p className="text-sm text-muted-foreground max-w-md mt-1.5">
           Anggota ini belum memiliki data keluarga.
           {anggotaId && !readOnly && (
-            <span> Anda dapat menambahkan data keluarga melalui halaman <Link to={`/anggota/edit/${anggotaId}`} className="text-primary hover:underline">edit anggota</Link>.</span>
-          )}
-          {!anggotaId && !readOnly && (
-            <span> Anda dapat menambahkan data keluarga melalui halaman edit anggota.</span>
+            <span> Anda dapat menambahkan data keluarga dengan tombol "Tambah Keluarga" di atas.</span>
           )}
         </p>
-        {anggotaId && !readOnly && (
-          <div className="mt-4">
-            <Button asChild>
-              <Link to={`/anggota/edit/${anggotaId}`}>
-                Edit Data Keluarga
-              </Link>
-            </Button>
-          </div>
-        )}
       </div>
     );
   }
@@ -51,6 +41,7 @@ export function KeluargaTable({ keluarga, anggotaId, readOnly = true }: Keluarga
           <TableHead>Hubungan</TableHead>
           <TableHead>No. HP</TableHead>
           <TableHead>Alamat</TableHead>
+          {!readOnly && <TableHead className="text-right">Aksi</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -70,6 +61,18 @@ export function KeluargaTable({ keluarga, anggotaId, readOnly = true }: Keluarga
               <MapPin size={14} className="mt-1 text-muted-foreground" />
               <span className="line-clamp-2">{k.alamat}</span>
             </TableCell>
+            {!readOnly && onEdit && onDelete && (
+              <TableCell className="text-right">
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" size="sm" onClick={() => onEdit(k.id)}>
+                    <Pencil size={16} className="mr-1" /> Edit
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => onDelete(k.id)}>
+                    <Trash2 size={16} className="mr-1" /> Hapus
+                  </Button>
+                </div>
+              </TableCell>
+            )}
           </TableRow>
         ))}
       </TableBody>

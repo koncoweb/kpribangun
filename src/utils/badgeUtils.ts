@@ -1,21 +1,24 @@
 
-import { BadgeProps } from "@/components/ui/badge";
-
 /**
- * Returns the appropriate badge variant based on the family relationship
+ * Get the appropriate badge variant based on the relationship type
  */
-export function getBadgeVariantByRelationship(hubungan: string): BadgeProps["variant"] {
-  switch (hubungan) {
-    case "Suami":
-    case "Istri":
-      return "info"; // Changed from "primary" to "info"
+export function getBadgeVariantByRelationship(
+  relationship: "Anak" | "Suami" | "Istri" | "Orang Tua" | "Saudara Kandung" | "Kerabat"
+): "default" | "secondary" | "destructive" | "outline" | "success" | "info" | "warning" {
+  switch (relationship) {
     case "Anak":
-      return "default";
+      return "info";
+    case "Suami":
+      return "success";
+    case "Istri":
+      return "success";
     case "Orang Tua":
-      return "secondary";
+      return "warning";
     case "Saudara Kandung":
+      return "secondary";
+    case "Kerabat":
       return "outline";
     default:
-      return "outline";
+      return "default";
   }
 }
