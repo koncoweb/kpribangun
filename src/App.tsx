@@ -1,9 +1,15 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { initUserManagementData } from "./services/userManagementService";
+import { AuthGuard, AnggotaGuard } from "@/components/auth/AuthGuard";
+import { isAuthenticated, getCurrentUser } from "@/services/authService";
+
+// Login Page
+import LoginPage from "./pages/Auth/LoginPage";
 
 // Pages
 import Index from "./pages/Index";
@@ -54,80 +60,270 @@ const Placeholder = ({ title }: { title: string }) => (
   </div>
 );
 
+// Role constants
+const ADMIN_ROLES = ["role_superadmin", "role_admin"];
+
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          
-          {/* Koperasi Routes */}
-          <Route path="/anggota" element={<AnggotaList />} />
-          <Route path="/anggota/tambah" element={<AnggotaForm />} />
-          <Route path="/anggota/:id" element={<AnggotaDetail />} />
-          <Route path="/anggota/:id/edit" element={<AnggotaForm />} />
-          <Route path="/transaksi" element={<TransaksiList />} />
-          <Route path="/transaksi/baru" element={<TransaksiForm />} />
-          <Route path="/transaksi/:id" element={<TransaksiDetail />} />
-          
-          {/* Pengajuan Routes */}
-          <Route path="/transaksi/pengajuan" element={<PengajuanList />} />
-          <Route path="/transaksi/pengajuan/tambah" element={<PengajuanForm />} />
-          <Route path="/transaksi/pengajuan/:id" element={<PengajuanDetail />} />
-          <Route path="/transaksi/pengajuan/:id/edit" element={<PengajuanForm />} />
-          
-          {/* Simpan Routes */}
-          <Route path="/transaksi/simpan" element={<SimpanList />} />
-          <Route path="/transaksi/simpan/tambah" element={<SimpanForm />} />
-          <Route path="/transaksi/simpan/:id" element={<SimpanDetail />} />
-          
-          {/* Pinjam Routes */}
-          <Route path="/transaksi/pinjam" element={<PinjamList />} />
-          <Route path="/transaksi/pinjam/tambah" element={<PinjamForm />} />
-          <Route path="/transaksi/pinjam/:id" element={<PinjamDetail />} />
-          
-          {/* Angsuran Routes */}
-          <Route path="/transaksi/angsuran" element={<AngsuranList />} />
-          <Route path="/transaksi/angsuran/tambah" element={<AngsuranForm />} />
-          <Route path="/transaksi/angsuran/:id" element={<AngsuranDetail />} />
-          
-          <Route path="/laporan" element={<Laporan />} />
-          
-          {/* KPRI Mart Routes */}
-          <Route path="/pos" element={<POSIndex />} />
-          <Route path="/pos/pembelian" element={<Pembelian />} />
-          <Route path="/pos/pemasok" element={<Pemasok />} />
-          <Route path="/pos/penjualan" element={<Penjualan />} />
-          <Route path="/pos/penjualan-list" element={<PenjualanList />} />
-          <Route path="/pos/penjualan/:id" element={<PenjualanDetail />} />
-          <Route path="/pos/stok" element={<StokBarang />} />
-          <Route path="/pos/inventori" element={<Inventori />} />
-          <Route path="/pos/kasir" element={<NamaKasir />} />
-          <Route path="/pos/riwayat" element={<RiwayatTransaksi />} />
-          <Route path="/pos/kuitansi" element={<KuitansiPembayaran />} />
-          <Route path="/pos/laporan-jual-beli" element={<LaporanJualBeli />} />
-          <Route path="/pos/laporan-rugi-laba" element={<LaporanRugiLaba />} />
-          
-          {/* Pengaturan Routes */}
-          <Route path="/pengaturan" element={<Pengaturan />} />
-          <Route path="/pengaturan/users" element={<Placeholder title="User Management" />} />
-          <Route path="/pengaturan/roles" element={<Placeholder title="Hak Akses" />} />
-          <Route path="/pengaturan/koperasi" element={<Placeholder title="Pengaturan Koperasi" />} />
-          <Route path="/pengaturan/tenor" element={<Placeholder title="Pengaturan Tenor" />} />
-          <Route path="/pengaturan/denda" element={<Placeholder title="Pengaturan Denda" />} />
-          <Route path="/pengaturan/bunga" element={<Placeholder title="Pengaturan Suku Bunga" />} />
-          <Route path="/pengaturan/backup" element={<Placeholder title="Backup Data" />} />
-          
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  // Initialize user data on app load
+  useEffect(() => {
+    initUserManagementData();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<LoginPage />} />
+            
+            {/* Home Route - Redirect based on authentication */}
+            <Route path="/" element={
+              <AuthGuard>
+                <Index />
+              </AuthGuard>
+            } />
+            
+            {/* Protected Routes - Admin Only */}
+            <Route path="/anggota" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <AnggotaList />
+              </AuthGuard>
+            } />
+            <Route path="/anggota/tambah" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <AnggotaForm />
+              </AuthGuard>
+            } />
+            
+            {/* Anggota Detail - Special guard for anggota self-service */}
+            <Route path="/anggota/:id" element={
+              <AnggotaGuard>
+                <AnggotaDetail />
+              </AnggotaGuard>
+            } />
+            <Route path="/anggota/:id/edit" element={
+              <AnggotaGuard>
+                <AnggotaForm />
+              </AnggotaGuard>
+            } />
+            
+            {/* Other Protected Routes */}
+            <Route path="/transaksi" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <TransaksiList />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/baru" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <TransaksiForm />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/:id" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <TransaksiDetail />
+              </AuthGuard>
+            } />
+            
+            {/* Pengajuan Routes */}
+            <Route path="/transaksi/pengajuan" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PengajuanList />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/pengajuan/tambah" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PengajuanForm />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/pengajuan/:id" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PengajuanDetail />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/pengajuan/:id/edit" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PengajuanForm />
+              </AuthGuard>
+            } />
+            
+            {/* Simpan Routes */}
+            <Route path="/transaksi/simpan" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <SimpanList />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/simpan/tambah" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <SimpanForm />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/simpan/:id" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <SimpanDetail />
+              </AuthGuard>
+            } />
+            
+            {/* Pinjam Routes */}
+            <Route path="/transaksi/pinjam" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PinjamList />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/pinjam/tambah" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PinjamForm />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/pinjam/:id" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PinjamDetail />
+              </AuthGuard>
+            } />
+            
+            {/* Angsuran Routes */}
+            <Route path="/transaksi/angsuran" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <AngsuranList />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/angsuran/tambah" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <AngsuranForm />
+              </AuthGuard>
+            } />
+            <Route path="/transaksi/angsuran/:id" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <AngsuranDetail />
+              </AuthGuard>
+            } />
+            
+            <Route path="/laporan" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Laporan />
+              </AuthGuard>
+            } />
+            
+            {/* KPRI Mart Routes */}
+            <Route path="/pos" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <POSIndex />
+              </AuthGuard>
+            } />
+            <Route path="/pos/pembelian" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Pembelian />
+              </AuthGuard>
+            } />
+            <Route path="/pos/pemasok" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Pemasok />
+              </AuthGuard>
+            } />
+            <Route path="/pos/penjualan" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Penjualan />
+              </AuthGuard>
+            } />
+            <Route path="/pos/penjualan-list" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PenjualanList />
+              </AuthGuard>
+            } />
+            <Route path="/pos/penjualan/:id" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <PenjualanDetail />
+              </AuthGuard>
+            } />
+            <Route path="/pos/stok" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <StokBarang />
+              </AuthGuard>
+            } />
+            <Route path="/pos/inventori" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Inventori />
+              </AuthGuard>
+            } />
+            <Route path="/pos/kasir" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <NamaKasir />
+              </AuthGuard>
+            } />
+            <Route path="/pos/riwayat" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <RiwayatTransaksi />
+              </AuthGuard>
+            } />
+            <Route path="/pos/kuitansi" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <KuitansiPembayaran />
+              </AuthGuard>
+            } />
+            <Route path="/pos/laporan-jual-beli" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <LaporanJualBeli />
+              </AuthGuard>
+            } />
+            <Route path="/pos/laporan-rugi-laba" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <LaporanRugiLaba />
+              </AuthGuard>
+            } />
+            
+            {/* Pengaturan Routes */}
+            <Route path="/pengaturan" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Pengaturan />
+              </AuthGuard>
+            } />
+            <Route path="/pengaturan/users" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Placeholder title="User Management" />
+              </AuthGuard>
+            } />
+            <Route path="/pengaturan/roles" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Placeholder title="Hak Akses" />
+              </AuthGuard>
+            } />
+            <Route path="/pengaturan/koperasi" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Placeholder title="Pengaturan Koperasi" />
+              </AuthGuard>
+            } />
+            <Route path="/pengaturan/tenor" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Placeholder title="Pengaturan Tenor" />
+              </AuthGuard>
+            } />
+            <Route path="/pengaturan/denda" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Placeholder title="Pengaturan Denda" />
+              </AuthGuard>
+            } />
+            <Route path="/pengaturan/bunga" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Placeholder title="Pengaturan Suku Bunga" />
+              </AuthGuard>
+            } />
+            <Route path="/pengaturan/backup" element={
+              <AuthGuard allowedRoles={ADMIN_ROLES}>
+                <Placeholder title="Backup Data" />
+              </AuthGuard>
+            } />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
