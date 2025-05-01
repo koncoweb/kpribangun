@@ -1,9 +1,10 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Transaksi } from "@/types";
+import { Transaksi, AnggotaKeluarga } from "@/types";
 import { TransactionTable } from "./TransactionTable";
 import { JatuhTempoTable } from "./JatuhTempoTable";
 import { TunggakanTable } from "./TunggakanTable";
+import { KeluargaTable } from "./KeluargaTable";
 
 interface TransactionTabsProps {
   transaksi: Transaksi[];
@@ -21,6 +22,7 @@ interface TransactionTabsProps {
     daysOverdue: number;
     penalty: number;
   }[];
+  keluarga?: AnggotaKeluarga[];
 }
 
 export function TransactionTabs({
@@ -30,6 +32,7 @@ export function TransactionTabs({
   angsuranTransaksi,
   jatuhTempo,
   tunggakan,
+  keluarga = [],
 }: TransactionTabsProps) {
   return (
     <Tabs defaultValue="semua">
@@ -40,6 +43,7 @@ export function TransactionTabs({
         <TabsTrigger value="angsuran">Angsuran</TabsTrigger>
         <TabsTrigger value="jatuhTempo">Jatuh Tempo</TabsTrigger>
         <TabsTrigger value="tunggakan">Tunggakan</TabsTrigger>
+        <TabsTrigger value="keluarga">Data Keluarga</TabsTrigger>
       </TabsList>
       
       <TabsContent value="semua">
@@ -59,6 +63,9 @@ export function TransactionTabs({
       </TabsContent>
       <TabsContent value="tunggakan">
         <TunggakanTable tunggakan={tunggakan} />
+      </TabsContent>
+      <TabsContent value="keluarga">
+        <KeluargaTable keluarga={keluarga} />
       </TabsContent>
     </Tabs>
   );

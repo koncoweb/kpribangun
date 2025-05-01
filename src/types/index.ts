@@ -9,8 +9,26 @@ export interface Anggota {
   agama: string;
   pekerjaan: string;
   foto?: string;
+  dokumen?: AnggotaDokumen[];
+  keluarga?: AnggotaKeluarga[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AnggotaDokumen {
+  id: string;
+  jenis: "KTP" | "KK" | "Sertifikat" | "BPKB" | "SK";
+  file: string; // base64 string
+  namaFile: string;
+  tanggalUpload: string;
+}
+
+export interface AnggotaKeluarga {
+  id: string;
+  nama: string;
+  hubungan: "Anak" | "Suami" | "Istri" | "Orang Tua" | "Saudara Kandung" | "Kerabat";
+  alamat: string;
+  noHp: string;
 }
 
 export interface Transaksi {

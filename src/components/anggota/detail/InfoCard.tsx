@@ -1,6 +1,10 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Anggota } from "@/types";
+import { Badge } from "@/components/ui/badge";
+import { File } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface InfoCardProps {
   anggota: Anggota;
@@ -28,7 +32,7 @@ export function InfoCard({ anggota, totalSimpanan, totalPinjaman }: InfoCardProp
           </div>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <h3 className="text-sm font-medium mb-1">NIK</h3>
@@ -47,6 +51,45 @@ export function InfoCard({ anggota, totalSimpanan, totalPinjaman }: InfoCardProp
           <div>
             <h3 className="text-sm font-medium mb-1">Pekerjaan</h3>
             <p>{anggota.pekerjaan}</p>
+          </div>
+          
+          <div>
+            <h3 className="text-sm font-medium mb-2">Dokumen</h3>
+            <div className="flex flex-wrap gap-2">
+              {anggota.dokumen && anggota.dokumen.length > 0 ? (
+                anggota.dokumen.map((doc) => (
+                  <Dialog key={doc.id}>
+                    <DialogTrigger asChild>
+                      <Badge variant="outline" className="cursor-pointer hover:bg-accent flex gap-1.5 items-center">
+                        <File size={14} /> {doc.jenis}
+                      </Badge>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                      <DialogHeader>
+                        <DialogTitle>Dokumen {doc.jenis}</DialogTitle>
+                      </DialogHeader>
+                      <div className="mt-2 max-h-[70vh] overflow-auto">
+                        {doc.file.includes("data:application/pdf") ? (
+                          <iframe 
+                            src={doc.file} 
+                            className="w-full h-[500px]" 
+                            title={doc.namaFile} 
+                          />
+                        ) : (
+                          <img 
+                            src={doc.file} 
+                            alt={doc.namaFile} 
+                            className="max-w-full h-auto" 
+                          />
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">Tidak ada dokumen tersedia</p>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { createAnggota, getAnggotaById, updateAnggota } from "@/services/anggotaService";
-import { Anggota } from "@/types";
+import { Anggota, AnggotaKeluarga, AnggotaDokumen } from "@/types";
 import { PhotoUploadCard } from "@/components/anggota/PhotoUploadCard";
 import { AnggotaDetailsForm } from "@/components/anggota/AnggotaDetailsForm";
 import { FormActions } from "@/components/anggota/FormActions";
+import { DokumenUploadCard } from "@/components/anggota/DokumenUploadCard";
+import { KeluargaFormCard } from "@/components/anggota/KeluargaFormCard";
 
 export default function AnggotaForm() {
   const navigate = useNavigate();
@@ -30,6 +32,9 @@ export default function AnggotaForm() {
     foto: ""
   });
   
+  const [dokumen, setDokumen] = useState<AnggotaDokumen[]>([]);
+  const [keluarga, setKeluarga] = useState<AnggotaKeluarga[]>([]);
+  
   const isEditMode = !!id;
   
   useEffect(() => {
@@ -49,6 +54,14 @@ export default function AnggotaForm() {
         
         if (anggota.foto) {
           setPreviewImage(anggota.foto);
+        }
+        
+        if (anggota.dokumen) {
+          setDokumen(anggota.dokumen);
+        }
+        
+        if (anggota.keluarga) {
+          setKeluarga(anggota.keluarga);
         }
       } else {
         toast({
@@ -83,6 +96,14 @@ export default function AnggotaForm() {
     setFormData(prev => ({ ...prev, foto: imageDataUrl }));
   };
   
+  const handleDokumenChange = (updatedDokumen: AnggotaDokumen[]) => {
+    setDokumen(updatedDokumen);
+  };
+  
+  const handleKeluargaChange = (updatedKeluarga: AnggotaKeluarga[]) => {
+    setKeluarga(updatedKeluarga);
+  };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -99,9 +120,15 @@ export default function AnggotaForm() {
     setIsSubmitting(true);
     
     try {
+      const anggotaData = {
+        ...formData,
+        dokumen,
+        keluarga
+      };
+      
       if (isEditMode && id) {
         // Update existing anggota
-        const updatedAnggota = updateAnggota(id, formData);
+        const updatedAnggota = updateAnggota(id, anggotaData);
         
         if (updatedAnggota) {
           toast({
@@ -114,7 +141,7 @@ export default function AnggotaForm() {
         }
       } else {
         // Create new anggota
-        const newAnggota = createAnggota(formData);
+        const newAnggota = createAnggota(anggotaData);
         
         toast({
           title: "Anggota berhasil ditambahkan",
@@ -157,6 +184,18 @@ export default function AnggotaForm() {
             isEditMode={isEditMode}
             onInputChange={handleChange}
             onSelectChange={handleSelectChange}
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 gap-6 mb-6">
+          <DokumenUploadCard 
+            dokumen={dokumen}
+            onDokumenChange={handleDokumenChange}
+          />
+          
+          <KeluargaFormCard
+            keluarga={keluarga}
+            onKeluargaChange={handleKeluargaChange}
           />
         </div>
         

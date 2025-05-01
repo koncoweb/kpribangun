@@ -114,7 +114,7 @@ export default function AnggotaDetail() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Histori Transaksi</CardTitle>
+          <CardTitle>Histori Transaksi & Data Keluarga</CardTitle>
         </CardHeader>
         <CardContent>
           <TransactionTabs
@@ -124,6 +124,7 @@ export default function AnggotaDetail() {
             angsuranTransaksi={angsuranTransaksi}
             jatuhTempo={jatuhTempo}
             tunggakan={tunggakan}
+            keluarga={anggota.keluarga || []}
           />
         </CardContent>
       </Card>
