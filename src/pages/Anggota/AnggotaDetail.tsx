@@ -1,18 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Edit, User, Phone, MapPin, Calendar, AlertTriangle, Clock } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAnggotaById } from "@/services/anggotaService";
 import { 
@@ -25,6 +17,9 @@ import {
   calculatePenalty
 } from "@/services/transaksi";
 import { Anggota, Transaksi } from "@/types";
+import { ProfileCard } from "@/components/anggota/detail/ProfileCard";
+import { InfoCard } from "@/components/anggota/detail/InfoCard";
+import { TransactionTabs } from "@/components/anggota/detail/TransactionTabs";
 
 export default function AnggotaDetail() {
   const { id } = useParams<{ id: string }>();
@@ -113,93 +108,8 @@ export default function AnggotaDetail() {
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <Card className="lg:col-span-1">
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center justify-center">
-              <div className="mb-4">
-                <div className="w-40 h-40 rounded-full overflow-hidden bg-muted flex items-center justify-center border-2 border-gray-200">
-                  {anggota.foto ? (
-                    <img 
-                      src={anggota.foto} 
-                      alt={anggota.nama} 
-                      className="w-full h-full object-cover" 
-                    />
-                  ) : (
-                    <User className="h-20 w-20 text-gray-400" />
-                  )}
-                </div>
-              </div>
-              
-              <h2 className="text-xl font-semibold text-center">{anggota.nama}</h2>
-              <p className="text-gray-500 text-center mb-4">{anggota.id}</p>
-              
-              <div className="w-full space-y-3 mt-2">
-                <div className="flex items-center gap-2">
-                  <Phone className="h-4 w-4 text-gray-400" />
-                  <span>{anggota.noHp}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm">{anggota.alamat}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm">Bergabung: {new Date(anggota.createdAt).toLocaleDateString("id-ID")}</span>
-                </div>
-              </div>
-              
-              <div className="mt-6 w-full">
-                <Link to={`/anggota/${anggota.id}/edit`}>
-                  <Button className="w-full gap-2">
-                    <Edit size={16} /> Edit Data Anggota
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="lg:col-span-2">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <h3 className="text-green-800 text-sm font-medium mb-1">Total Simpanan</h3>
-                <p className="text-2xl font-bold text-green-700">
-                  Rp {totalSimpanan.toLocaleString("id-ID")}
-                </p>
-              </div>
-              
-              <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
-                <h3 className="text-amber-800 text-sm font-medium mb-1">Sisa Pinjaman</h3>
-                <p className="text-2xl font-bold text-amber-700">
-                  Rp {totalPinjaman.toLocaleString("id-ID")}
-                </p>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-1">NIK</h3>
-                  <p>{anggota.nik}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium mb-1">Jenis Kelamin</h3>
-                  <p>{anggota.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium mb-1">Agama</h3>
-                  <p>{anggota.agama}</p>
-                </div>
-              </div>
-              
-              <div>
-                <h3 className="text-sm font-medium mb-1">Pekerjaan</h3>
-                <p>{anggota.pekerjaan}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <ProfileCard anggota={anggota} />
+        <InfoCard anggota={anggota} totalSimpanan={totalSimpanan} totalPinjaman={totalPinjaman} />
       </div>
       
       <Card>
@@ -207,229 +117,16 @@ export default function AnggotaDetail() {
           <CardTitle>Histori Transaksi</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="semua">
-            <TabsList className="mb-4">
-              <TabsTrigger value="semua">Semua</TabsTrigger>
-              <TabsTrigger value="simpanan">Simpanan</TabsTrigger>
-              <TabsTrigger value="pinjaman">Pinjaman</TabsTrigger>
-              <TabsTrigger value="angsuran">Angsuran</TabsTrigger>
-              <TabsTrigger value="jatuhTempo">Jatuh Tempo</TabsTrigger>
-              <TabsTrigger value="tunggakan">Tunggakan</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="semua">
-              <TransaksiTable transaksi={transaksi} />
-            </TabsContent>
-            <TabsContent value="simpanan">
-              <TransaksiTable transaksi={simpananTransaksi} />
-            </TabsContent>
-            <TabsContent value="pinjaman">
-              <TransaksiTable transaksi={pinjamanTransaksi} />
-            </TabsContent>
-            <TabsContent value="angsuran">
-              <TransaksiTable transaksi={angsuranTransaksi} />
-            </TabsContent>
-            <TabsContent value="jatuhTempo">
-              <JatuhTempoTable jatuhTempo={jatuhTempo} />
-            </TabsContent>
-            <TabsContent value="tunggakan">
-              <TunggakanTable tunggakan={tunggakan} />
-            </TabsContent>
-          </Tabs>
+          <TransactionTabs
+            transaksi={transaksi}
+            simpananTransaksi={simpananTransaksi}
+            pinjamanTransaksi={pinjamanTransaksi}
+            angsuranTransaksi={angsuranTransaksi}
+            jatuhTempo={jatuhTempo}
+            tunggakan={tunggakan}
+          />
         </CardContent>
       </Card>
     </Layout>
-  );
-}
-
-function TransaksiTable({ transaksi }: { transaksi: Transaksi[] }) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
-  };
-  
-  return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Tanggal</TableHead>
-            <TableHead>Jenis</TableHead>
-            <TableHead>Jumlah</TableHead>
-            <TableHead>Keterangan</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {transaksi.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-10">
-                Tidak ada data transaksi yang ditemukan
-              </TableCell>
-            </TableRow>
-          ) : (
-            transaksi.map((tr) => (
-              <TableRow key={tr.id}>
-                <TableCell className="font-medium">{tr.id}</TableCell>
-                <TableCell>{formatDate(tr.tanggal)}</TableCell>
-                <TableCell>
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                    tr.jenis === "Simpan" ? "bg-green-100 text-green-800" : 
-                    tr.jenis === "Pinjam" ? "bg-amber-100 text-amber-800" : 
-                    "bg-blue-100 text-blue-800"
-                  }`}>
-                    {tr.jenis}
-                  </span>
-                </TableCell>
-                <TableCell>Rp {tr.jumlah.toLocaleString("id-ID")}</TableCell>
-                <TableCell>{tr.keterangan || "-"}</TableCell>
-                <TableCell>
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                    tr.status === "Sukses" ? "bg-green-100 text-green-800" : 
-                    tr.status === "Pending" ? "bg-yellow-100 text-yellow-800" : 
-                    "bg-red-100 text-red-800"
-                  }`}>
-                    {tr.status}
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
-function JatuhTempoTable({ jatuhTempo }: { 
-  jatuhTempo: {
-    transaksi: Transaksi;
-    jatuhTempo: string;
-    daysUntilDue: number;
-  }[] 
-}) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
-  };
-  
-  return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Tanggal Pinjam</TableHead>
-            <TableHead>Jumlah</TableHead>
-            <TableHead>Jatuh Tempo</TableHead>
-            <TableHead>Sisa Hari</TableHead>
-            <TableHead>Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {jatuhTempo.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-10">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <Clock className="h-8 w-8 text-gray-400" />
-                  <p>Tidak ada pinjaman yang akan jatuh tempo</p>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            jatuhTempo.map((item) => (
-              <TableRow key={item.transaksi.id}>
-                <TableCell className="font-medium">{item.transaksi.id}</TableCell>
-                <TableCell>{formatDate(item.transaksi.tanggal)}</TableCell>
-                <TableCell>Rp {item.transaksi.jumlah.toLocaleString("id-ID")}</TableCell>
-                <TableCell>{formatDate(item.jatuhTempo)}</TableCell>
-                <TableCell>
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                    item.daysUntilDue <= 7 ? "bg-red-100 text-red-800" : 
-                    item.daysUntilDue <= 14 ? "bg-amber-100 text-amber-800" : 
-                    "bg-blue-100 text-blue-800"
-                  }`}>
-                    {item.daysUntilDue} hari
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                    Akan Jatuh Tempo
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  );
-}
-
-function TunggakanTable({ tunggakan }: { 
-  tunggakan: {
-    transaksi: Transaksi;
-    jatuhTempo: string;
-    daysOverdue: number;
-    penalty: number;
-  }[] 
-}) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
-  };
-  
-  return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>ID</TableHead>
-            <TableHead>Tanggal Pinjam</TableHead>
-            <TableHead>Jumlah</TableHead>
-            <TableHead>Jatuh Tempo</TableHead>
-            <TableHead>Keterlambatan</TableHead>
-            <TableHead>Denda</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tunggakan.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-10">
-                <div className="flex flex-col items-center justify-center gap-2">
-                  <AlertTriangle className="h-8 w-8 text-gray-400" />
-                  <p>Tidak ada pinjaman yang menunggak</p>
-                </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            tunggakan.map((item) => (
-              <TableRow key={item.transaksi.id}>
-                <TableCell className="font-medium">{item.transaksi.id}</TableCell>
-                <TableCell>{formatDate(item.transaksi.tanggal)}</TableCell>
-                <TableCell>Rp {item.transaksi.jumlah.toLocaleString("id-ID")}</TableCell>
-                <TableCell>{formatDate(item.jatuhTempo)}</TableCell>
-                <TableCell>
-                  <span className={`inline-block px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800`}>
-                    {item.daysOverdue} hari
-                  </span>
-                </TableCell>
-                <TableCell>Rp {item.penalty.toLocaleString("id-ID")}</TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
   );
 }
