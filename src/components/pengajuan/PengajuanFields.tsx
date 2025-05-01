@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 
 interface PengajuanFieldsProps {
-  jenis: "Simpan" | "Pinjam" | "";
+  jenis: "Simpan" | "Pinjam";
   jumlah: number;
   onJenisChange: (value: "Simpan" | "Pinjam") => void;
   onJumlahChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -27,7 +27,7 @@ export function PengajuanFields({
       <div>
         <Label htmlFor="jenis" className="required">Jenis Pengajuan</Label>
         <Select 
-          value={jenis || undefined}
+          value={jenis}
           onValueChange={onJenisChange}
           required
         >

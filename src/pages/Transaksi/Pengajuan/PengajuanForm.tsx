@@ -22,14 +22,14 @@ export default function PengajuanForm() {
   const [formData, setFormData] = useState<{
     tanggal: string;
     anggotaId: string;
-    jenis: "Simpan" | "Pinjam" | "";
+    jenis: "Simpan" | "Pinjam";
     jumlah: number;
     keterangan: string;
     status: "Menunggu" | "Disetujui" | "Ditolak";
   }>({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
-    jenis: "",
+    jenis: "Simpan", // Default to a valid value
     jumlah: 0,
     keterangan: "",
     status: "Menunggu"
