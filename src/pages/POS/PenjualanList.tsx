@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { Plus } from "lucide-react";
 import { Penjualan } from "@/types";
-import { getAllPenjualan, deletePenjualan } from "@/services/penjualanService";
+import { getAllPenjualan, deletePenjualan } from "@/services/penjualan";
 import { getKasirById } from "@/services/kasirService";
 
 // Import refactored components

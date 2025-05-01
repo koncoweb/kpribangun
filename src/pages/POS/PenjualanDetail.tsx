@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { useToast } from "@/components/ui/use-toast";
 import { Penjualan } from "@/types";
-import { getPenjualanById, updatePenjualan } from "@/services/penjualanService";
+import { getPenjualanById, updatePenjualan } from "@/services/penjualan";
 import { getProdukItemById } from "@/services/produkService";
 import { getKasirById, getAllKasir } from "@/services/kasirService";
 

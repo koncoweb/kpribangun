@@ -6,7 +6,7 @@ import { CartSummary } from "./CartSummary";
 import { ProdukItem, PenjualanItem } from "@/types";
 import { Kasir } from "@/types";
 import { getProdukItemById } from "@/services/produkService";
-import { calculateTotal } from "@/services/penjualanService";
+import { calculateTotal } from "@/services/penjualan";
 import { CartHeader } from "./cart/CartHeader";
 import { EmptyCart } from "./cart/EmptyCart";
 import { DiscountTaxInputs } from "./cart/DiscountTaxInputs";

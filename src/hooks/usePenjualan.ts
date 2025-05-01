@@ -1,9 +1,8 @@
-
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { ProdukItem, PenjualanItem, type Penjualan } from "@/types";
 import { getAllProdukItems, getProdukItemById } from "@/services/produkService";
-import { createPenjualan, calculateTotal } from "@/services/penjualanService";
+import { createPenjualan, calculateTotal } from "@/services/penjualan";
 
 export function usePenjualan() {
   const { toast } = useToast();

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import Layout from "@/components/layout/Layout";
@@ -9,7 +8,7 @@ import {
   getAllPenjualan, 
   deletePenjualan, 
   updatePenjualan 
-} from "@/services/penjualanService";
+} from "@/services/penjualan";
 
 // Import refactored components
 import { TransactionFilters } from "@/components/transaksi/TransactionFilters";

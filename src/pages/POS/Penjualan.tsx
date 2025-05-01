@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { ProductSection } from "@/components/pos/ProductSection";
@@ -6,7 +5,7 @@ import { CartSection } from "@/components/pos/CartSection";
 import { SuccessDialog } from "@/components/pos/SuccessDialog";
 import { getAllKasir, initSampleKasirData } from "@/services/kasirService";
 import { initSampleProdukData } from "@/services/produkService";
-import { initSamplePenjualanData } from "@/services/penjualanService";
+import { initSamplePenjualanData } from "@/services/penjualan";
 import { usePenjualan } from "@/hooks/usePenjualan";
 
 export default function Penjualan() {
