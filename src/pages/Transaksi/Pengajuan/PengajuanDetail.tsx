@@ -42,7 +42,7 @@ export default function PengajuanDetail() {
   const [loading, setLoading] = useState(true);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
-  const [newStatus, setNewStatus] = useState<string>("");
+  const [newStatus, setNewStatus] = useState<"Menunggu" | "Disetujui" | "Ditolak" | "">("");
 
   useEffect(() => {
     if (id) {
@@ -366,7 +366,7 @@ export default function PengajuanDetail() {
 
           {!newStatus && (
             <div className="py-4">
-              <Select onValueChange={setNewStatus}>
+              <Select onValueChange={(value: "Menunggu" | "Disetujui" | "Ditolak") => setNewStatus(value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih status" />
                 </SelectTrigger>

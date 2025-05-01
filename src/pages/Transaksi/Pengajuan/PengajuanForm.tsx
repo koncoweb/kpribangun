@@ -18,7 +18,7 @@ import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAllAnggota } from "@/services/anggotaService";
 import { FormActions } from "@/components/anggota/FormActions";
-import { Anggota } from "@/types";
+import { Anggota, Pengajuan } from "@/types";
 import { createPengajuan, getPengajuanById, updatePengajuan } from "@/services/pengajuanService";
 
 export default function PengajuanForm() {
@@ -29,7 +29,15 @@ export default function PengajuanForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
   
-  const [formData, setFormData] = useState({
+  // Use proper typed state
+  const [formData, setFormData] = useState<{
+    tanggal: string;
+    anggotaId: string;
+    jenis: "Simpan" | "Pinjam" | "";
+    jumlah: number;
+    keterangan: string;
+    status: "Menunggu" | "Disetujui" | "Ditolak";
+  }>({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
     jenis: "",
@@ -76,7 +84,13 @@ export default function PengajuanForm() {
   };
   
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    if (name === "jenis") {
+      setFormData(prev => ({ ...prev, [name]: value as "Simpan" | "Pinjam" }));
+    } else if (name === "status") {
+      setFormData(prev => ({ ...prev, [name]: value as "Menunggu" | "Disetujui" | "Ditolak" }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
   
   const validateForm = () => {
@@ -119,13 +133,21 @@ export default function PengajuanForm() {
     e.preventDefault();
     
     if (!validateForm()) return;
+    if (!formData.jenis) return; // Additional type safety check
     
     setIsSubmitting(true);
     
     try {
       if (isEditMode && id) {
-        // Update existing pengajuan
-        const updated = updatePengajuan(id, formData);
+        // Update existing pengajuan with properly typed data
+        const updated = updatePengajuan(id, {
+          tanggal: formData.tanggal,
+          anggotaId: formData.anggotaId,
+          jenis: formData.jenis,
+          jumlah: formData.jumlah,
+          keterangan: formData.keterangan,
+          status: formData.status
+        });
         
         if (updated) {
           toast({
@@ -137,8 +159,15 @@ export default function PengajuanForm() {
           throw new Error("Gagal memperbarui pengajuan");
         }
       } else {
-        // Create new pengajuan
-        const newPengajuan = createPengajuan(formData);
+        // Create new pengajuan with properly typed data
+        const newPengajuan = createPengajuan({
+          tanggal: formData.tanggal,
+          anggotaId: formData.anggotaId,
+          jenis: formData.jenis,
+          jumlah: formData.jumlah,
+          keterangan: formData.keterangan,
+          status: formData.status
+        });
         
         if (newPengajuan) {
           toast({
@@ -194,7 +223,7 @@ export default function PengajuanForm() {
                   <Label htmlFor="status">Status</Label>
                   <Select 
                     value={formData.status}
-                    onValueChange={(value) => handleSelectChange("status", value)}
+                    onValueChange={(value: "Menunggu" | "Disetujui" | "Ditolak") => handleSelectChange("status", value)}
                     disabled={!isEditMode}
                   >
                     <SelectTrigger id="status">
@@ -233,8 +262,8 @@ export default function PengajuanForm() {
                 <div>
                   <Label htmlFor="jenis" className="required">Jenis Pengajuan</Label>
                   <Select 
-                    value={formData.jenis}
-                    onValueChange={(value) => handleSelectChange("jenis", value)}
+                    value={formData.jenis || undefined}
+                    onValueChange={(value: "Simpan" | "Pinjam") => handleSelectChange("jenis", value)}
                     required
                   >
                     <SelectTrigger id="jenis">
