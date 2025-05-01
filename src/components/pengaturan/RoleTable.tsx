@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Role } from '@/types';
+import { Role, Permission } from '@/types';
 import { Button } from "@/components/ui/button";
 import {
   Table,
