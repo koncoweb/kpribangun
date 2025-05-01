@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 
 interface DateFieldProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function DateField({ value, onChange }: DateFieldProps) {

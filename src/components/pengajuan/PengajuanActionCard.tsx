@@ -1,67 +1,74 @@
 
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, X } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Check, X, ChevronsUpDown } from "lucide-react";
 
 interface PengajuanActionCardProps {
-  status: "Menunggu" | "Disetujui" | "Ditolak";
+  status: string;
   onApprove: () => void;
   onReject: () => void;
   onChangeStatus: () => void;
 }
 
 export function PengajuanActionCard({ 
-  status, 
-  onApprove, 
-  onReject, 
-  onChangeStatus 
+  status,
+  onApprove,
+  onReject,
+  onChangeStatus
 }: PengajuanActionCardProps) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle>Tindakan</CardTitle>
-        <CardDescription>
-          Kelola status pengajuan
-        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {status === "Menunggu" ? (
-          <div className="grid grid-cols-1 gap-2">
+          <>
             <Button 
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full gap-2"
               onClick={onApprove}
             >
-              <Check size={16} className="mr-2" />
-              Setujui Pengajuan
+              <Check size={16} /> Setujui Pengajuan
             </Button>
+            
             <Button 
-              className="w-full bg-red-600 hover:bg-red-700"
+              variant="destructive"
+              className="w-full gap-2"
               onClick={onReject}
             >
-              <X size={16} className="mr-2" />
-              Tolak Pengajuan
+              <X size={16} /> Tolak Pengajuan
             </Button>
-          </div>
+          </>
         ) : (
-          <div>
-            <p className="text-center text-sm mb-2">
-              Status saat ini: <span className="font-medium">{status}</span>
+          <div className="bg-gray-50 p-4 rounded-md">
+            <p className="text-sm mb-2">
+              Status pengajuan saat ini:
             </p>
+            <p className={`font-semibold ${
+              status === "Disetujui" ? "text-green-600" : "text-red-600"
+            }`}>
+              {status}
+            </p>
+            
             <Button 
-              variant="outline" 
-              className="w-full"
+              variant="outline"
+              className="w-full mt-4 gap-2"
               onClick={onChangeStatus}
             >
-              Ubah Status
+              <ChevronsUpDown size={16} /> Ubah Status
             </Button>
           </div>
         )}
+        
+        <div className="pt-2 border-t border-gray-200">
+          <p className="text-sm text-muted-foreground mb-2">
+            Info tindakan:
+          </p>
+          <ul className="text-sm space-y-1">
+            <li>• Menyetujui pengajuan akan membuat transaksi baru.</li>
+            <li>• Menolak pengajuan hanya akan mengubah status.</li>
+          </ul>
+        </div>
       </CardContent>
     </Card>
   );

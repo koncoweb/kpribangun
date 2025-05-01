@@ -12,8 +12,8 @@ import {
 interface PengajuanFieldsProps {
   jenis: "Simpan" | "Pinjam";
   jumlah: number;
-  onJenisChange: (value: "Simpan" | "Pinjam") => void;
-  onJumlahChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onJenisChange: (value: string) => void;
+  onJumlahChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export function PengajuanFields({ 
@@ -23,7 +23,7 @@ export function PengajuanFields({
   onJumlahChange 
 }: PengajuanFieldsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <>
       <div>
         <Label htmlFor="jenis" className="required">Jenis Pengajuan</Label>
         <Select 
@@ -45,14 +45,17 @@ export function PengajuanFields({
         <Label htmlFor="jumlah" className="required">Jumlah (Rp)</Label>
         <Input 
           id="jumlah" 
-          placeholder="Contoh: 5000000" 
+          placeholder="Contoh: 500000" 
           type="number" 
           min="0" 
           value={jumlah || ""}
           onChange={onJumlahChange}
           required 
         />
+        <p className="text-muted-foreground text-xs mt-1">
+          Masukkan jumlah tanpa titik atau koma. Contoh: 500000 untuk Rp 500,000
+        </p>
       </div>
-    </div>
+    </>
   );
 }

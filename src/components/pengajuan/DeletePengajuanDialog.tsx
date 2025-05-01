@@ -1,13 +1,14 @@
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface DeletePengajuanDialogProps {
   open: boolean;
@@ -15,29 +16,30 @@ interface DeletePengajuanDialogProps {
   onConfirm: () => void;
 }
 
-export function DeletePengajuanDialog({ 
-  open, 
-  onOpenChange, 
-  onConfirm 
+export function DeletePengajuanDialog({
+  open,
+  onOpenChange,
+  onConfirm
 }: DeletePengajuanDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Konfirmasi Hapus Pengajuan</DialogTitle>
-          <DialogDescription>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Konfirmasi Penghapusan</AlertDialogTitle>
+          <AlertDialogDescription>
             Apakah Anda yakin ingin menghapus pengajuan ini? Tindakan ini tidak dapat dibatalkan.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Batal
-          </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Batal</AlertDialogCancel>
+          <AlertDialogAction 
+            onClick={onConfirm}
+            className="bg-red-600 text-white hover:bg-red-700"
+          >
             Hapus
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

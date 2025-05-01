@@ -1,14 +1,21 @@
-import React, { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Anggota, Pengaturan } from "@/types"; // Fixed type import
-import { createTransaksi } from "@/services/transaksi"; // Fixed import
-import { calculateAngsuran, getPengaturan } from "@/services/pengaturanService";
-import { FormActions } from "@/components/anggota/FormActions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import { getPengaturan } from "@/services/pengaturanService";
+import { Anggota } from "@/types";
+import { createTransaksi } from "@/services/transaksiService";
 
 interface PinjamanFormProps {
   anggotaList: Anggota[];
@@ -18,59 +25,69 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [pengaturan, setPengaturan] = useState(getPengaturan());
   
-  const [pinjamanForm, setPinjamanForm] = useState({
+  // Get pengaturan for bunga options
+  const pengaturan = getPengaturan();
+  const tenorOptions = pengaturan?.tenor?.tenorOptions || [3, 6, 12, 24, 36];
+  const sukuBunga = pengaturan?.sukuBunga?.pinjaman || 1; // Default 1%
+  
+  const [formData, setFormData] = useState({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
     jumlah: 0,
-    tenor: pengaturan.tenor.defaultTenor.toString(),
-    sukuBunga: pengaturan.sukuBunga.pinjaman,
-    tujuanPinjaman: "",
+    tenor: 12, // Default tenor
+    bunga: sukuBunga,
+    angsuran: 0,
     keterangan: ""
   });
   
-  // Calculated values for pinjaman preview
-  const [pinjamanPreview, setPinjamanPreview] = useState({
-    angsuranPerBulan: 0,
-    totalBayar: 0
-  });
-  
-  useEffect(() => {
-    // Load pengaturan
-    const loadedPengaturan = getPengaturan();
-    setPengaturan(loadedPengaturan);
-    
-    // Set default tenor
-    setPinjamanForm(prev => ({
-      ...prev,
-      tenor: loadedPengaturan.tenor.defaultTenor.toString(),
-      sukuBunga: loadedPengaturan.sukuBunga.pinjaman
-    }));
-  }, []);
-  
-  // Calculate pinjaman preview when amount or tenor changes
-  useEffect(() => {
-    if (pinjamanForm.jumlah > 0 && pinjamanForm.tenor) {
-      const result = calculateAngsuran(
-        pinjamanForm.jumlah, 
-        parseInt(pinjamanForm.tenor)
-      );
-      setPinjamanPreview(result);
-    }
-  }, [pinjamanForm.jumlah, pinjamanForm.tenor]);
-  
-  const handlePinjamanChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setPinjamanForm(prev => ({ ...prev, [id]: id === "jumlah" ? Number(value) : value }));
+    
+    let newFormData = {
+      ...formData,
+      [id]: id === "jumlah" || id === "bunga" || id === "tenor" ? Number(value) : value
+    };
+    
+    // If jumlah, tenor, or bunga changes, recalculate angsuran
+    if (id === "jumlah" || id === "tenor" || id === "bunga") {
+      const calculatedAngsuran = calculateAngsuran(
+        id === "jumlah" ? Number(value) : formData.jumlah,
+        id === "tenor" ? Number(value) : formData.tenor,
+        id === "bunga" ? Number(value) : formData.bunga
+      );
+      
+      newFormData.angsuran = calculatedAngsuran;
+    }
+    
+    setFormData(newFormData);
   };
   
-  const handleSelectChange = (name: string, value: string) => {
-    setPinjamanForm(prev => ({ ...prev, [name]: value }));
+  const handleSelectChange = (name: string, value: string | number) => {
+    let newFormData = { ...formData, [name]: value };
+    
+    // If anggotaId or tenor changes, recalculate
+    if (name === "tenor") {
+      const calculatedAngsuran = calculateAngsuran(formData.jumlah, Number(value), formData.bunga);
+      newFormData.angsuran = calculatedAngsuran;
+    }
+    
+    setFormData(newFormData);
   };
   
-  const validatePinjamanForm = () => {
-    if (!pinjamanForm.tanggal) {
+  // Calculate angsuran bulanan (monthly payment)
+  const calculateAngsuran = (pokok: number, tenor: number, bunga: number) => {
+    if (!pokok || !tenor || tenor <= 0) return 0;
+    
+    // Simple flat rate calculation
+    const bungaPerBulan = (pokok * bunga / 100);
+    const totalBunga = bungaPerBulan * tenor;
+    const totalBayar = pokok + totalBunga;
+    return Math.ceil(totalBayar / tenor);
+  };
+  
+  const validateForm = () => {
+    if (!formData.tanggal) {
       toast({
         title: "Tanggal wajib diisi",
         variant: "destructive",
@@ -78,7 +95,7 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
       return false;
     }
     
-    if (!pinjamanForm.anggotaId) {
+    if (!formData.anggotaId) {
       toast({
         title: "Anggota wajib dipilih",
         variant: "destructive",
@@ -86,25 +103,9 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
       return false;
     }
     
-    if (!pinjamanForm.jumlah || pinjamanForm.jumlah <= 0) {
+    if (!formData.jumlah || formData.jumlah <= 0) {
       toast({
         title: "Jumlah pinjaman harus lebih dari 0",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (!pinjamanForm.tenor) {
-      toast({
-        title: "Tenor wajib dipilih",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (!pinjamanForm.tujuanPinjaman) {
-      toast({
-        title: "Tujuan pinjaman wajib dipilih",
         variant: "destructive",
       });
       return false;
@@ -113,45 +114,63 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
     return true;
   };
   
-  const handleSubmitPinjaman = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validatePinjamanForm()) return;
+    if (!validateForm()) return;
     
     setIsSubmitting(true);
     
     try {
+      // Create keterangan with loan details
+      const totalBunga = formData.angsuran * formData.tenor - formData.jumlah;
+      const detailKeterangan = 
+        `Pinjaman ${formData.tenor} bulan dengan bunga ${formData.bunga}%. ` +
+        `Angsuran per bulan: Rp ${formData.angsuran.toLocaleString("id-ID")}. ` +
+        `Total bunga: Rp ${totalBunga.toLocaleString("id-ID")}. ` +
+        (formData.keterangan ? `Catatan: ${formData.keterangan}` : "");
+      
       const newTransaksi = createTransaksi({
-        tanggal: pinjamanForm.tanggal,
-        anggotaId: pinjamanForm.anggotaId,
+        tanggal: formData.tanggal,
+        anggotaId: formData.anggotaId,
         jenis: "Pinjam",
-        jumlah: pinjamanForm.jumlah,
-        keterangan: `Tenor: ${pinjamanForm.tenor} bulan, Bunga: ${pinjamanForm.sukuBunga}%, Tujuan: ${pinjamanForm.tujuanPinjaman}${pinjamanForm.keterangan ? `, ${pinjamanForm.keterangan}` : ''}`,
+        jumlah: formData.jumlah,
+        keterangan: detailKeterangan,
         status: "Sukses"
       });
       
       if (newTransaksi) {
         toast({
-          title: "Transaksi pinjaman berhasil",
-          description: `Transaksi pinjaman dengan ID ${newTransaksi.id} telah berhasil disimpan`,
+          title: "Pinjaman berhasil disimpan",
+          description: `Pinjaman dengan ID ${newTransaksi.id} telah berhasil disimpan`,
         });
-        navigate("/transaksi");
+        navigate("/transaksi/pinjam");
       } else {
-        throw new Error("Gagal membuat transaksi pinjaman");
+        throw new Error("Gagal menyimpan pinjaman");
       }
     } catch (error) {
       toast({
         title: "Terjadi kesalahan",
-        description: "Gagal menyimpan transaksi pinjaman. Silakan coba lagi.",
+        description: "Gagal menyimpan pinjaman. Silakan coba lagi.",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-
+  
+  // Format currency for display
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+  
   return (
-    <form onSubmit={handleSubmitPinjaman}>
+    <form onSubmit={handleSubmit}>
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -159,8 +178,8 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
             <Input 
               id="tanggal" 
               type="date"
-              value={pinjamanForm.tanggal}
-              onChange={handlePinjamanChange}
+              value={formData.tanggal}
+              onChange={handleInputChange}
               required 
             />
           </div>
@@ -172,9 +191,9 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
         </div>
         
         <div>
-          <Label htmlFor="anggotaId" className="required">Pilih Anggota</Label>
+          <Label htmlFor="anggotaId" className="required">Anggota</Label>
           <Select 
-            value={pinjamanForm.anggotaId}
+            value={formData.anggotaId}
             onValueChange={(value) => handleSelectChange("anggotaId", value)}
             required
           >
@@ -191,74 +210,60 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
           </Select>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="jumlah" className="required">Jumlah Pinjaman (Rp)</Label>
-            <Input 
-              id="jumlah" 
-              placeholder="Contoh: 5000000" 
-              type="number" 
-              min="0"
-              value={pinjamanForm.jumlah || ""}
-              onChange={handlePinjamanChange}
-              required 
-            />
-          </div>
-          
+        <div>
+          <Label htmlFor="jumlah" className="required">Jumlah Pinjaman (Rp)</Label>
+          <Input 
+            id="jumlah" 
+            placeholder="Contoh: 5000000" 
+            type="number" 
+            min="0" 
+            value={formData.jumlah || ""}
+            onChange={handleInputChange}
+            required 
+          />
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="tenor" className="required">Tenor (Bulan)</Label>
             <Select 
-              value={pinjamanForm.tenor}
-              onValueChange={(value) => handleSelectChange("tenor", value)}
+              value={String(formData.tenor)}
+              onValueChange={(value) => handleSelectChange("tenor", parseInt(value))}
               required
             >
               <SelectTrigger id="tenor">
                 <SelectValue placeholder="Pilih tenor" />
               </SelectTrigger>
               <SelectContent>
-                {pengaturan.tenor.tenorOptions.map((option) => (
-                  <SelectItem key={option} value={option.toString()}>
+                {tenorOptions.map((option) => (
+                  <SelectItem key={option} value={String(option)}>
                     {option} Bulan
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
           <div>
-            <Label htmlFor="sukuBunga">Suku Bunga (%)</Label>
+            <Label htmlFor="bunga" className="required">Suku Bunga (%)</Label>
             <Input 
-              id="sukuBunga" 
+              id="bunga" 
               type="number" 
-              step="0.1" 
-              disabled 
-              value={pinjamanForm.sukuBunga}
+              min="0" 
+              step="0.01"
+              value={formData.bunga}
+              onChange={handleInputChange}
+              required 
             />
-            <p className="text-xs text-muted-foreground mt-1">
-              *Suku bunga mengikuti pengaturan sistem
-            </p>
           </div>
           
           <div>
-            <Label htmlFor="tujuanPinjaman" className="required">Tujuan Pinjaman</Label>
-            <Select 
-              value={pinjamanForm.tujuanPinjaman}
-              onValueChange={(value) => handleSelectChange("tujuanPinjaman", value)}
-              required
-            >
-              <SelectTrigger id="tujuanPinjaman">
-                <SelectValue placeholder="Pilih tujuan pinjaman" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Modal Usaha">Modal Usaha</SelectItem>
-                <SelectItem value="Pendidikan">Pendidikan</SelectItem>
-                <SelectItem value="Renovasi Rumah">Renovasi Rumah</SelectItem>
-                <SelectItem value="Biaya Kesehatan">Biaya Kesehatan</SelectItem>
-                <SelectItem value="Lainnya">Lainnya</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="angsuran">Angsuran per Bulan</Label>
+            <Input 
+              id="angsuran" 
+              value={formatCurrency(formData.angsuran)}
+              disabled
+            />
           </div>
         </div>
         
@@ -268,34 +273,54 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
             id="keterangan" 
             placeholder="Masukkan keterangan (opsional)" 
             rows={3}
-            value={pinjamanForm.keterangan}
-            onChange={handlePinjamanChange}
+            value={formData.keterangan}
+            onChange={handleInputChange}
           />
         </div>
         
-        <div className="bg-muted/50 p-4 rounded-lg">
-          <h3 className="font-medium text-sm mb-2">Informasi Angsuran</h3>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="bg-amber-50 p-4 rounded-md">
+          <div className="mb-2 font-semibold">Ringkasan Pinjaman</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-muted-foreground">Angsuran per bulan</p>
-              <p className="font-medium">
-                Rp {pinjamanPreview.angsuranPerBulan.toLocaleString("id-ID", { maximumFractionDigits: 0 })}
-              </p>
+              <p className="text-sm text-muted-foreground">Pokok Pinjaman:</p>
+              <p className="font-medium">{formatCurrency(formData.jumlah)}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total yang harus dibayar</p>
-              <p className="font-medium">
-                Rp {pinjamanPreview.totalBayar.toLocaleString("id-ID", { maximumFractionDigits: 0 })}
-              </p>
+              <p className="text-sm text-muted-foreground">Bunga:</p>
+              <p className="font-medium">{formData.bunga}% (Flat)</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Tenor:</p>
+              <p className="font-medium">{formData.tenor} bulan</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Angsuran per Bulan:</p>
+              <p className="font-medium">{formatCurrency(formData.angsuran)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total Pembayaran:</p>
+              <p className="font-medium">{formatCurrency(formData.angsuran * formData.tenor)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Total Bunga:</p>
+              <p className="font-medium">{formatCurrency(formData.angsuran * formData.tenor - formData.jumlah)}</p>
             </div>
           </div>
         </div>
         
-        <FormActions 
-          isSubmitting={isSubmitting} 
-          isEditMode={false} 
-          cancelHref="/transaksi" 
-        />
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => navigate("/transaksi/pinjam")}
+            disabled={isSubmitting}
+          >
+            Batalkan
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </div>
       </div>
     </form>
   );

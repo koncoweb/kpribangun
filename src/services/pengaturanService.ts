@@ -4,51 +4,61 @@ import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 
 const PENGATURAN_KEY = "koperasi_pengaturan";
 
-// Default pengaturan
-const defaultPengaturan: Pengaturan = {
-  tenor: {
-    minTenor: 3,
-    maxTenor: 36,
-    defaultTenor: 12,
-    tenorOptions: [3, 6, 12, 24, 36],
-  },
+// Default pengaturan initial data
+const initialPengaturan: Pengaturan = {
   sukuBunga: {
-    pinjaman: 1.5,
-    simpanan: 0.5,
-    metodeBunga: "flat",
+    pinjaman: 1.5, // 1.5% per bulan 
+    simpanan: 0.5, // 0.5% per bulan
+    metodeBunga: "flat"
+  },
+  tenor: {
+    minTenor: 3,     // minimum 3 bulan
+    maxTenor: 36,    // maximum 36 bulan
+    defaultTenor: 12, // default 12 bulan
+    tenorOptions: [3, 6, 12, 18, 24, 36]
   },
   denda: {
-    persentase: 0.1,
-    gracePeriod: 3,
+    persentase: 0.1, // 0.1% per hari
+    gracePeriod: 3,  // 3 hari masa tenggang
     metodeDenda: "harian"
   }
 };
 
 /**
- * Get all pengaturan from local storage
+ * Get pengaturan from local storage
  */
 export function getPengaturan(): Pengaturan {
-  return getFromLocalStorage<Pengaturan>(PENGATURAN_KEY, defaultPengaturan);
+  return getFromLocalStorage<Pengaturan>(PENGATURAN_KEY, initialPengaturan);
 }
 
 /**
- * Update pengaturan
+ * Save pengaturan to local storage
  */
-export function updatePengaturan(pengaturan: Partial<Pengaturan>): Pengaturan {
+export function savePengaturan(pengaturan: Pengaturan): void {
+  saveToLocalStorage(PENGATURAN_KEY, pengaturan);
+}
+
+/**
+ * Update specific pengaturan fields
+ */
+export function updatePengaturan(updatedFields: Partial<Pengaturan>): Pengaturan {
   const currentPengaturan = getPengaturan();
   
-  const updatedPengaturan: Pengaturan = {
-    tenor: {
-      ...currentPengaturan.tenor,
-      ...(pengaturan.tenor || {})
-    },
+  // Deep merge the current pengaturan with the updated fields
+  const updatedPengaturan = {
+    ...currentPengaturan,
+    ...updatedFields,
     sukuBunga: {
       ...currentPengaturan.sukuBunga,
-      ...(pengaturan.sukuBunga || {})
+      ...(updatedFields.sukuBunga || {})
+    },
+    tenor: {
+      ...currentPengaturan.tenor,
+      ...(updatedFields.tenor || {})
     },
     denda: {
       ...currentPengaturan.denda,
-      ...(pengaturan.denda || {})
+      ...(updatedFields.denda || {})
     }
   };
   
@@ -57,56 +67,9 @@ export function updatePengaturan(pengaturan: Partial<Pengaturan>): Pengaturan {
 }
 
 /**
- * Calculate flat interest rate
+ * Reset pengaturan to default values
  */
-function calculateFlatInterest(jumlahPinjaman: number, tenor: number, bungaPerBulan: number): {
-  angsuranPerBulan: number;
-  totalBayar: number;
-} {
-  const bunga = jumlahPinjaman * bungaPerBulan * tenor;
-  const totalBayar = jumlahPinjaman + bunga;
-  const angsuranPerBulan = totalBayar / tenor;
-  
-  return { angsuranPerBulan, totalBayar };
-}
-
-/**
- * Calculate sliding/declining interest rate
- */
-function calculateSlidingInterest(jumlahPinjaman: number, tenor: number, bungaPerBulan: number): {
-  angsuranPerBulan: number;
-  totalBayar: number;
-} {
-  const pokokPerBulan = jumlahPinjaman / tenor;
-  let sisaPinjaman = jumlahPinjaman;
-  let totalBungaSliding = 0;
-  
-  for (let i = 0; i < tenor; i++) {
-    const bungaBulanIni = sisaPinjaman * bungaPerBulan;
-    totalBungaSliding += bungaBulanIni;
-    sisaPinjaman -= pokokPerBulan;
-  }
-  
-  const totalBayar = jumlahPinjaman + totalBungaSliding;
-  // Adjust monthly payment to include average interest
-  const angsuranPerBulan = totalBayar / tenor;
-  
-  return { angsuranPerBulan, totalBayar };
-}
-
-/**
- * Calculate angsuran per bulan
- */
-export function calculateAngsuran(jumlahPinjaman: number, tenor: number): {
-  angsuranPerBulan: number;
-  totalBayar: number;
-} {
-  const pengaturan = getPengaturan();
-  const bungaPerBulan = pengaturan.sukuBunga.pinjaman / 100;
-  
-  if (pengaturan.sukuBunga.metodeBunga === "flat") {
-    return calculateFlatInterest(jumlahPinjaman, tenor, bungaPerBulan);
-  } else {
-    return calculateSlidingInterest(jumlahPinjaman, tenor, bungaPerBulan);
-  }
+export function resetPengaturan(): Pengaturan {
+  saveToLocalStorage(PENGATURAN_KEY, initialPengaturan);
+  return initialPengaturan;
 }

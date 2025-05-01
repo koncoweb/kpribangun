@@ -1,39 +1,52 @@
 
-import { formatRupiah, formatDate as formatDateUtil, formatDateTime } from "@/lib/utils";
-
 /**
- * Format a currency value to Indonesian Rupiah format
+ * Format a date string to a localized format
  */
-export const formatCurrency = formatRupiah;
-
-/**
- * Format a date to Indonesian locale format (DD MMMM YYYY)
- */
-export const formatDate = formatDateUtil;
-
-/**
- * Format date and time to Indonesian locale format (DD MMMM YYYY, HH:MM)
- */
-export const formatFullDateTime = formatDateTime;
-
-/**
- * Calculate if a payment is past due
- */
-export const isPastDue = (dueDate: string): boolean => {
-  const today = new Date();
-  const due = new Date(dueDate);
-  return today > due;
+export const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
 };
 
 /**
- * Calculate days overdue
+ * Format a number as IDR currency
  */
-export const getDaysOverdue = (dueDate: string): number => {
-  const today = new Date();
-  const due = new Date(dueDate);
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+};
+
+/**
+ * Format a phone number
+ */
+export const formatPhoneNumber = (phoneNumber: string): string => {
+  // Basic formatting for Indonesian phone numbers
+  if (!phoneNumber) return "";
   
-  if (today <= due) return 0;
+  // Remove any non-digit characters
+  const digits = phoneNumber.replace(/\D/g, "");
   
-  const diffTime = Math.abs(today.getTime() - due.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  // Format based on length
+  if (digits.length <= 4) {
+    return digits;
+  } else if (digits.length <= 7) {
+    return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  } else if (digits.length <= 10) {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+  } else {
+    return `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}`;
+  }
+};
+
+/**
+ * Format number with thousand separators
+ */
+export const formatNumber = (num: number): string => {
+  return num.toLocaleString("id-ID");
 };

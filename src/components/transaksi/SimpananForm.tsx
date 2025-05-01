@@ -1,13 +1,20 @@
-import React, { useState } from "react";
+
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 import { Anggota } from "@/types";
-import { createTransaksi } from "@/services/transaksi";
-import { FormActions } from "@/components/anggota/FormActions";
+import { createTransaksi } from "@/services/transaksiService";
 
 interface SimpananFormProps {
   anggotaList: Anggota[];
@@ -18,25 +25,27 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [simpananForm, setSimpananForm] = useState({
+  const [formData, setFormData] = useState({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
-    jenisSimpanan: "",
     jumlah: 0,
     keterangan: ""
   });
   
-  const handleSimpananChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setSimpananForm(prev => ({ ...prev, [id]: id === "jumlah" ? Number(value) : value }));
+    setFormData(prev => ({
+      ...prev,
+      [id]: id === "jumlah" ? Number(value) : value
+    }));
   };
   
   const handleSelectChange = (name: string, value: string) => {
-    setSimpananForm(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
   
-  const validateSimpananForm = () => {
-    if (!simpananForm.tanggal) {
+  const validateForm = () => {
+    if (!formData.tanggal) {
       toast({
         title: "Tanggal wajib diisi",
         variant: "destructive",
@@ -44,7 +53,7 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
       return false;
     }
     
-    if (!simpananForm.anggotaId) {
+    if (!formData.anggotaId) {
       toast({
         title: "Anggota wajib dipilih",
         variant: "destructive",
@@ -52,15 +61,7 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
       return false;
     }
     
-    if (!simpananForm.jenisSimpanan) {
-      toast({
-        title: "Jenis simpanan wajib dipilih",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (!simpananForm.jumlah || simpananForm.jumlah <= 0) {
+    if (!formData.jumlah || formData.jumlah <= 0) {
       toast({
         title: "Jumlah harus lebih dari 0",
         variant: "destructive",
@@ -71,36 +72,36 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
     return true;
   };
   
-  const handleSubmitSimpanan = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateSimpananForm()) return;
+    if (!validateForm()) return;
     
     setIsSubmitting(true);
     
     try {
       const newTransaksi = createTransaksi({
-        tanggal: simpananForm.tanggal,
-        anggotaId: simpananForm.anggotaId,
+        tanggal: formData.tanggal,
+        anggotaId: formData.anggotaId,
         jenis: "Simpan",
-        jumlah: simpananForm.jumlah,
-        keterangan: `${simpananForm.jenisSimpanan} - ${simpananForm.keterangan || ""}`.trim(),
+        jumlah: formData.jumlah,
+        keterangan: formData.keterangan,
         status: "Sukses"
       });
       
       if (newTransaksi) {
         toast({
-          title: "Transaksi simpanan berhasil",
-          description: `Transaksi simpanan dengan ID ${newTransaksi.id} telah berhasil disimpan`,
+          title: "Simpanan berhasil disimpan",
+          description: `Simpanan dengan ID ${newTransaksi.id} telah berhasil disimpan`,
         });
-        navigate("/transaksi");
+        navigate("/transaksi/simpan");
       } else {
-        throw new Error("Gagal membuat transaksi simpanan");
+        throw new Error("Gagal menyimpan simpanan");
       }
     } catch (error) {
       toast({
         title: "Terjadi kesalahan",
-        description: "Gagal menyimpan transaksi simpanan. Silakan coba lagi.",
+        description: "Gagal menyimpan simpanan. Silakan coba lagi.",
         variant: "destructive",
       });
     } finally {
@@ -109,7 +110,7 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
   };
   
   return (
-    <form onSubmit={handleSubmitSimpanan}>
+    <form onSubmit={handleSubmit}>
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -117,8 +118,8 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
             <Input 
               id="tanggal" 
               type="date"
-              value={simpananForm.tanggal}
-              onChange={handleSimpananChange}
+              value={formData.tanggal}
+              onChange={handleInputChange}
               required 
             />
           </div>
@@ -130,13 +131,13 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
         </div>
         
         <div>
-          <Label htmlFor="anggota" className="required">Pilih Anggota</Label>
+          <Label htmlFor="anggotaId" className="required">Anggota</Label>
           <Select 
-            value={simpananForm.anggotaId}
+            value={formData.anggotaId}
             onValueChange={(value) => handleSelectChange("anggotaId", value)}
             required
           >
-            <SelectTrigger id="anggota">
+            <SelectTrigger id="anggotaId">
               <SelectValue placeholder="Pilih anggota" />
             </SelectTrigger>
             <SelectContent>
@@ -149,37 +150,20 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
           </Select>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="jenisSimpanan" className="required">Jenis Simpanan</Label>
-            <Select 
-              value={simpananForm.jenisSimpanan}
-              onValueChange={(value) => handleSelectChange("jenisSimpanan", value)}
-              required
-            >
-              <SelectTrigger id="jenisSimpanan">
-                <SelectValue placeholder="Pilih jenis simpanan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Simpanan Pokok">Simpanan Pokok</SelectItem>
-                <SelectItem value="Simpanan Wajib">Simpanan Wajib</SelectItem>
-                <SelectItem value="Simpanan Sukarela">Simpanan Sukarela</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div>
-            <Label htmlFor="jumlah" className="required">Jumlah (Rp)</Label>
-            <Input 
-              id="jumlah" 
-              placeholder="Contoh: 500000" 
-              type="number" 
-              min="0" 
-              value={simpananForm.jumlah || ""}
-              onChange={handleSimpananChange}
-              required 
-            />
-          </div>
+        <div>
+          <Label htmlFor="jumlah" className="required">Jumlah (Rp)</Label>
+          <Input 
+            id="jumlah" 
+            placeholder="Contoh: 500000" 
+            type="number" 
+            min="0" 
+            value={formData.jumlah || ""}
+            onChange={handleInputChange}
+            required 
+          />
+          <p className="text-muted-foreground text-xs mt-1">
+            Masukkan jumlah tanpa titik atau koma. Contoh: 500000 untuk Rp 500,000
+          </p>
         </div>
         
         <div>
@@ -188,16 +172,24 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
             id="keterangan" 
             placeholder="Masukkan keterangan (opsional)" 
             rows={3}
-            value={simpananForm.keterangan}
-            onChange={handleSimpananChange}
+            value={formData.keterangan}
+            onChange={handleInputChange}
           />
         </div>
         
-        <FormActions 
-          isSubmitting={isSubmitting} 
-          isEditMode={false}
-          cancelHref="/transaksi" 
-        />
+        <div className="flex justify-end space-x-2 pt-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => navigate("/transaksi/simpan")}
+            disabled={isSubmitting}
+          >
+            Batalkan
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Menyimpan..." : "Simpan"}
+          </Button>
+        </div>
       </div>
     </form>
   );

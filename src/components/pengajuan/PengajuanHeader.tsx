@@ -1,7 +1,7 @@
 
 import { Link } from "react-router-dom";
+import { ArrowLeft, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit, Trash } from "lucide-react";
 
 interface PengajuanHeaderProps {
   id: string;
@@ -10,31 +10,23 @@ interface PengajuanHeaderProps {
 
 export function PengajuanHeader({ id, onDeleteClick }: PengajuanHeaderProps) {
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
       <div className="flex items-center gap-4">
         <Link to="/transaksi/pengajuan">
           <Button variant="outline" size="icon">
             <ArrowLeft size={16} />
           </Button>
         </Link>
-        <h1 className="page-title">Detail Pengajuan</h1>
+        <h1 className="text-2xl font-bold">Pengajuan #{id}</h1>
       </div>
+      
       <div className="flex gap-2">
         <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => window.location.href = `/transaksi/pengajuan/${id}/edit`}
-        >
-          <Edit size={16} className="mr-2" />
-          Edit
-        </Button>
-        <Button 
-          variant="destructive" 
-          size="sm"
+          variant="destructive"
           onClick={onDeleteClick}
+          className="gap-1"
         >
-          <Trash size={16} className="mr-2" />
-          Hapus
+          <Trash size={16} /> Hapus
         </Button>
       </div>
     </div>

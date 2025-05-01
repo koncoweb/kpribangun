@@ -20,6 +20,18 @@ import TransaksiList from "@/pages/Transaksi/TransaksiList";
 import Pengaturan from "@/pages/Pengaturan/Pengaturan";
 import UserManagement from "@/pages/UserManagement/UserManagement";
 
+// Transaction Pages
+import SimpanForm from "@/pages/Transaksi/Simpan/SimpanForm";
+import SimpanList from "@/pages/Transaksi/Simpan/SimpanList";
+import PinjamForm from "@/pages/Transaksi/Pinjam/PinjamForm";
+import PinjamList from "@/pages/Transaksi/Pinjam/PinjamList";
+import AngsuranForm from "@/pages/Transaksi/Angsuran/AngsuranForm";
+import AngsuranList from "@/pages/Transaksi/Angsuran/AngsuranList";
+import PengajuanForm from "@/pages/Transaksi/Pengajuan/PengajuanForm";
+import PengajuanList from "@/pages/Transaksi/Pengajuan/PengajuanList";
+import PengajuanDetail from "@/pages/Transaksi/Pengajuan/PengajuanDetail";
+import TransaksiDetail from "@/pages/Transaksi/TransaksiDetail";
+
 // POS Pages
 import POSIndex from "@/pages/POS/POSIndex";
 import Inventori from "@/pages/POS/Inventori";
@@ -60,7 +72,26 @@ function App() {
 
           {/* Transaksi routes */}
           <Route path="/transaksi" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><TransaksiList /></AuthGuard>} />
-
+          <Route path="/transaksi/:id" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><TransaksiDetail /></AuthGuard>} />
+          
+          {/* Simpan routes */}
+          <Route path="/transaksi/simpan" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><SimpanList /></AuthGuard>} />
+          <Route path="/transaksi/simpan/tambah" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><SimpanForm /></AuthGuard>} />
+          
+          {/* Pinjam routes */}
+          <Route path="/transaksi/pinjam" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><PinjamList /></AuthGuard>} />
+          <Route path="/transaksi/pinjam/tambah" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><PinjamForm /></AuthGuard>} />
+          
+          {/* Angsuran routes */}
+          <Route path="/transaksi/angsuran" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><AngsuranList /></AuthGuard>} />
+          <Route path="/transaksi/angsuran/tambah" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><AngsuranForm /></AuthGuard>} />
+          
+          {/* Pengajuan routes */}
+          <Route path="/transaksi/pengajuan" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><PengajuanList /></AuthGuard>} />
+          <Route path="/transaksi/pengajuan/tambah" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><PengajuanForm /></AuthGuard>} />
+          <Route path="/transaksi/pengajuan/:id" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><PengajuanDetail /></AuthGuard>} />
+          <Route path="/transaksi/pengajuan/:id/edit" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><PengajuanForm /></AuthGuard>} />
+          
           {/* POS routes */}
           <Route path="/pos" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin", "role_kasir"]}><POSIndex /></AuthGuard>} />
           <Route path="/pos/inventory" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><Inventori /></AuthGuard>} />

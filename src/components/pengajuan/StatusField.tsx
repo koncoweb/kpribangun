@@ -9,12 +9,12 @@ import {
 } from "@/components/ui/select";
 
 interface StatusFieldProps {
-  value: "Menunggu" | "Disetujui" | "Ditolak";
-  onChange: (value: "Menunggu" | "Disetujui" | "Ditolak") => void;
+  value: string;
+  onChange: (value: string) => void;
   disabled?: boolean;
 }
 
-export function StatusField({ value, onChange, disabled }: StatusFieldProps) {
+export function StatusField({ value, onChange, disabled = false }: StatusFieldProps) {
   return (
     <div>
       <Label htmlFor="status">Status</Label>

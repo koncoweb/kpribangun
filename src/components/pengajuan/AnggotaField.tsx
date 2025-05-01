@@ -1,5 +1,6 @@
 
 import { Label } from "@/components/ui/label";
+import { Anggota } from "@/types";
 import {
   Select,
   SelectContent,
@@ -7,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Anggota } from "@/types";
 
 interface AnggotaFieldProps {
   value: string;
@@ -18,13 +18,13 @@ interface AnggotaFieldProps {
 export function AnggotaField({ value, onChange, anggotaList }: AnggotaFieldProps) {
   return (
     <div>
-      <Label htmlFor="anggota" className="required">Pilih Anggota</Label>
+      <Label htmlFor="anggotaId" className="required">Anggota</Label>
       <Select 
         value={value}
         onValueChange={onChange}
         required
       >
-        <SelectTrigger id="anggota">
+        <SelectTrigger id="anggotaId">
           <SelectValue placeholder="Pilih anggota" />
         </SelectTrigger>
         <SelectContent>

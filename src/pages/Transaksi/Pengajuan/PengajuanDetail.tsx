@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -66,16 +67,34 @@ export default function PengajuanDetail() {
     }
   };
 
-  const handleUpdateStatus = () => {
-    if (id && newStatus && pengajuan) {
+  const handleUpdateStatus = (status: "Menunggu" | "Disetujui" | "Ditolak") => {
+    if (id && pengajuan) {
       let success;
       
-      if (newStatus === "Disetujui") {
+      if (status === "Disetujui") {
         success = approvePengajuan(id);
-      } else if (newStatus === "Ditolak") {
+        if (success) {
+          toast({
+            title: "Pengajuan disetujui",
+            description: `Pengajuan telah disetujui dan transaksi baru telah dibuat`,
+          });
+        }
+      } else if (status === "Ditolak") {
         success = rejectPengajuan(id);
+        if (success) {
+          toast({
+            title: "Pengajuan ditolak",
+            description: `Pengajuan telah ditandai sebagai ditolak`,
+          });
+        }
       } else {
-        success = updatePengajuan(id, { status: newStatus });
+        success = updatePengajuan(id, { status });
+        if (success) {
+          toast({
+            title: "Status berhasil diperbarui",
+            description: `Status pengajuan telah diubah menjadi ${status}`,
+          });
+        }
       }
       
       if (success) {
@@ -83,10 +102,6 @@ export default function PengajuanDetail() {
         const updatedPengajuan = getPengajuanById(id);
         if (updatedPengajuan) {
           setPengajuan(updatedPengajuan);
-          toast({
-            title: "Status berhasil diperbarui",
-            description: `Status pengajuan telah diubah menjadi ${newStatus}`,
-          });
         }
       } else {
         toast({
@@ -148,7 +163,7 @@ export default function PengajuanDetail() {
               setIsStatusDialogOpen(true);
             }}
             onChangeStatus={() => {
-              setNewStatus("");
+              setNewStatus(pengajuan.status as "Menunggu" | "Disetujui" | "Ditolak");
               setIsStatusDialogOpen(true);
             }}
           />
@@ -165,8 +180,7 @@ export default function PengajuanDetail() {
         open={isStatusDialogOpen}
         onOpenChange={setIsStatusDialogOpen}
         onConfirm={handleUpdateStatus}
-        status={newStatus}
-        onStatusChange={setNewStatus}
+        currentStatus={pengajuan.status}
       />
     </Layout>
   );

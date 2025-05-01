@@ -4,7 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface KeteranganFieldProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
 export function KeteranganField({ value, onChange }: KeteranganFieldProps) {

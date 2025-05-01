@@ -1,14 +1,7 @@
 
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Pengajuan, Anggota } from "@/types";
+import { Link } from "react-router-dom";
 
 interface PengajuanDetailCardProps {
   pengajuan: Pengajuan;
@@ -19,88 +12,102 @@ interface PengajuanDetailCardProps {
 
 export function PengajuanDetailCard({ 
   pengajuan, 
-  anggota, 
+  anggota,
   formatDate,
-  formatCurrency 
+  formatCurrency
 }: PengajuanDetailCardProps) {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex justify-between items-center">
-          <span>Informasi Pengajuan #{pengajuan.id}</span>
-          <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${
-            pengajuan.status === "Disetujui" ? "bg-green-100 text-green-800" : 
-            pengajuan.status === "Menunggu" ? "bg-yellow-100 text-yellow-800" : 
-            "bg-red-100 text-red-800"
-          }`}>
-            {pengajuan.status}
-          </span>
-        </CardTitle>
-        <CardDescription>
-          Diajukan pada {formatDate(pengajuan.tanggal)}
-        </CardDescription>
+      <CardHeader className="pb-3">
+        <CardTitle>Informasi Pengajuan</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Detail Pengajuan</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-muted-foreground">Jenis Pengajuan</p>
-              <p className="font-medium">
-                <span className={`inline-block mt-1 px-2 py-1 rounded text-xs font-medium ${
-                  pengajuan.jenis === "Simpan" ? "bg-green-100 text-green-800" : 
-                  "bg-amber-100 text-amber-800"
-                }`}>
-                  {pengajuan.jenis === "Simpan" ? "Simpanan" : "Pinjaman"}
-                </span>
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Jumlah</p>
-              <p className="font-medium">
-                {formatCurrency(pengajuan.jumlah)}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <Separator />
-
-        {anggota && (
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Informasi Anggota</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Nama Anggota</p>
-                <p className="font-medium">{anggota.nama}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">ID Anggota</p>
-                <p className="font-medium">{anggota.id}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">No. Telepon</p>
-                <p className="font-medium">{anggota.noHp}</p>
-              </div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">ID Pengajuan</p>
+            <p className="font-semibold">{pengajuan.id}</p>
+          </div>
+          
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Tanggal</p>
+            <p>{formatDate(pengajuan.tanggal)}</p>
+          </div>
+          
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Jenis Pengajuan</p>
+            <div className="flex items-center">
+              <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                pengajuan.jenis === "Simpan" ? "bg-green-100 text-green-800" : 
+                "bg-amber-100 text-amber-800"
+              }`}>
+                {pengajuan.jenis}
+              </span>
             </div>
           </div>
-        )}
-
-        {pengajuan.keterangan && (
-          <>
-            <Separator />
+          
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Status</p>
             <div>
-              <h3 className="text-lg font-semibold mb-2">Keterangan</h3>
-              <p className="text-gray-700">{pengajuan.keterangan}</p>
+              <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                pengajuan.status === "Disetujui" ? "bg-green-100 text-green-800" : 
+                pengajuan.status === "Menunggu" ? "bg-yellow-100 text-yellow-800" : 
+                "bg-red-100 text-red-800"
+              }`}>
+                {pengajuan.status}
+              </span>
             </div>
-          </>
-        )}
-      </CardContent>
-      <CardFooter className="flex justify-between">
-        <div className="text-sm text-muted-foreground">
-          Terakhir diperbarui: {formatDate(pengajuan.updatedAt)}
+          </div>
+          
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Jumlah</p>
+            <p className="text-lg font-bold">{formatCurrency(pengajuan.jumlah)}</p>
+          </div>
+          
+          <div>
+            <p className="text-sm font-medium text-muted-foreground mb-1">Keterangan</p>
+            <p>{pengajuan.keterangan || "-"}</p>
+          </div>
         </div>
-      </CardFooter>
+
+        <div className="mt-6">
+          <p className="text-sm font-medium text-muted-foreground mb-3">Informasi Anggota</p>
+          
+          {anggota ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">ID Anggota</p>
+                <p className="font-semibold">{anggota.id}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Nama</p>
+                <p>
+                  <Link 
+                    to={`/anggota/${anggota.id}`}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    {anggota.nama}
+                  </Link>
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">No. HP</p>
+                <p>{anggota.noHp || "-"}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Alamat</p>
+                <p>{anggota.alamat || "-"}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-yellow-600">
+              Data anggota tidak ditemukan
+            </p>
+          )}
+        </div>
+      </CardContent>
     </Card>
   );
 }
