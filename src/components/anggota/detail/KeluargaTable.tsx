@@ -5,6 +5,7 @@ import { User, Phone, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { getBadgeVariantByRelationship } from "@/utils/badgeUtils";
 
 interface KeluargaTableProps {
   keluarga: AnggotaKeluarga[];
@@ -74,21 +75,4 @@ export function KeluargaTable({ keluarga, anggotaId, readOnly = true }: Keluarga
       </TableBody>
     </Table>
   );
-}
-
-// Helper function to determine badge variant based on relationship
-function getBadgeVariantByRelationship(hubungan: string): "default" | "secondary" | "outline" | "destructive" | "primary" {
-  switch (hubungan) {
-    case "Suami":
-    case "Istri":
-      return "primary";
-    case "Anak":
-      return "default";
-    case "Orang Tua":
-      return "secondary";
-    case "Saudara Kandung":
-      return "outline";
-    default:
-      return "outline";
-  }
 }
