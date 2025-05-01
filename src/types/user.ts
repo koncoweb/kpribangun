@@ -12,7 +12,7 @@ export interface User {
   alamat?: string;
   roleId: string;
   roleName?: string;
-  aktif: boolean;
+  aktif: boolean;  // Changed from "active" to "aktif" for consistency
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;

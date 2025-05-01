@@ -80,7 +80,7 @@ export const loginWithAnggotaId = async (anggotaId: string, password: string): P
       email: anggota.email || "",
       roleId: "anggota", // Special role for anggota
       anggotaId: anggota.id,
-      active: true,
+      aktif: true, // Using "aktif" instead of "active" to match the User type
       lastLogin: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()

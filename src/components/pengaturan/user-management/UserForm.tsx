@@ -21,12 +21,13 @@ interface UserFormProps {
   currentUser: User | null;
 }
 
+// Extend the schema to include password for new users
 const userFormSchema = z.object({
   username: z.string().min(3, "Username harus minimal 3 karakter"),
   nama: z.string().min(2, "Nama harus minimal 2 karakter"),
   email: z.string().email("Email tidak valid"),
   roleId: z.string().min(1, "Role harus dipilih"),
-  active: z.boolean(),
+  aktif: z.boolean(), // Changed from "active" to "aktif" to match the User type
   password: z.string().optional(),
   confirmPassword: z.string().optional()
 }).refine(data => {
@@ -48,7 +49,7 @@ export function UserForm({ isOpen, onOpenChange, onSuccess, roles, currentUser }
       nama: "",
       email: "",
       roleId: "",
-      active: true, // Fix: This is now a boolean instead of requiring the literal 'true'
+      aktif: true, // Changed from "active" to "aktif" to match the User type
       password: "",
       confirmPassword: ""
     }
@@ -62,7 +63,7 @@ export function UserForm({ isOpen, onOpenChange, onSuccess, roles, currentUser }
         nama: currentUser.nama,
         email: currentUser.email,
         roleId: currentUser.roleId,
-        active: currentUser.active,
+        aktif: currentUser.aktif, // Changed from "active" to "aktif" to match the User type
         password: "",
         confirmPassword: ""
       });
@@ -72,7 +73,7 @@ export function UserForm({ isOpen, onOpenChange, onSuccess, roles, currentUser }
         nama: "",
         email: "",
         roleId: "",
-        active: true,
+        aktif: true, // Changed from "active" to "aktif" to match the User type
         password: "",
         confirmPassword: ""
       });
@@ -84,7 +85,11 @@ export function UserForm({ isOpen, onOpenChange, onSuccess, roles, currentUser }
       if (currentUser) {
         // Update existing user
         await updateUser(currentUser.id, {
-          ...values,
+          username: values.username,
+          nama: values.nama,
+          email: values.email,
+          roleId: values.roleId,
+          aktif: values.aktif,
           // Only include password if provided
           ...(values.password ? { password: values.password } : {})
         });
@@ -103,7 +108,11 @@ export function UserForm({ isOpen, onOpenChange, onSuccess, roles, currentUser }
         }
         
         await createUser({
-          ...values,
+          username: values.username,
+          nama: values.nama,
+          email: values.email,
+          roleId: values.roleId,
+          aktif: values.aktif,
           password: values.password
         });
         
@@ -202,7 +211,7 @@ export function UserForm({ isOpen, onOpenChange, onSuccess, roles, currentUser }
           
           <FormField
             control={form.control}
-            name="active"
+            name="aktif"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                 <div className="space-y-0.5">

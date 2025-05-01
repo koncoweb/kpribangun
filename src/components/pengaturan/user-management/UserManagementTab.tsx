@@ -23,12 +23,12 @@ interface UserManagementTabProps {
 
 export function UserManagementTab({ onDelete }: UserManagementTabProps) {
   const [users, setUsers] = useState<User[]>(getUsers());
-  const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const roles = getRoles();
 
   const handleAddUser = () => {
-    setCurrentUser(undefined);
+    setCurrentUser(null);
     setUserDialogOpen(true);
   };
 
@@ -42,7 +42,7 @@ export function UserManagementTab({ onDelete }: UserManagementTabProps) {
   };
 
   const handleToggleUserStatus = (userId: string, isActive: boolean) => {
-    const result = updateUser(userId, { aktif: isActive });
+    const result = updateUser(userId, { aktif: isActive }); // Changed from "active" to "aktif"
     if (result) {
       setUsers(getUsers());
       toast({
@@ -101,22 +101,15 @@ export function UserManagementTab({ onDelete }: UserManagementTabProps) {
               Tambah Pengguna
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>{currentUser ? "Edit Pengguna" : "Tambah Pengguna Baru"}</DialogTitle>
-              <DialogDescription>
-                {currentUser 
-                  ? "Perbarui detail pengguna yang ada" 
-                  : "Isi formulir berikut untuk menambahkan pengguna baru"}
-              </DialogDescription>
-            </DialogHeader>
-            <UserForm 
-              user={currentUser} 
-              roles={roles}
-              onSubmit={handleSubmitUser} 
-              onCancel={() => setUserDialogOpen(false)} 
-            />
-          </DialogContent>
+          <UserForm
+            isOpen={userDialogOpen}
+            onOpenChange={setUserDialogOpen}
+            currentUser={currentUser}
+            roles={roles}
+            onSuccess={() => {
+              setUsers(getUsers());
+            }}
+          />
         </Dialog>
       </div>
           

@@ -70,9 +70,12 @@ export default function AnggotaChangePassword() {
     setIsLoading(true);
     
     try {
-      // In a real app, we would validate the current password before updating
-      // For demo purposes, we'll just update without validation
-      const success = updatePassword(currentUser.id, values.newPassword);
+      // Fixing the function call to use all required arguments
+      const success = await updatePassword(
+        currentUser.id, 
+        values.currentPassword,
+        values.newPassword
+      );
       
       if (success) {
         toast({
