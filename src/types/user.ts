@@ -16,6 +16,7 @@ export interface User {
   lastLogin?: string;
   createdAt: string;
   updatedAt: string;
+  anggotaId?: string;
 }
 
 export interface UserFormData extends Omit<User, "id" | "createdAt" | "updatedAt" | "lastLogin" | "roleName"> {

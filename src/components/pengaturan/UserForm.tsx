@@ -1,7 +1,7 @@
-
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { User, Role } from "@/types";
+import { getRoles } from "@/services/userManagementService";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -22,12 +22,14 @@ import {
 
 interface UserFormProps {
   user?: User;
-  roles: Role[];
   onSubmit: (data: Omit<User, "id" | "createdAt" | "updatedAt" | "lastLogin">) => void;
   onCancel: () => void;
 }
 
-export function UserForm({ user, roles, onSubmit, onCancel }: UserFormProps) {
+export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
+  // Get roles for the select dropdown
+  const roles = getRoles();
+  
   // Define form with default values
   const form = useForm<Omit<User, "id" | "createdAt" | "updatedAt" | "lastLogin">>({
     defaultValues: {
