@@ -1,4 +1,5 @@
 
+
 /**
  * Format a date string to a localized format
  */
@@ -50,3 +51,34 @@ export const formatPhoneNumber = (phoneNumber: string): string => {
 export const formatNumber = (num: number): string => {
   return num.toLocaleString("id-ID");
 };
+
+/**
+ * Check if a date is past due
+ */
+export const isPastDue = (dateString: string): boolean => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time part to get just the date
+  
+  const dueDate = new Date(dateString);
+  dueDate.setHours(0, 0, 0, 0); // Reset time part for fair comparison
+  
+  return dueDate < today;
+};
+
+/**
+ * Calculate the number of days a date is overdue
+ */
+export const getDaysOverdue = (dateString: string): number => {
+  if (!isPastDue(dateString)) return 0;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time part
+  
+  const dueDate = new Date(dateString);
+  dueDate.setHours(0, 0, 0, 0); // Reset time part
+  
+  // Calculate difference in milliseconds and convert to days
+  const diffTime = today.getTime() - dueDate.getTime();
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+};
+
