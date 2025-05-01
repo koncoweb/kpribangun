@@ -1,37 +1,24 @@
+
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableHead, 
-  TableRow, 
-  TableCell 
-} from "@/components/ui/table";
-import { 
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription
-} from "@/components/ui/dialog";
-import {
-  Card,
-  CardContent
-} from "@/components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Pencil, Trash, Plus, Search } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { toast } from "@/components/ui/sonner";
-import { 
-  Plus, 
-  FileEdit, 
-  Trash2, 
-  Search
-} from "lucide-react";
 import { Pemasok } from "@/types";
-import { 
-  getAllPemasok, 
+import {
+  getAllPemasok,
+  getPemasokById,
   createPemasok, 
   updatePemasok, 
   deletePemasok 
@@ -44,36 +31,47 @@ export default function PemasokPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentPemasok, setCurrentPemasok] = useState<Pemasok | null>(null);
   const [selectedPemasokId, setSelectedPemasokId] = useState<string | null>(null);
-  
-  // Form state
-  const [formData, setFormData] = useState<Partial<Pemasok>>({
-    nama: "",
-    alamat: "",
-    telepon: "",
-    email: "",
-    kontak: ""
+
+  // Form schema
+  const pemasokSchema = z.object({
+    nama: z.string().min(3, "Nama pemasok harus diisi minimal 3 karakter"),
+    alamat: z.string().min(5, "Alamat harus diisi minimal 5 karakter"),
+    telepon: z.string().min(5, "Nomor telepon harus diisi"),
+    email: z.string().email("Format email tidak valid"),
+    kontak: z.string().min(3, "Nama kontak harus diisi")
   });
-  
+
+  const form = useForm<z.infer<typeof pemasokSchema>>({
+    resolver: zodResolver(pemasokSchema),
+    defaultValues: {
+      nama: "",
+      alamat: "",
+      telepon: "",
+      email: "",
+      kontak: ""
+    }
+  });
+
   useEffect(() => {
     loadPemasok();
   }, []);
-  
+
   const loadPemasok = () => {
     setPemasokList(getAllPemasok());
   };
-  
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
-  
+
   const filteredPemasok = pemasokList.filter(item => 
     item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.kontak && item.kontak.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (item.telepon && item.telepon.toLowerCase().includes(searchQuery.toLowerCase()))
+    item.alamat.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.kontak.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const openNewForm = () => {
-    setFormData({
+    form.reset({
       nama: "",
       alamat: "",
       telepon: "",
@@ -83,57 +81,44 @@ export default function PemasokPage() {
     setCurrentPemasok(null);
     setIsFormOpen(true);
   };
-  
+
   const openEditForm = (id: string) => {
     const pemasok = pemasokList.find(item => item.id === id);
     if (pemasok) {
-      setFormData({
+      form.reset({
         nama: pemasok.nama,
-        alamat: pemasok.alamat || "",
-        telepon: pemasok.telepon || "",
-        email: pemasok.email || "",
-        kontak: pemasok.kontak || ""
+        alamat: pemasok.alamat,
+        telepon: pemasok.telepon,
+        email: pemasok.email,
+        kontak: pemasok.kontak
       });
       setCurrentPemasok(pemasok);
       setIsFormOpen(true);
     }
   };
-  
+
   const openDeleteDialog = (id: string) => {
     setSelectedPemasokId(id);
     setIsDeleteDialogOpen(true);
   };
-  
+
   const handleDelete = () => {
     if (selectedPemasokId) {
       const result = deletePemasok(selectedPemasokId);
       if (result) {
-        toast.success("Data pemasok berhasil dihapus");
+        toast.success("Pemasok berhasil dihapus");
         loadPemasok();
       } else {
-        toast.error("Gagal menghapus data pemasok");
+        toast.error("Pemasok tidak dapat dihapus karena digunakan dalam transaksi");
       }
       setIsDeleteDialogOpen(false);
     }
   };
-  
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-  
-  const handleSave = () => {
-    if (!formData.nama) {
-      toast.error("Nama pemasok harus diisi");
-      return;
-    }
-    
+
+  const onSubmit = (values: z.infer<typeof pemasokSchema>) => {
     if (currentPemasok) {
       // Update existing supplier
-      const updatedPemasok = updatePemasok(currentPemasok.id, formData);
+      const updatedPemasok = updatePemasok(currentPemasok.id, values);
       if (updatedPemasok) {
         toast.success("Data pemasok berhasil diperbarui");
         loadPemasok();
@@ -143,188 +128,193 @@ export default function PemasokPage() {
       }
     } else {
       // Create new supplier
-      createPemasok(formData as Omit<Pemasok, "id" | "createdAt">);
-      toast.success("Data pemasok baru berhasil ditambahkan");
+      createPemasok(values);
+      toast.success("Pemasok baru berhasil ditambahkan");
       loadPemasok();
       setIsFormOpen(false);
     }
   };
-  
+
   return (
-    <Layout pageTitle="Manajemen Pemasok">
+    <Layout pageTitle="Data Pemasok">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Manajemen Pemasok</h1>
-        <Button onClick={openNewForm} className="flex items-center gap-1">
-          <Plus className="h-4 w-4" /> Tambah Pemasok
-        </Button>
-      </div>
-      
-      <div className="mb-6">
-        <Input
-          placeholder="Cari pemasok berdasarkan nama, kontak, atau telepon..."
-          value={searchQuery}
-          onChange={handleSearch}
-          className="max-w-md"
-        />
+        <h1 className="text-2xl font-bold">Data Pemasok / Supplier</h1>
+        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+          <DialogTrigger asChild>
+            <Button onClick={openNewForm}>
+              <Plus className="mr-2 h-4 w-4" />
+              Tambah Pemasok
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>
+                {currentPemasok ? "Edit Pemasok" : "Tambah Pemasok Baru"}
+              </DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="nama"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Pemasok</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nama perusahaan/toko pemasok" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="alamat"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Alamat</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Alamat lengkap pemasok" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="telepon"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telepon</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nomor telepon" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Email pemasok" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="kontak"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nama Kontak Person</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nama orang yang dapat dihubungi" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex justify-end gap-3 pt-3">
+                  <Button type="button" variant="outline" onClick={() => setIsFormOpen(false)}>
+                    Batal
+                  </Button>
+                  <Button type="submit">
+                    {currentPemasok ? "Perbarui" : "Simpan"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
       
       <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama Pemasok</TableHead>
-                <TableHead>Kontak Person</TableHead>
-                <TableHead>Telepon</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Alamat</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPemasok.length === 0 ? (
+        <CardHeader>
+          <CardTitle>Daftar Pemasok</CardTitle>
+          <div className="flex items-center gap-2">
+            <Search className="h-5 w-5 text-gray-400" />
+            <Input
+              placeholder="Cari pemasok..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="max-w-sm"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6 text-gray-500">
-                    Tidak ada data pemasok
-                  </TableCell>
+                  <TableHead>Nama Pemasok</TableHead>
+                  <TableHead>Kontak Person</TableHead>
+                  <TableHead>Telepon</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Alamat</TableHead>
+                  <TableHead className="w-[120px] text-right">Aksi</TableHead>
                 </TableRow>
-              ) : (
-                filteredPemasok.map((pemasok) => (
-                  <TableRow key={pemasok.id}>
-                    <TableCell className="font-medium">{pemasok.nama}</TableCell>
-                    <TableCell>{pemasok.kontak || "-"}</TableCell>
-                    <TableCell>{pemasok.telepon || "-"}</TableCell>
-                    <TableCell>{pemasok.email || "-"}</TableCell>
-                    <TableCell className="max-w-xs truncate">{pemasok.alamat || "-"}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => openEditForm(pemasok.id)}
-                      >
-                        <FileEdit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-red-500 hover:text-red-700" 
-                        onClick={() => openDeleteDialog(pemasok.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {filteredPemasok.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-6">
+                      Tidak ada data pemasok
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  filteredPemasok.map((pemasok) => (
+                    <TableRow key={pemasok.id}>
+                      <TableCell className="font-medium">{pemasok.nama}</TableCell>
+                      <TableCell>{pemasok.kontak}</TableCell>
+                      <TableCell>{pemasok.telepon}</TableCell>
+                      <TableCell>{pemasok.email}</TableCell>
+                      <TableCell className="truncate max-w-[200px]">{pemasok.alamat}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="icon" onClick={() => openEditForm(pemasok.id)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" size="icon" className="text-destructive" onClick={(e) => {
+                                e.stopPropagation();
+                                openDeleteDialog(pemasok.id);
+                              }}>
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Konfirmasi Hapus</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Apakah Anda yakin ingin menghapus pemasok ini? Tindakan ini tidak dapat dibatalkan.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
+                                  Hapus
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
-      
-      {/* Form Dialog */}
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {currentPemasok ? "Edit Pemasok" : "Tambah Pemasok Baru"}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="nama" className="text-sm font-medium">
-                Nama Pemasok <span className="text-red-500">*</span>
-              </label>
-              <Input
-                id="nama"
-                name="nama"
-                placeholder="Nama pemasok"
-                value={formData.nama}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="kontak" className="text-sm font-medium">
-                Kontak Person
-              </label>
-              <Input
-                id="kontak"
-                name="kontak"
-                placeholder="Nama kontak"
-                value={formData.kontak || ""}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="telepon" className="text-sm font-medium">
-                Nomor Telepon
-              </label>
-              <Input
-                id="telepon"
-                name="telepon"
-                placeholder="Nomor telepon"
-                value={formData.telepon || ""}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="Email pemasok"
-                value={formData.email || ""}
-                onChange={handleFormChange}
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="alamat" className="text-sm font-medium">
-                Alamat
-              </label>
-              <Input
-                id="alamat"
-                name="alamat"
-                placeholder="Alamat pemasok"
-                value={formData.alamat || ""}
-                onChange={handleFormChange}
-              />
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsFormOpen(false)}>
-              Batal
-            </Button>
-            <Button onClick={handleSave}>
-              Simpan
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Konfirmasi Hapus</DialogTitle>
-            <DialogDescription>
-              Apakah Anda yakin ingin menghapus data pemasok ini? 
-              Tindakan ini tidak dapat dibatalkan.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-              Batal
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Hapus
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 }

@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 // POS Pages
 import POSIndex from "./pages/POS/POSIndex";
 import Pembelian from "./pages/POS/Pembelian";
+import Pemasok from "./pages/POS/Pemasok";
 import Penjualan from "./pages/POS/Penjualan";
 import PenjualanList from "./pages/POS/PenjualanList";
 import PenjualanDetail from "./pages/POS/PenjualanDetail";
@@ -99,6 +100,7 @@ const App = () => (
           {/* KPRI Mart Routes */}
           <Route path="/pos" element={<POSIndex />} />
           <Route path="/pos/pembelian" element={<Pembelian />} />
+          <Route path="/pos/pemasok" element={<Pemasok />} />
           <Route path="/pos/penjualan" element={<Penjualan />} />
           <Route path="/pos/penjualan-list" element={<PenjualanList />} />
           <Route path="/pos/penjualan/:id" element={<PenjualanDetail />} />
