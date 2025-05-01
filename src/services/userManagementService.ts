@@ -1,4 +1,3 @@
-
 import { User, Role, Permission } from "@/types";
 import { generateId } from "@/lib/utils";
 import { getFromLocalStorage, saveToLocalStorage } from "@/utils/localStorage";
@@ -84,7 +83,7 @@ const defaultRoles: Role[] = [
   }
 ];
 
-// Default users
+// Update the defaultUsers to include new fields
 const defaultUsers: User[] = [
   {
     id: "user_1",
@@ -92,6 +91,10 @@ const defaultUsers: User[] = [
     nama: "Super Administrator",
     email: "superadmin@koperasi.com",
     roleId: "role_superadmin",
+    foto: "",
+    jabatan: "Super Administrator",
+    noHP: "081234567890",
+    alamat: "Jl. Admin No. 1",
     aktif: true,
     lastLogin: new Date().toISOString(),
     createdAt: new Date().toISOString(),
@@ -103,6 +106,10 @@ const defaultUsers: User[] = [
     nama: "Administrator",
     email: "admin@koperasi.com",
     roleId: "role_admin",
+    foto: "",
+    jabatan: "Administrator",
+    noHP: "081234567891",
+    alamat: "Jl. Admin No. 2",
     aktif: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -113,6 +120,25 @@ const defaultUsers: User[] = [
     nama: "Kasir Utama",
     email: "kasir@koperasi.com",
     roleId: "role_kasir",
+    foto: "",
+    jabatan: "Kasir",
+    noHP: "081234567892",
+    alamat: "Jl. Kasir No. 1",
+    aktif: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: "user_4",
+    username: "anggota1",
+    nama: "Budi Santoso",
+    email: "anggota@koperasi.com",
+    roleId: "role_kasir", // We'll use this as a placeholder
+    anggotaId: "AGT001",
+    foto: "",
+    jabatan: "Anggota",
+    noHP: "081234567893",
+    alamat: "Jl. Anggota No. 1",
     aktif: true,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -129,10 +155,11 @@ export const getUserById = (id: string): User | undefined => {
   return users.find(user => user.id === id);
 };
 
+// Update the createUser function to handle new fields
 export const createUser = (userData: Omit<User, "id" | "createdAt" | "updatedAt">): User => {
   const users = getUsers();
   const newUser: User = {
-    id: generateId("USR"),
+    id: generateId("user"),
     ...userData,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
