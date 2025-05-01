@@ -109,6 +109,42 @@ export interface Penjualan {
   createdAt: string;
 }
 
+// Pembelian (Purchase) Types
+export interface PembelianItem {
+  produkId: string;
+  produkNama: string;
+  jumlah: number;
+  hargaSatuan: number;
+  total: number;
+}
+
+export interface Pembelian {
+  id: string;
+  nomorTransaksi: string;
+  tanggal: string;
+  pemasokId?: string;
+  pemasok: string;
+  items: PembelianItem[];
+  subtotal: number;
+  diskon?: number;
+  ppn?: number;
+  total: number;
+  status: "selesai" | "proses" | "dibatalkan";
+  catatan?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface Pemasok {
+  id: string;
+  nama: string;
+  alamat?: string;
+  telepon?: string;
+  email?: string;
+  kontak?: string;
+  createdAt: string;
+}
+
 // User Management Types
 export interface Permission {
   id: string;
