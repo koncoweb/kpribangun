@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -251,7 +250,6 @@ export default function PembelianPage() {
           value={searchQuery}
           onChange={handleSearch}
           className="max-w-md"
-          prefix={<Search className="h-4 w-4 text-gray-500" />}
         />
       </div>
       
@@ -487,7 +485,7 @@ export default function PembelianPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Status</p>
-                  <p>{getStatusBadge(currentPembelian.status)}</p>
+                  <div>{getStatusBadge(currentPembelian.status)}</div>
                 </div>
               </div>
               
