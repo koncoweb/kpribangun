@@ -2,9 +2,8 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Penjualan } from "@/types";
-import { useRef } from "react";
-import { useReactToPrint } from "react-to-print";
 import { Printer, Share2, Check } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
 
 interface ReceiptActionsProps {
   receiptRef: React.RefObject<HTMLDivElement>;
@@ -17,7 +16,6 @@ export function ReceiptActions({ receiptRef, sale, onClose }: ReceiptActionsProp
 
   // Handle printing
   const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
     documentTitle: `Receipt-${sale.nomorTransaksi}`,
     onAfterPrint: () => {
       toast({
@@ -25,6 +23,8 @@ export function ReceiptActions({ receiptRef, sale, onClose }: ReceiptActionsProp
         description: `Struk ${sale.nomorTransaksi} berhasil dicetak.`,
       });
     },
+    // The content property should be a function that returns the element to print
+    contentRef: receiptRef,
   });
 
   // Handle sharing
