@@ -42,38 +42,57 @@ export default function AnggotaDetail() {
   
   useEffect(() => {
     if (id) {
-      const foundAnggota = getAnggotaById(id);
-      if (foundAnggota) {
-        setAnggota(foundAnggota);
-        
-        // Get all transactions for this member
-        const anggotaTransaksi = getTransaksiByAnggotaId(id);
-        setTransaksi(anggotaTransaksi);
-        
-        // Get upcoming due loans
-        const upcomingDue = getUpcomingDueLoans()
-          .filter(item => item.transaksi.anggotaId === id)
-          .map(item => ({
-            transaksi: item.transaksi,
-            jatuhTempo: item.jatuhTempo,
-            daysUntilDue: item.daysUntilDue
-          }));
-        setJatuhTempo(upcomingDue);
-        
-        // Get overdue loans
-        const overdue = getOverdueLoans()
-          .filter(item => item.transaksi.anggotaId === id)
-          .map(item => ({
-            transaksi: item.transaksi,
-            jatuhTempo: item.jatuhTempo,
-            daysOverdue: item.daysOverdue,
-            penalty: calculatePenalty(item.transaksi.jumlah, item.daysOverdue)
-          }));
-        setTunggakan(overdue);
-      } else {
+      try {
+        const foundAnggota = getAnggotaById(id);
+        if (foundAnggota) {
+          setAnggota(foundAnggota);
+          
+          // Get all transactions for this member
+          const anggotaTransaksi = getTransaksiByAnggotaId(id);
+          setTransaksi(anggotaTransaksi);
+          
+          try {
+            // Get upcoming due loans
+            const upcomingDue = getUpcomingDueLoans()
+              .filter(item => item.transaksi.anggotaId === id)
+              .map(item => ({
+                transaksi: item.transaksi,
+                jatuhTempo: item.jatuhTempo,
+                daysUntilDue: item.daysUntilDue
+              }));
+            setJatuhTempo(upcomingDue);
+            
+            // Get overdue loans
+            const overdue = getOverdueLoans()
+              .filter(item => item.transaksi.anggotaId === id)
+              .map(item => ({
+                transaksi: item.transaksi,
+                jatuhTempo: item.jatuhTempo,
+                daysOverdue: item.daysOverdue,
+                penalty: calculatePenalty(item.transaksi.jumlah, item.daysOverdue)
+              }));
+            setTunggakan(overdue);
+          } catch (error) {
+            console.error("Error processing loan data:", error);
+            toast({
+              title: "Warning",
+              description: "Terjadi kesalahan saat memuat data pinjaman",
+              variant: "warning",
+            });
+          }
+        } else {
+          toast({
+            title: "Anggota tidak ditemukan",
+            description: "Data anggota yang dicari tidak ditemukan",
+            variant: "destructive",
+          });
+          navigate("/anggota");
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
         toast({
-          title: "Anggota tidak ditemukan",
-          description: "Data anggota yang dicari tidak ditemukan",
+          title: "Error",
+          description: "Terjadi kesalahan saat memuat data. Silakan coba lagi.",
           variant: "destructive",
         });
         navigate("/anggota");

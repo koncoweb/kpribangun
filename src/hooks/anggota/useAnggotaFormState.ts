@@ -34,32 +34,41 @@ export const useAnggotaFormState = () => {
   // Load data if in edit mode
   useEffect(() => {
     if (isEditMode) {
-      const anggota = getAnggotaById(id);
-      if (anggota) {
-        setFormData({
-          nama: anggota.nama,
-          nik: anggota.nik,
-          alamat: anggota.alamat,
-          noHp: anggota.noHp,
-          jenisKelamin: anggota.jenisKelamin,
-          agama: anggota.agama,
-          pekerjaan: anggota.pekerjaan,
-          foto: anggota.foto || ""
+      try {
+        const anggota = getAnggotaById(id);
+        if (anggota) {
+          setFormData({
+            nama: anggota.nama,
+            nik: anggota.nik,
+            alamat: anggota.alamat,
+            noHp: anggota.noHp,
+            jenisKelamin: anggota.jenisKelamin,
+            agama: anggota.agama,
+            pekerjaan: anggota.pekerjaan,
+            foto: anggota.foto || ""
+          });
+          
+          if (anggota.foto) {
+            setPreviewImage(anggota.foto);
+          }
+          
+          if (anggota.dokumen) {
+            setDokumen(anggota.dokumen);
+            setInitialDokumenCount(anggota.dokumen.length);
+          }
+          
+          if (anggota.keluarga) {
+            setKeluarga(anggota.keluarga);
+            setInitialKeluargaCount(anggota.keluarga.length);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading anggota data:", error);
+        toast({
+          title: "Error",
+          description: "Terjadi kesalahan saat memuat data anggota",
+          variant: "destructive",
         });
-        
-        if (anggota.foto) {
-          setPreviewImage(anggota.foto);
-        }
-        
-        if (anggota.dokumen) {
-          setDokumen(anggota.dokumen);
-          setInitialDokumenCount(anggota.dokumen.length);
-        }
-        
-        if (anggota.keluarga) {
-          setKeluarga(anggota.keluarga);
-          setInitialKeluargaCount(anggota.keluarga.length);
-        }
       }
     }
     
