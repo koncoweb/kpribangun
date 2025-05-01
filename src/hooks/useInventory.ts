@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { ProdukItem } from "@/types";
@@ -9,7 +8,7 @@ import {
   deleteProdukItem,
   updateProdukStock,
   initSampleProdukData
-} from "@/services/produkService";
+} from "@/services/produk";
 
 export function useInventory() {
   const { toast } = useToast();

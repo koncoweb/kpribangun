@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { PenjualanItem, Kasir } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { calculateTotal } from "@/services/penjualanService";
+import { calculateTotal } from "@/services/penjualan";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { PaymentMethodSelector, PaymentMethod } from "./payment-methods/PaymentMethodSelector";
 import { PaymentSummary } from "./payment-methods/PaymentSummary";

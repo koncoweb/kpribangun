@@ -4,7 +4,7 @@ import { ProductSection } from "@/components/pos/ProductSection";
 import { CartSection } from "@/components/pos/CartSection";
 import { SuccessDialog } from "@/components/pos/SuccessDialog";
 import { getAllKasir, initSampleKasirData } from "@/services/kasirService";
-import { initSampleProdukData } from "@/services/produkService";
+import { initSampleProdukData } from "@/services/produk";
 import { initSamplePenjualanData } from "@/services/penjualan";
 import { usePenjualan } from "@/hooks/usePenjualan";
 

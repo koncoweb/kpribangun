@@ -1,12 +1,13 @@
 
 import { Penjualan, PenjualanItem } from "@/types";
+import { generateId } from "@/lib/utils";
 import { 
   getPenjualanList, 
   savePenjualanList, 
   generateTransactionNumber,
   calculateTotal
 } from "./utils";
-import { updateProdukStock } from "../produkService";
+import { updateProdukStock } from "../produk";
 
 // Get all sales
 export const getAllPenjualan = (): Penjualan[] => {
@@ -115,3 +116,4 @@ export const deletePenjualan = (id: string): boolean => {
 
 // Export the calculateTotal function for external use
 export { calculateTotal } from "./utils";
+

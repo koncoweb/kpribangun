@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { CartItem } from "./CartItem";
 import { CartSummary } from "./CartSummary";
-import { ProdukItem, PenjualanItem } from "@/types";
+import { PenjualanItem } from "@/types";
 import { Kasir } from "@/types";
-import { getProdukItemById } from "@/services/produkService";
+import { getProdukItemById } from "@/services/produk";
 import { calculateTotal } from "@/services/penjualan";
 import { CartHeader } from "./cart/CartHeader";
 import { EmptyCart } from "./cart/EmptyCart";

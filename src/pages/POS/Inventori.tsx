@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import Layout from "@/components/layout/Layout";
@@ -8,7 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Archive, Package, Plus, Search } from "lucide-react";
 import { ProdukItem } from "@/types";
 import { Input } from "@/components/ui/input";
-import { getAllProdukItems, initSampleProdukData } from "@/services/produkService";
+import { getAllProdukItems, initSampleProdukData } from "@/services/produk";
 import { InventoryList } from "@/components/inventory/InventoryList";
 
 export default function Inventori() {
