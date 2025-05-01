@@ -2,6 +2,8 @@
 import { Transaksi } from "../types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { initialTransaksi } from "./transaksi/initialData";
+import { getPengaturan } from "./pengaturanService";
+import { getAnggotaById } from "./anggotaService";
 
 const TRANSAKSI_KEY = "koperasi_transaksi";
 
@@ -18,6 +20,50 @@ export function getAllTransaksi(): Transaksi[] {
 export function getTransaksiByAnggotaId(anggotaId: string): Transaksi[] {
   const transaksiList = getAllTransaksi();
   return transaksiList.filter(transaksi => transaksi.anggotaId === anggotaId);
+}
+
+/**
+ * Get transaksi by ID
+ */
+export function getTransaksiById(id: string): Transaksi | undefined {
+  const transaksiList = getAllTransaksi();
+  return transaksiList.find(transaksi => transaksi.id === id);
+}
+
+/**
+ * Generate a new transaksi ID
+ */
+export function generateTransaksiId(): string {
+  const transaksiList = getAllTransaksi();
+  const lastId = transaksiList.length > 0 
+    ? parseInt(transaksiList[transaksiList.length - 1].id.replace("TR", "")) 
+    : 0;
+  const newId = `TR${String(lastId + 1).padStart(4, "0")}`;
+  return newId;
+}
+
+/**
+ * Create a new transaksi
+ */
+export function createTransaksi(transaksi: Omit<Transaksi, "id" | "anggotaNama" | "createdAt" | "updatedAt">): Transaksi | null {
+  const anggota = getAnggotaById(transaksi.anggotaId);
+  if (!anggota) return null;
+  
+  const transaksiList = getAllTransaksi();
+  const now = new Date().toISOString();
+  
+  const newTransaksi: Transaksi = {
+    ...transaksi,
+    id: generateTransaksiId(),
+    anggotaNama: anggota.nama,
+    createdAt: now,
+    updatedAt: now,
+  };
+  
+  transaksiList.push(newTransaksi);
+  saveToLocalStorage(TRANSAKSI_KEY, transaksiList);
+  
+  return newTransaksi;
 }
 
 /**
@@ -50,6 +96,13 @@ export function calculateTotalPinjaman(anggotaId: string): number {
   
   // Outstanding balance
   return Math.max(0, totalPinjaman - totalAngsuran);
+}
+
+/**
+ * Get all pinjaman transactions
+ */
+export function getAllPinjaman(): Transaksi[] {
+  return getAllTransaksi().filter(t => t.jenis === "Pinjam");
 }
 
 /**
@@ -88,12 +141,13 @@ export function getAllDueLoans(): {
 /**
  * Get upcoming due loans (not yet overdue)
  */
-export function getUpcomingDueLoans(): { 
+export function getUpcomingDueLoans(daysThreshold: number = 30): { 
   transaksi: Transaksi; 
   jatuhTempo: string;
   daysUntilDue: number;
 }[] {
-  return getAllDueLoans().filter(loan => loan.daysUntilDue > 0);
+  return getAllDueLoans()
+    .filter(loan => loan.daysUntilDue > 0 && loan.daysUntilDue <= daysThreshold);
 }
 
 /**
@@ -116,9 +170,9 @@ export function getOverdueLoans(): {
 /**
  * Calculate jatuh tempo date for a loan
  */
-export function calculateJatuhTempo(createdDate: string): string {
+export function calculateJatuhTempo(createdDate: string, tenorBulan: number = 12): string {
   const date = new Date(createdDate);
-  date.setDate(date.getDate() + 30); // Assuming 30-day term
+  date.setMonth(date.getMonth() + tenorBulan);
   return date.toISOString();
 }
 
@@ -128,4 +182,43 @@ export function calculateJatuhTempo(createdDate: string): string {
 export function calculatePenalty(loanAmount: number, daysOverdue: number): number {
   // Example: 0.1% penalty per day
   return loanAmount * 0.001 * daysOverdue;
+}
+
+/**
+ * Update an existing transaksi
+ */
+export function updateTransaksi(id: string, transaksi: Partial<Transaksi>): Transaksi | null {
+  const transaksiList = getAllTransaksi();
+  const index = transaksiList.findIndex(t => t.id === id);
+  
+  if (index === -1) return null;
+  
+  // If anggotaId is being updated, we need to update anggotaNama as well
+  if (transaksi.anggotaId) {
+    const anggota = getAnggotaById(transaksi.anggotaId);
+    if (!anggota) return null;
+    transaksi.anggotaNama = anggota.nama;
+  }
+  
+  transaksiList[index] = {
+    ...transaksiList[index],
+    ...transaksi,
+    updatedAt: new Date().toISOString(),
+  };
+  
+  saveToLocalStorage(TRANSAKSI_KEY, transaksiList);
+  return transaksiList[index];
+}
+
+/**
+ * Delete a transaksi by ID
+ */
+export function deleteTransaksi(id: string): boolean {
+  const transaksiList = getAllTransaksi();
+  const filteredList = transaksiList.filter(transaksi => transaksi.id !== id);
+  
+  if (filteredList.length === transaksiList.length) return false;
+  
+  saveToLocalStorage(TRANSAKSI_KEY, filteredList);
+  return true;
 }
