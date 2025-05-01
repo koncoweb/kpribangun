@@ -91,16 +91,16 @@ export const menuSections: MenuSectionType[] = [
     title: "Pengaturan",
     icon: Settings,
     items: [
-      { title: "User Management", path: "/pengaturan/users", icon: UserCheck },
+      { title: "User Management", path: "/users", icon: UserCheck },
       { title: "Hak Akses", path: "/pengaturan/roles", icon: Shield },
       { 
         title: "Koperasi", 
-        path: "/pengaturan/koperasi", 
+        path: "/pengaturan", 
         icon: Cog, 
         subItems: [
-          { title: "Tenor", path: "/pengaturan/tenor", icon: Cog },
-          { title: "Denda", path: "/pengaturan/denda", icon: Cog },
-          { title: "Suku Bunga", path: "/pengaturan/bunga", icon: Cog }
+          { title: "Tenor", path: "/pengaturan", icon: Cog },
+          { title: "Denda", path: "/pengaturan", icon: Cog },
+          { title: "Suku Bunga", path: "/pengaturan", icon: Cog }
         ]
       },
       { title: "Backup Data", path: "/pengaturan/backup", icon: Database }

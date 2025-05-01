@@ -2,7 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { initDemoUserData } from "@/services/authService";
-import { initUserManagementData } from "@/services/userManagementService";
+import { initUserManagementData } from "@/services/user-management";
 
 // Authentication
 import LoginPage from "@/pages/Auth/LoginPage";
@@ -46,6 +46,7 @@ function App() {
           
           {/* User Management */}
           <Route path="/users" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><UserManagement /></AuthGuard>} />
+          <Route path="/pengaturan/users" element={<AuthGuard allowedRoles={["role_superadmin"]}><UserManagement /></AuthGuard>} />
           
           {/* Anggota routes */}
           <Route path="/anggota" element={<AuthGuard allowedRoles={["role_superadmin", "role_admin"]}><AnggotaList /></AuthGuard>} />
