@@ -1,7 +1,8 @@
 
 import { ReactNode } from "react";
-import SidebarMenu from "./SidebarMenu";
 import Header from "./Header";
+import { SidebarNav } from "./SidebarNav";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import "@/styles/form-styles.css";
 
 type LayoutProps = {
@@ -14,16 +15,18 @@ export default function Layout({ children, pageTitle }: LayoutProps) {
   document.title = `${pageTitle} | Koperasi Simpan Pinjam`;
   
   return (
-    <div className="flex h-screen bg-background">
-      <SidebarMenu />
-      
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header pageTitle={pageTitle} />
+    <SidebarProvider defaultOpen={true}>
+      <div className="flex h-screen w-full bg-background">
+        <SidebarNav />
         
-        <main className="flex-1 overflow-y-auto p-6">
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Header pageTitle={pageTitle} />
+          
+          <main className="flex-1 overflow-y-auto p-6">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
