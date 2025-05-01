@@ -1,16 +1,15 @@
 
 import { useState } from "react";
-import { ShoppingCart } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Input } from "@/components/ui/input";
 import { CartItem } from "./CartItem";
 import { CartSummary } from "./CartSummary";
 import { ProdukItem, PenjualanItem } from "@/types";
 import { Kasir } from "@/types";
 import { getProdukItemById } from "@/services/produkService";
 import { calculateTotal } from "@/services/penjualanService";
+import { CartHeader } from "./cart/CartHeader";
+import { EmptyCart } from "./cart/EmptyCart";
+import { DiscountTaxInputs } from "./cart/DiscountTaxInputs";
 
 interface CartSectionProps {
   items: PenjualanItem[];
@@ -28,15 +27,6 @@ interface CartSectionProps {
   processing: boolean;
 }
 
-// Helper component for labels
-function Label({ htmlFor, children }: { htmlFor?: string, children: React.ReactNode }) {
-  return (
-    <label htmlFor={htmlFor} className="block text-sm font-medium mb-1">
-      {children}
-    </label>
-  );
-}
-
 export function CartSection({ 
   items, 
   onUpdateQuantity, 
@@ -51,37 +41,15 @@ export function CartSection({
   
   const subtotal = items.reduce((total, item) => total + item.total, 0);
   const total = calculateTotal(items, discount, tax).total;
+  const itemCount = items.reduce((sum, item) => sum + item.jumlah, 0);
   
   return (
     <div className="bg-white rounded-lg border shadow-sm h-full flex flex-col">
-      <div className="p-4 border-b flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <ShoppingCart className="h-5 w-5" />
-          <h2 className="text-lg font-medium">Keranjang</h2>
-          {items.length > 0 && (
-            <Badge variant="secondary">
-              {items.reduce((sum, item) => sum + item.jumlah, 0)}
-            </Badge>
-          )}
-        </div>
-        
-        {items.length > 0 && (
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={onClear}
-          >
-            Kosongkan
-          </Button>
-        )}
-      </div>
+      <CartHeader itemCount={itemCount} onClear={onClear} />
       
       <div className="flex-1 overflow-auto">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-6">
-            <ShoppingCart className="h-16 w-16 text-gray-300 mb-4" />
-            <p className="text-gray-500">Keranjang belanja kosong</p>
-          </div>
+          <EmptyCart />
         ) : (
           <div className="p-4">
             {items.map(item => {
@@ -123,31 +91,12 @@ export function CartSection({
           </TabsContent>
           
           <TabsContent value="diskon">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="discount">Diskon (%)</Label>
-                <Input
-                  id="discount"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={discount}
-                  onChange={(e) => setDiscount(Number(e.target.value) || 0)}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="tax">Pajak (%)</Label>
-                <Input
-                  id="tax"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={tax}
-                  onChange={(e) => setTax(Number(e.target.value) || 0)}
-                />
-              </div>
-            </div>
+            <DiscountTaxInputs
+              discount={discount}
+              tax={tax}
+              onDiscountChange={setDiscount}
+              onTaxChange={setTax}
+            />
           </TabsContent>
         </Tabs>
       </div>
