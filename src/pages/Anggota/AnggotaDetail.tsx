@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -24,7 +23,7 @@ import {
   getUpcomingDueLoans,
   calculateJatuhTempo,
   calculatePenalty
-} from "@/services/transaksiService";
+} from "@/services/transaksi";
 import { Anggota, Transaksi } from "@/types";
 
 export default function AnggotaDetail() {

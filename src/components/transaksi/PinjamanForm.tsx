@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -7,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Anggota, Pengaturan } from "@/types"; // Fixed type import
-import { createTransaksi } from "@/services/transaksiService";
+import { createTransaksi } from "@/services/transaksi"; // Fixed import
 import { calculateAngsuran, getPengaturan } from "@/services/pengaturanService";
 import { FormActions } from "@/components/anggota/FormActions";
 
