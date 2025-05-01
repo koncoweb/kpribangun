@@ -46,6 +46,11 @@ export const updateProdukItem = (id: string, produkData: Partial<ProdukItem>): P
   
   if (index === -1) return null;
   
+  // Preserve the image if none is provided
+  if (produkData.gambar === undefined) {
+    produkData.gambar = produkItems[index].gambar;
+  }
+  
   // Update the product
   produkItems[index] = {
     ...produkItems[index],
@@ -82,4 +87,3 @@ export const updateProdukStock = (id: string, quantity: number): boolean => {
   
   return true;
 };
-
