@@ -6,10 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Receipt, Search, Printer, FileText, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Separator } from "@/components/ui/separator";
 import { Penjualan } from "@/types";
 import { getAllPenjualan, initSamplePenjualanData } from "@/services/penjualan";
 import { initSampleProdukData } from "@/services/produk";
 import { initSampleKasirData, getKasirById } from "@/services/kasirService";
+import { formatRupiah } from "@/lib/utils";
 
 export default function KuitansiPembayaran() {
   const { toast } = useToast();
