@@ -22,6 +22,7 @@ import { InfoCard } from "@/components/anggota/detail/InfoCard";
 import { TransactionTabs } from "@/components/anggota/detail/TransactionTabs";
 import { Badge } from "@/components/ui/badge";
 import { KeluargaTable } from "@/components/anggota/detail/KeluargaTable";
+import { DetailPageHeader } from "@/components/pos/detail/DetailPageHeader";
 
 export default function AnggotaDetail() {
   const { id } = useParams<{ id: string }>();
@@ -122,52 +123,53 @@ export default function AnggotaDetail() {
 
   return (
     <Layout pageTitle={`Detail Anggota - ${anggota.nama}`}>
-      <div className="flex items-center gap-4 mb-6">
-        <Link to="/anggota">
-          <Button variant="outline" size="icon">
-            <ArrowLeft size={16} />
-          </Button>
-        </Link>
-        <h1 className="page-title">Detail Anggota</h1>
-        <div className="ml-auto flex items-center gap-2">
+      <DetailPageHeader title="Detail Anggota" backLink="/anggota" />
+      
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <h1 className="text-2xl font-bold">{anggota.nama}</h1>
+        {keluargaCount > 0 && (
+          <Badge variant="info" className="ml-2">
+            {keluargaCount} Anggota Keluarga
+          </Badge>
+        )}
+        {dokumenCount > 0 && (
+          <Badge variant="success" className="ml-2">
+            {dokumenCount} Dokumen
+          </Badge>
+        )}
+        <div className="ml-auto">
           <Button asChild variant="outline" size="sm">
             <Link to={`/anggota/edit/${anggota.id}`}>
               <Edit size={16} className="mr-1.5" /> Edit
             </Link>
           </Button>
-          {keluargaCount > 0 && (
-            <Badge variant="info" className="ml-2">
-              {keluargaCount} Anggota Keluarga
-            </Badge>
-          )}
-          {dokumenCount > 0 && (
-            <Badge variant="success" className="ml-2">
-              {dokumenCount} Dokumen
-            </Badge>
-          )}
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <ProfileCard anggota={anggota} />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+        <div className="lg:col-span-4">
+          <ProfileCard anggota={anggota} />
+        </div>
         
-        <div className="lg:col-span-2">
-          <Card className="h-full mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Data Keluarga</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <KeluargaTable keluarga={anggota.keluarga || []} anggotaId={anggota.id} />
-            </CardContent>
-          </Card>
-          
+        <div className="lg:col-span-8">
           <InfoCard anggota={anggota} totalSimpanan={totalSimpanan} totalPinjaman={totalPinjaman} />
         </div>
       </div>
       
+      <div className="grid grid-cols-1 gap-6 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xl">Data Keluarga</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <KeluargaTable keluarga={anggota.keluarga || []} anggotaId={anggota.id} />
+          </CardContent>
+        </Card>
+      </div>
+      
       <Card>
-        <CardHeader>
-          <CardTitle>Histori Transaksi</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">Histori Transaksi</CardTitle>
         </CardHeader>
         <CardContent>
           <TransactionTabs
