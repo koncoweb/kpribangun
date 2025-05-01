@@ -17,6 +17,9 @@ const initialAnggota: Anggota[] = [
     pekerjaan: "PNS",
     status: "active", // Adding status field
     tanggalBergabung: "2023-01-15", // Adding tanggalBergabung field
+    foto: null, // Adding foto field
+    dokumen: [], // Adding dokumen field
+    keluarga: [], // Adding keluarga field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -31,6 +34,9 @@ const initialAnggota: Anggota[] = [
     pekerjaan: "Guru",
     status: "active", // Adding status field
     tanggalBergabung: "2023-02-20", // Adding tanggalBergabung field
+    foto: null, // Adding foto field
+    dokumen: [], // Adding dokumen field
+    keluarga: [], // Adding keluarga field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -45,6 +51,9 @@ const initialAnggota: Anggota[] = [
     pekerjaan: "Wiraswasta",
     status: "active", // Adding status field
     tanggalBergabung: "2023-03-10", // Adding tanggalBergabung field
+    foto: null, // Adding foto field
+    dokumen: [], // Adding dokumen field
+    keluarga: [], // Adding keluarga field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -59,6 +68,9 @@ const initialAnggota: Anggota[] = [
     pekerjaan: "Dosen",
     status: "active", // Adding status field
     tanggalBergabung: "2023-04-05", // Adding tanggalBergabung field
+    foto: null, // Adding foto field
+    dokumen: [], // Adding dokumen field
+    keluarga: [], // Adding keluarga field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -73,6 +85,9 @@ const initialAnggota: Anggota[] = [
     pekerjaan: "Pedagang",
     status: "active", // Adding status field
     tanggalBergabung: "2023-05-15", // Adding tanggalBergabung field
+    foto: null, // Adding foto field
+    dokumen: [], // Adding dokumen field
+    keluarga: [], // Adding keluarga field
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
