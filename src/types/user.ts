@@ -17,6 +17,7 @@ export interface User {
   createdAt: string;
   updatedAt: string;
   anggotaId?: string;
+  password?: string;  // Added password as optional field
 }
 
 export interface UserFormData extends Omit<User, "id" | "createdAt" | "updatedAt" | "lastLogin" | "roleName"> {
