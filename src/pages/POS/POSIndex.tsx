@@ -18,7 +18,7 @@ import {
 export default function POSIndex() {
   const posNavigation = [
     {
-      title: "Penjualan",
+      title: "Penjualan Kasir",
       icon: Store,
       description: "Transaksi penjualan produk",
       path: "/pos/penjualan",

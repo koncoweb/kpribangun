@@ -37,7 +37,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         )}
       </div>
 
-      <div className="p-2">
+      <div className="p-3">
         <h3 className="font-medium text-sm line-clamp-1">{product.nama}</h3>
         <div className="flex items-center justify-between mt-1">
           <p className="text-sm font-bold text-primary">

@@ -37,7 +37,7 @@ import POSIndex from "./pages/POS/POSIndex";
 import Inventori from "./pages/POS/Inventori";
 import Pemasok from "./pages/POS/Pemasok";
 import StokBarang from "./pages/POS/StokBarang";
-import PenjualanList from "./pages/POS/PenjualanList";
+import PenjualanKasir from "./pages/POS/PenjualanKasir";
 import PenjualanDetail from "./pages/POS/PenjualanDetail";
 import KuitansiPembayaran from "./pages/POS/KuitansiPembayaran";
 import NamaKasir from "./pages/POS/NamaKasir";
@@ -96,7 +96,7 @@ function App() {
           <Route path="/pos/inventori" element={<Inventori />} />
           <Route path="/pos/pemasok" element={<Pemasok />} />
           <Route path="/pos/stok" element={<StokBarang />} />
-          <Route path="/pos/penjualan" element={<PenjualanList />} />
+          <Route path="/pos/penjualan" element={<PenjualanKasir />} />
           <Route path="/pos/penjualan/:id" element={<PenjualanDetail />} />
           <Route path="/pos/kuitansi/:id" element={<KuitansiPembayaran />} />
           <Route path="/pos/kasir" element={<NamaKasir />} />
