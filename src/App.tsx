@@ -50,6 +50,7 @@ import LaporanRugiLaba from "./pages/POS/LaporanRugiLaba";
 
 import UserManagement from "./pages/UserManagement/UserManagement";
 import Pengaturan from "./pages/Pengaturan/Pengaturan";
+import RolesManagement from "./pages/Pengaturan/RolesManagement";
 import Laporan from "./pages/Laporan/Laporan";
 
 function App() {
@@ -114,8 +115,9 @@ function App() {
           
           {/* Admin routes */}
           <Route path="/user-management" element={<UserManagement />} />
-          <Route path="/users" element={<UserManagement />} /> {/* Add this route to match sidebar menu */}
+          <Route path="/users" element={<UserManagement />} /> {/* Route for sidebar menu compatibility */}
           <Route path="/pengaturan" element={<Pengaturan />} />
+          <Route path="/pengaturan/roles" element={<RolesManagement />} /> {/* Add this route for Hak Akses */}
           
           {/* Laporan route */}
           <Route path="/laporan" element={<Laporan />} />
