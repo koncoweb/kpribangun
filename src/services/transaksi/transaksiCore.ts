@@ -41,4 +41,3 @@ export function generateTransaksiId(): string {
   const newId = `TR${String(lastId + 1).padStart(6, "0")}`;
   return newId;
 }
-

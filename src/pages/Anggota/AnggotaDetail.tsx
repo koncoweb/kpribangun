@@ -77,7 +77,7 @@ export default function AnggotaDetail() {
             toast({
               title: "Warning",
               description: "Terjadi kesalahan saat memuat data pinjaman",
-              variant: "warning",
+              variant: "destructive",
             });
           }
         } else {

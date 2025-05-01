@@ -19,4 +19,11 @@ export {
   calculatePenalty
 } from './loanOperations';
 
+// Export from transaksiService for backward compatibility
+export { 
+  createTransaksi,
+  updateTransaksi,
+  deleteTransaksi
+} from '../transaksiService';
+
 // Re-export any other important functions from the transaksi modules
