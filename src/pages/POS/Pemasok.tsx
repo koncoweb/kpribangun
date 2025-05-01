@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -36,7 +35,7 @@ import {
   createPemasok, 
   updatePemasok, 
   deletePemasok 
-} from "@/services/pembelianService";
+} from "@/services/pemasokService";
 
 export default function PemasokPage() {
   const [pemasokList, setPemasokList] = useState<Pemasok[]>([]);
