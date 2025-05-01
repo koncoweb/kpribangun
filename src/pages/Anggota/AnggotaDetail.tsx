@@ -4,7 +4,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAnggotaById } from "@/services/anggotaService";
 import { 
@@ -110,6 +110,11 @@ export default function AnggotaDetail() {
         </Link>
         <h1 className="page-title">Detail Anggota</h1>
         <div className="ml-auto flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <Link to={`/anggota/edit/${anggota.id}`}>
+              <Edit size={16} className="mr-1.5" /> Edit
+            </Link>
+          </Button>
           {keluargaCount > 0 && (
             <Badge variant="info" className="ml-2">
               {keluargaCount} Anggota Keluarga
@@ -141,6 +146,7 @@ export default function AnggotaDetail() {
             jatuhTempo={jatuhTempo}
             tunggakan={tunggakan}
             keluarga={anggota.keluarga || []}
+            anggotaId={anggota.id}
           />
         </CardContent>
       </Card>

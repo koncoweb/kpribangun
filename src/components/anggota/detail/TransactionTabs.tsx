@@ -23,6 +23,7 @@ interface TransactionTabsProps {
     penalty: number;
   }[];
   keluarga?: AnggotaKeluarga[];
+  anggotaId?: string;
 }
 
 export function TransactionTabs({
@@ -33,6 +34,7 @@ export function TransactionTabs({
   jatuhTempo,
   tunggakan,
   keluarga = [],
+  anggotaId,
 }: TransactionTabsProps) {
   return (
     <Tabs defaultValue="semua">
@@ -65,7 +67,7 @@ export function TransactionTabs({
         <TunggakanTable tunggakan={tunggakan} />
       </TabsContent>
       <TabsContent value="keluarga">
-        <KeluargaTable keluarga={keluarga} />
+        <KeluargaTable keluarga={keluarga} anggotaId={anggotaId} readOnly={true} />
       </TabsContent>
     </Tabs>
   );

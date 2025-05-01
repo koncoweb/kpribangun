@@ -1,4 +1,3 @@
-
 import { Transaksi } from "../../types";
 import { TRANSAKSI_KEY, getAllItems, saveItems } from "./baseService";
 import { generateTransaksiId } from "./utils";
@@ -88,6 +87,6 @@ export function deleteTransaksi(id: string): boolean {
   
   if (filteredList.length === transaksiList.length) return false;
   
-  saveItems(TRANSAKSI_KEY, transaksiList);
+  saveItems(TRANSAKSI_KEY, filteredList);
   return true;
 }
