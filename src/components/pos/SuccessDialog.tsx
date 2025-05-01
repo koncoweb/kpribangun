@@ -32,11 +32,12 @@ export function SuccessDialog({ open, onOpenChange, sale }: SuccessDialogProps) 
   const kasirName = kasir ? kasir.nama : "Unknown";
   
   const handlePrint = useReactToPrint({
-    content: () => receiptRef.current,
     documentTitle: `Receipt-${sale.nomorTransaksi}`,
     onAfterPrint: () => {
       console.log("Print completed");
-    }
+    },
+    // Instead of using content property, use this proper approach for React 18+
+    contentRef: receiptRef
   });
   
   const handleDownload = async () => {
