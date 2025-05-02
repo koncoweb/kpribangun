@@ -1,3 +1,4 @@
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Auth/LoginPage";
@@ -120,6 +121,7 @@ function App() {
         <Route path="/pos/stok-barang" element={<AuthGuard>{<StokBarang />}</AuthGuard>} />
         <Route path="/pos/pemasok" element={<AuthGuard>{<Pemasok />}</AuthGuard>} />
         <Route path="/pos/kasir" element={<AuthGuard>{<NamaKasir />}</AuthGuard>} />
+        <Route path="/pos/kuitansi" element={<AuthGuard>{<KuitansiPembayaran />}</AuthGuard>} />
         <Route path="/pos/kuitansi/:id" element={<AuthGuard>{<KuitansiPembayaran />}</AuthGuard>} />
         <Route path="/pos/riwayat" element={<AuthGuard>{<RiwayatTransaksi />}</AuthGuard>} />
 
