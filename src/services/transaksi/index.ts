@@ -3,9 +3,12 @@
 export { 
   getAllTransaksi, 
   getTransaksiByAnggotaId, 
-  getTransaksiById,
-  generateTransaksiId 
+  getTransaksiById 
 } from './transaksiCore';
+
+export { 
+  generateTransaksiId 
+} from './idGenerator';
 
 export { 
   calculateTotalSimpanan, 

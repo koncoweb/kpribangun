@@ -1,5 +1,7 @@
 
 import { getFromLocalStorage, saveToLocalStorage } from "../../utils/localStorage";
+import { Transaksi } from "@/types";
+import { initialTransaksi } from "./initialData";
 
 export const TRANSAKSI_KEY = "koperasi_transaksi";
 
@@ -8,6 +10,14 @@ export const TRANSAKSI_KEY = "koperasi_transaksi";
  */
 export function getAllItems<T>(key: string, initialData: T[]): T[] {
   return getFromLocalStorage<T[]>(key, initialData);
+}
+
+/**
+ * Get all transaksi directly from local storage
+ * This is used by the ID generator to avoid circular dependencies
+ */
+export function getAllTransaksiFromStorage(): Transaksi[] {
+  return getFromLocalStorage<Transaksi[]>(TRANSAKSI_KEY, initialTransaksi);
 }
 
 /**
