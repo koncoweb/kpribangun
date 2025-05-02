@@ -44,13 +44,17 @@ export default function AngsuranForm() {
     anggotaId: "",
     pinjamanId: initialPinjamanId,
     jumlah: 0,
-    keterangan: ""
+    keterangan: "",
+    angsuranKe: 1
   });
   
   const [pinjamanInfo, setPinjamanInfo] = useState({
     total: 0,
     terbayar: 0,
-    sisaPinjaman: 0
+    sisaPinjaman: 0,
+    angsuranPerBulan: 0,
+    angsuranKe: 1,
+    tenor: 12
   });
   
   useEffect(() => {
@@ -72,42 +76,76 @@ export default function AngsuranForm() {
           anggotaId: pinjaman.anggotaId,
         }));
         setSelectedAnggotaId(pinjaman.anggotaId);
-        loadPinjamanInfo(pinjaman.anggotaId);
+        loadPinjamanInfo(pinjaman.anggotaId, initialPinjamanId);
       }
     }
   }, [initialPinjamanId]);
   
   // Load pinjaman info when anggota changes
-  const loadPinjamanInfo = (anggotaId: string) => {
+  const loadPinjamanInfo = (anggotaId: string, selectedPinjamanId?: string) => {
     const totalPinjaman = calculateTotalPinjaman(anggotaId);
     const allTransaksi = getAllTransaksi();
     
-    // Calculate total pinjaman
-    const totalPinjamanAmount = allTransaksi
-      .filter(t => t.anggotaId === anggotaId && t.jenis === "Pinjam" && t.status === "Sukses")
-      .reduce((total, t) => total + t.jumlah, 0);
-    
-    // Calculate total angsuran already paid
-    const totalAngsuran = allTransaksi
-      .filter(t => t.anggotaId === anggotaId && t.jenis === "Angsuran" && t.status === "Sukses")
-      .reduce((total, t) => total + t.jumlah, 0);
-    
-    setPinjamanInfo({
-      total: totalPinjamanAmount,
-      terbayar: totalAngsuran,
-      sisaPinjaman: totalPinjaman
-    });
-    
     // Filter pinjaman list to only show this anggota's pinjaman
-    const anggotaPinjaman = pinjamanList.filter(p => p.anggotaId === anggotaId);
+    const anggotaPinjaman = allTransaksi.filter(
+      p => p.anggotaId === anggotaId && p.jenis === "Pinjam" && p.status === "Sukses"
+    );
     setPinjamanList(anggotaPinjaman);
     
-    // If there's only one pinjaman, select it automatically
-    if (anggotaPinjaman.length === 1) {
-      setFormData(prev => ({
-        ...prev,
-        pinjamanId: anggotaPinjaman[0].id
-      }));
+    // If there's a selected pinjaman or only one pinjaman, get its details
+    const pinjamanToLoad = selectedPinjamanId || (anggotaPinjaman.length === 1 ? anggotaPinjaman[0].id : null);
+    
+    if (pinjamanToLoad) {
+      const pinjaman = getTransaksiById(pinjamanToLoad);
+      if (pinjaman) {
+        // Calculate total angsuran already paid for this pinjaman
+        const angsuranTransaksi = allTransaksi.filter(
+          t => t.jenis === "Angsuran" && 
+               t.status === "Sukses" && 
+               t.anggotaId === anggotaId && 
+               t.keterangan?.includes(pinjamanToLoad)
+        );
+        
+        const totalAngsuran = angsuranTransaksi.reduce((total, t) => total + t.jumlah, 0);
+        const sisaPinjaman = Math.max(0, pinjaman.jumlah - totalAngsuran);
+        
+        // Try to parse tenor and angsuran per bulan from keterangan
+        let tenor = 12; // Default tenor
+        let angsuranPerBulan = Math.ceil(pinjaman.jumlah / tenor);
+        
+        if (pinjaman.keterangan) {
+          const tenorMatch = pinjaman.keterangan.match(/Tenor: (\d+) bulan/);
+          const angsuranMatch = pinjaman.keterangan.match(/Angsuran per bulan: Rp ([0-9,.]+)/);
+          
+          if (tenorMatch && tenorMatch[1]) {
+            tenor = parseInt(tenorMatch[1]);
+          }
+          
+          if (angsuranMatch && angsuranMatch[1]) {
+            angsuranPerBulan = parseInt(angsuranMatch[1].replace(/[,.]/g, ""));
+          }
+        }
+        
+        // Calculate which angsuran number this would be
+        const angsuranKe = angsuranTransaksi.length + 1;
+        
+        setPinjamanInfo({
+          total: pinjaman.jumlah,
+          terbayar: totalAngsuran,
+          sisaPinjaman,
+          angsuranPerBulan,
+          angsuranKe,
+          tenor
+        });
+        
+        // Update formData with suggested angsuran amount
+        setFormData(prev => ({ 
+          ...prev, 
+          pinjamanId: pinjamanToLoad,
+          jumlah: Math.min(angsuranPerBulan, sisaPinjaman), // Don't exceed remaining loan amount
+          angsuranKe
+        }));
+      }
     }
   };
   
@@ -132,23 +170,7 @@ export default function AngsuranForm() {
   
   const handleSelectPinjaman = (pinjamanId: string) => {
     setFormData(prev => ({ ...prev, pinjamanId }));
-    
-    // Get pinjaman details to suggest angsuran amount
-    const pinjaman = getTransaksiById(pinjamanId);
-    if (pinjaman) {
-      // Try to parse the installment amount from the keterangan
-      try {
-        const angsuranMatch = pinjaman.keterangan?.match(/Angsuran per bulan: Rp ([0-9,.]+)/);
-        if (angsuranMatch && angsuranMatch[1]) {
-          const suggestedAmount = parseInt(angsuranMatch[1].replace(/[,.]/g, ""));
-          if (!isNaN(suggestedAmount)) {
-            setFormData(prev => ({ ...prev, jumlah: suggestedAmount }));
-          }
-        }
-      } catch (error) {
-        console.error("Failed to parse angsuran amount", error);
-      }
-    }
+    loadPinjamanInfo(selectedAnggotaId, pinjamanId);
   };
   
   const validateForm = () => {
@@ -206,7 +228,7 @@ export default function AngsuranForm() {
     try {
       // Get pinjaman details for reference
       const pinjaman = getTransaksiById(formData.pinjamanId);
-      const keteranganPinjaman = pinjaman ? `Angsuran untuk pinjaman #${formData.pinjamanId}` : "";
+      const keteranganPinjaman = `Angsuran ke-${pinjamanInfo.angsuranKe} untuk pinjaman #${formData.pinjamanId}`;
       
       // Create angsuran transaksi
       const newTransaksi = createTransaksi({
@@ -305,7 +327,7 @@ export default function AngsuranForm() {
               {selectedAnggotaId && pinjamanInfo.sisaPinjaman > 0 && (
                 <div className="bg-amber-50 p-4 rounded-md">
                   <p className="font-semibold mb-2">Informasi Pinjaman</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                     <div>
                       <p className="text-muted-foreground">Total Pinjaman:</p>
                       <p className="font-medium">{formatCurrency(pinjamanInfo.total)}</p>
@@ -317,6 +339,10 @@ export default function AngsuranForm() {
                     <div>
                       <p className="text-muted-foreground">Sisa Pinjaman:</p>
                       <p className="font-medium">{formatCurrency(pinjamanInfo.sisaPinjaman)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Angsuran ke-:</p>
+                      <p className="font-medium">{pinjamanInfo.angsuranKe} dari {pinjamanInfo.tenor}</p>
                     </div>
                   </div>
                 </div>
@@ -353,18 +379,37 @@ export default function AngsuranForm() {
                     </Select>
                   </div>
                   
-                  <div>
-                    <Label htmlFor="jumlah" className="required">Jumlah Angsuran (Rp)</Label>
-                    <Input 
-                      id="jumlah" 
-                      placeholder="Contoh: 500000" 
-                      type="number" 
-                      min="0" 
-                      max={pinjamanInfo.sisaPinjaman}
-                      value={formData.jumlah || ""}
-                      onChange={handleInputChange}
-                      required 
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="angsuranKe">Angsuran Ke</Label>
+                      <Input 
+                        id="angsuranKe" 
+                        value={pinjamanInfo.angsuranKe}
+                        disabled
+                      />
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Angsuran ke-{pinjamanInfo.angsuranKe} dari {pinjamanInfo.tenor}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="jumlah" className="required">Jumlah Angsuran (Rp)</Label>
+                      <Input 
+                        id="jumlah" 
+                        placeholder="Contoh: 500000" 
+                        type="number" 
+                        min="0" 
+                        max={pinjamanInfo.sisaPinjaman}
+                        value={formData.jumlah || ""}
+                        onChange={handleInputChange}
+                        required 
+                      />
+                      {pinjamanInfo.angsuranPerBulan > 0 && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Angsuran yang disarankan: {formatCurrency(Math.min(pinjamanInfo.angsuranPerBulan, pinjamanInfo.sisaPinjaman))}
+                        </p>
+                      )}
+                    </div>
                   </div>
                   
                   <div>

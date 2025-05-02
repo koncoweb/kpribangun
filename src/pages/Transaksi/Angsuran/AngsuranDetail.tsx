@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, FileText } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { getTransaksiById } from "@/services/transaksiService";
+import { getTransaksiById, getAllTransaksi } from "@/services/transaksi";
 import { getAnggotaById } from "@/services/anggotaService";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
@@ -24,6 +24,12 @@ export default function AngsuranDetail() {
   const [transaksi, setTransaksi] = useState<Transaksi | null>(null);
   const [anggota, setAnggota] = useState<Anggota | null>(null);
   const [relatedPinjaman, setRelatedPinjaman] = useState<Transaksi | null>(null);
+  const [angsuranInfo, setAngsuranInfo] = useState<{
+    angsuranKe: number;
+    totalAngsuran: number;
+    sisaPinjaman: number;
+    tenor: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,14 +45,49 @@ export default function AngsuranDetail() {
         }
         
         // Try to find related pinjaman from keterangan
-        if (transaksiData.keterangan) {
-          const pinjamanMatch = transaksiData.keterangan.match(/Angsuran untuk pinjaman #(TR\d+)/);
-          if (pinjamanMatch && pinjamanMatch[1]) {
-            const pinjamanId = pinjamanMatch[1];
-            const pinjaman = getTransaksiById(pinjamanId);
-            if (pinjaman) {
-              setRelatedPinjaman(pinjaman);
+        const pinjamanMatch = transaksiData.keterangan?.match(/pinjaman #(TR\d+)/);
+        const angsuranKeMatch = transaksiData.keterangan?.match(/Angsuran ke-(\d+)/);
+        
+        if (pinjamanMatch && pinjamanMatch[1]) {
+          const pinjamanId = pinjamanMatch[1];
+          const pinjaman = getTransaksiById(pinjamanId);
+          
+          if (pinjaman) {
+            setRelatedPinjaman(pinjaman);
+            
+            // Extract angsuran ke- information
+            let angsuranKe = 1;
+            if (angsuranKeMatch && angsuranKeMatch[1]) {
+              angsuranKe = parseInt(angsuranKeMatch[1]);
             }
+            
+            // Calculate tenor and total angsuran
+            const allTransaksi = getAllTransaksi();
+            const angsuranTransaksi = allTransaksi.filter(
+              t => t.jenis === "Angsuran" && 
+                   t.status === "Sukses" && 
+                   t.anggotaId === transaksiData.anggotaId &&
+                   t.keterangan?.includes(pinjamanId)
+            );
+            
+            const totalAngsuran = angsuranTransaksi.reduce((total, t) => total + t.jumlah, 0);
+            const sisaPinjaman = Math.max(0, pinjaman.jumlah - totalAngsuran);
+            
+            // Try to parse tenor from keterangan
+            let tenor = 12; // Default tenor
+            if (pinjaman.keterangan) {
+              const tenorMatch = pinjaman.keterangan.match(/Tenor: (\d+) bulan/);
+              if (tenorMatch && tenorMatch[1]) {
+                tenor = parseInt(tenorMatch[1]);
+              }
+            }
+            
+            setAngsuranInfo({
+              angsuranKe,
+              totalAngsuran,
+              sisaPinjaman,
+              tenor
+            });
           }
         }
       } else {
@@ -155,6 +196,13 @@ export default function AngsuranDetail() {
                       {formatCurrency(transaksi.jumlah)}
                     </p>
                   </div>
+                  
+                  {angsuranInfo && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Angsuran Ke-</p>
+                      <p className="font-medium">{angsuranInfo.angsuranKe} dari {angsuranInfo.tenor}</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -176,6 +224,34 @@ export default function AngsuranDetail() {
                         <p className="text-sm text-muted-foreground">Tanggal Pinjaman</p>
                         <p className="font-medium">{formatDate(relatedPinjaman.tanggal)}</p>
                       </div>
+                      
+                      {angsuranInfo && (
+                        <>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Total Terbayar</p>
+                            <p className="font-medium">{formatCurrency(angsuranInfo.totalAngsuran)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Sisa Pinjaman</p>
+                            <p className="font-medium">{formatCurrency(angsuranInfo.sisaPinjaman)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Status</p>
+                            <p className="font-medium">
+                              {angsuranInfo.sisaPinjaman <= 0 ? (
+                                <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                                  Lunas
+                                </span>
+                              ) : (
+                                <span className="inline-block px-2 py-1 rounded text-xs font-medium bg-amber-100 text-amber-800">
+                                  Belum Lunas
+                                </span>
+                              )}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                      
                       <div>
                         <Button 
                           variant="link" 
@@ -251,6 +327,24 @@ export default function AngsuranDetail() {
                   <div>
                     <p className="text-sm text-muted-foreground">Terakhir Diubah</p>
                     <p className="font-medium">{formatDate(transaksi.updatedAt)}</p>
+                  </div>
+                )}
+                {angsuranInfo && angsuranInfo.sisaPinjaman <= 0 && (
+                  <div className="mt-4 p-3 bg-green-50 rounded-lg">
+                    <p className="font-medium text-green-800">
+                      Pinjaman telah lunas
+                    </p>
+                  </div>
+                )}
+                {angsuranInfo && angsuranInfo.sisaPinjaman > 0 && (
+                  <div className="mt-4">
+                    <Button
+                      onClick={() => navigate("/transaksi/angsuran/tambah", {
+                        state: { pinjamanId: relatedPinjaman?.id }
+                      })}
+                    >
+                      Bayar Angsuran Berikutnya
+                    </Button>
                   </div>
                 )}
               </div>

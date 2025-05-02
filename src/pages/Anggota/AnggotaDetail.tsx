@@ -18,6 +18,7 @@ import { MainInfoSection } from "@/components/anggota/detail/MainInfoSection";
 import { TransactionSection } from "@/components/anggota/detail/TransactionSection";
 import { KeluargaSection } from "@/components/anggota/detail/KeluargaSection";
 import { LoadingState } from "@/components/anggota/detail/LoadingState";
+import { AngsuranList } from "@/components/anggota/detail/AngsuranList";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet, CreditCard, ArrowUpRight, AlertTriangle, Calculator } from "lucide-react";
 
@@ -171,6 +172,11 @@ export default function AnggotaDetail() {
                 anggotaId={anggota.id}
               />
             </div>
+            
+            {/* Add Angsuran List here */}
+            {pinjamanTransaksi.length > 0 && (
+              <AngsuranList pinjamanTransaksi={pinjamanTransaksi} />
+            )}
             
             <div className="mt-6">
               <KeluargaSection 
