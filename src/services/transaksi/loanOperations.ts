@@ -3,7 +3,7 @@ import { Transaksi } from "@/types";
 import { getAllTransaksi, getTransaksiById } from "./transaksiCore";
 
 /**
- * Get overdue loans for an anggota
+ * Get overdue loans for an anggota or all anggota
  */
 export function getOverdueLoans(anggotaId: string): {
   transaksi: Transaksi;
@@ -12,11 +12,19 @@ export function getOverdueLoans(anggotaId: string): {
   penalty: number;
 }[] {
   const transaksiList = getAllTransaksi();
-  const pinjamanList = transaksiList.filter(
-    (transaksi) => transaksi.anggotaId === anggotaId && 
-                  transaksi.jenis === "Pinjam" && 
-                  transaksi.status === "Sukses"
-  );
+  let pinjamanList;
+  
+  if (anggotaId === "ALL") {
+    pinjamanList = transaksiList.filter(
+      (transaksi) => transaksi.jenis === "Pinjam" && transaksi.status === "Sukses"
+    );
+  } else {
+    pinjamanList = transaksiList.filter(
+      (transaksi) => transaksi.anggotaId === anggotaId && 
+                    transaksi.jenis === "Pinjam" && 
+                    transaksi.status === "Sukses"
+    );
+  }
   
   const overdueLoans = [];
   
@@ -43,19 +51,27 @@ export function getOverdueLoans(anggotaId: string): {
 }
 
 /**
- * Get upcoming due loans for an anggota
+ * Get upcoming due loans for an anggota or all anggota
  */
-export function getUpcomingDueLoans(anggotaId: string, daysInFuture = 30): {
+export function getUpcomingDueLoans(anggotaId: string, daysInFuture: number = 30): {
   transaksi: Transaksi;
   jatuhTempo: string;
   daysUntilDue: number;
 }[] {
   const transaksiList = getAllTransaksi();
-  const pinjamanList = transaksiList.filter(
-    (transaksi) => transaksi.anggotaId === anggotaId && 
-                  transaksi.jenis === "Pinjam" && 
-                  transaksi.status === "Sukses"
-  );
+  let pinjamanList;
+  
+  if (anggotaId === "ALL") {
+    pinjamanList = transaksiList.filter(
+      (transaksi) => transaksi.jenis === "Pinjam" && transaksi.status === "Sukses"
+    );
+  } else {
+    pinjamanList = transaksiList.filter(
+      (transaksi) => transaksi.anggotaId === anggotaId && 
+                    transaksi.jenis === "Pinjam" && 
+                    transaksi.status === "Sukses"
+    );
+  }
   
   const upcomingLoans = [];
   

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -127,7 +128,10 @@ export default function TransaksiCetak() {
             <Share2 size={16} className="mr-2" />
             Bagikan
           </Button>
-          <Button size="sm" onClick={handlePrint}>
+          <Button size="sm" onClick={() => {
+            // Wrap in Promise to ensure it returns a Promise<void>
+            return Promise.resolve(handlePrint());
+          }}>
             <Printer size={16} className="mr-2" />
             Cetak
           </Button>

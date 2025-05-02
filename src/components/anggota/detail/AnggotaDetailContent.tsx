@@ -29,8 +29,8 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
   const angsuranTransaksi = transaksi.filter(t => t.jenis === "Angsuran");
   const totalSimpanan = calculateTotalSimpanan(id);
   const totalPinjaman = calculateTotalPinjaman(id);
-  const jatuhTempo = getUpcomingDueLoans(30);
-  const rawTunggakan = getOverdueLoans();
+  const jatuhTempo = getUpcomingDueLoans(id, 30);
+  const rawTunggakan = getOverdueLoans(id);
   
   // Filter data specific to this member and add penalty information
   const filteredJatuhTempo = jatuhTempo.filter(item => item.transaksi.anggotaId === id);
