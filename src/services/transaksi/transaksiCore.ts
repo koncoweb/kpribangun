@@ -31,7 +31,7 @@ export function getTransaksiById(id: string): Transaksi | undefined {
 }
 
 /**
- * Create a new transaksi ID
+ * Generate a new transaksi ID
  */
 export function generateTransaksiId(): string {
   const transaksiList = getAllTransaksi();
