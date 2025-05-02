@@ -16,12 +16,23 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Transaksi } from "@/types";
 import { getTransaksiById, getAllTransaksi } from "@/services/transaksi";
 import { getRemainingLoanAmount } from "@/services/transaksi/loanOperations";
+import { calculateTotalSimpanan } from "@/services/transaksi/financialOperations";
+import { createTransaksi } from "@/services/transaksi";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { Calendar, CheckCircle2, XCircle, CreditCard, Wallet } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AngsuranListProps {
   pinjamanTransaksi: Transaksi[];
@@ -37,9 +48,13 @@ interface AngsuranDetail {
 
 export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedPinjaman, setSelectedPinjaman] = useState<string>(
     pinjamanTransaksi.length > 0 ? pinjamanTransaksi[0].id : ""
   );
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [currentAngsuran, setCurrentAngsuran] = useState<AngsuranDetail | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Calculate angsuran details for a specific loan
   const calculateAngsuran = (pinjamanId: string): AngsuranDetail[] => {
@@ -105,6 +120,78 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
     navigate("/transaksi/angsuran/tambah", { state: { pinjamanId } });
   };
 
+  const handlePayWithSimpanan = (angsuran: AngsuranDetail) => {
+    setCurrentAngsuran(angsuran);
+    setIsPaymentDialogOpen(true);
+  };
+
+  const processPaymentWithSimpanan = async () => {
+    if (!currentAngsuran || !selectedPinjaman) return;
+
+    setIsProcessing(true);
+
+    try {
+      const pinjaman = getTransaksiById(selectedPinjaman);
+      if (!pinjaman) throw new Error("Pinjaman tidak ditemukan");
+
+      // Get anggota's simpanan balance
+      const simpananBalance = calculateTotalSimpanan(pinjaman.anggotaId);
+
+      // Check if balance is sufficient
+      if (simpananBalance < currentAngsuran.nominal) {
+        toast({
+          title: "Saldo Simpanan Tidak Cukup",
+          description: `Saldo simpanan anggota (Rp ${simpananBalance.toLocaleString("id-ID")}) tidak cukup untuk membayar angsuran (Rp ${currentAngsuran.nominal.toLocaleString("id-ID")})`,
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        setIsPaymentDialogOpen(false);
+        return;
+      }
+
+      // Create angsuran transaction
+      const keteranganPinjaman = `Angsuran ke-${currentAngsuran.nomorAngsuran} untuk pinjaman #${selectedPinjaman}`;
+      
+      const angsuranTransaksi = createTransaksi({
+        tanggal: new Date().toISOString().split('T')[0],
+        anggotaId: pinjaman.anggotaId,
+        jenis: "Angsuran",
+        jumlah: currentAngsuran.nominal,
+        keterangan: `${keteranganPinjaman} (Dibayar dari simpanan)`,
+        status: "Sukses"
+      });
+
+      // Create simpanan withdraw transaction
+      const simpananTransaksi = createTransaksi({
+        tanggal: new Date().toISOString().split('T')[0],
+        anggotaId: pinjaman.anggotaId,
+        jenis: "Simpan",
+        jumlah: -currentAngsuran.nominal, // Negative for withdrawal
+        keterangan: `Penarikan simpanan untuk ${keteranganPinjaman}`,
+        status: "Sukses"
+      });
+
+      if (angsuranTransaksi && simpananTransaksi) {
+        toast({
+          title: "Pembayaran Berhasil",
+          description: `Angsuran berhasil dibayarkan dari saldo simpanan anggota.`,
+        });
+      } else {
+        throw new Error("Gagal menyimpan transaksi");
+      }
+
+    } catch (error) {
+      toast({
+        title: "Terjadi kesalahan",
+        description: error instanceof Error ? error.message : "Gagal memproses pembayaran",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+      setIsPaymentDialogOpen(false);
+    }
+  };
+
   // Format date for display
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
@@ -135,6 +222,9 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
   const remainingAmount = selectedPinjaman 
     ? getRemainingLoanAmount(selectedPinjaman) 
     : 0;
+  
+  // Calculate simpanan balance for payment option
+  const simpananBalance = selectedLoan ? calculateTotalSimpanan(selectedLoan.anggotaId) : 0;
 
   return (
     <Card className="mt-6">
@@ -160,7 +250,7 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
 
         {selectedLoan && (
           <div className="bg-muted/50 p-4 rounded-md mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-sm text-muted-foreground">Pinjaman</p>
                 <p className="font-medium">Rp {selectedLoan.jumlah.toLocaleString("id-ID")}</p>
@@ -173,13 +263,19 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
                 <p className="text-sm text-muted-foreground">Tanggal Pinjam</p>
                 <p className="font-medium">{formatDate(selectedLoan.tanggal)}</p>
               </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Saldo Simpanan</p>
+                <p className="font-medium">Rp {simpananBalance.toLocaleString("id-ID")}</p>
+              </div>
             </div>
             {remainingAmount > 0 && (
               <div className="mt-4">
                 <Button
                   onClick={() => handleBayarAngsuran(selectedPinjaman)}
                   size="sm"
+                  className="mr-2"
                 >
+                  <CreditCard className="mr-2 h-4 w-4" />
                   Bayar Angsuran
                 </Button>
               </div>
@@ -238,15 +334,29 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
                           Lihat Detail
                         </Button>
                       ) : (
-                        <Button 
-                          variant="link" 
-                          size="sm"
-                          className="p-0 h-auto"
-                          onClick={() => handleBayarAngsuran(selectedPinjaman)}
-                          disabled={item.nomorAngsuran !== angsuranDetails.find(a => a.status === "Belum Terbayar")?.nomorAngsuran}
-                        >
-                          Bayar Sekarang
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="link" 
+                            size="sm"
+                            className="p-0 h-auto"
+                            onClick={() => handleBayarAngsuran(selectedPinjaman)}
+                            disabled={item.nomorAngsuran !== angsuranDetails.find(a => a.status === "Belum Terbayar")?.nomorAngsuran}
+                          >
+                            Bayar Manual
+                          </Button>
+                          <Button 
+                            variant="link" 
+                            size="sm"
+                            className="p-0 h-auto text-emerald-600"
+                            onClick={() => handlePayWithSimpanan(item)}
+                            disabled={
+                              item.nomorAngsuran !== angsuranDetails.find(a => a.status === "Belum Terbayar")?.nomorAngsuran ||
+                              simpananBalance < item.nominal
+                            }
+                          >
+                            Bayar dari Simpanan
+                          </Button>
+                        </div>
                       )}
                     </TableCell>
                   </TableRow>
@@ -255,6 +365,57 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
             </TableBody>
           </Table>
         </div>
+        
+        {/* Payment Dialog */}
+        <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Konfirmasi Pembayaran dengan Simpanan</DialogTitle>
+              <DialogDescription>
+                Anda akan membayar angsuran dengan mengurangi saldo simpanan anggota.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="py-4 space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Jumlah Angsuran:</span>
+                <span className="font-medium">Rp {currentAngsuran?.nominal.toLocaleString("id-ID")}</span>
+              </div>
+              
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Saldo Simpanan:</span>
+                <span className="font-medium">Rp {simpananBalance.toLocaleString("id-ID")}</span>
+              </div>
+              
+              <div className="flex justify-between items-center border-t pt-2">
+                <span className="font-medium">Sisa Simpanan:</span>
+                <span className="font-bold">
+                  Rp {(simpananBalance - (currentAngsuran?.nominal || 0)).toLocaleString("id-ID")}
+                </span>
+              </div>
+              
+              {simpananBalance < (currentAngsuran?.nominal || 0) && (
+                <div className="text-destructive text-sm font-medium">
+                  Saldo simpanan tidak mencukupi untuk pembayaran ini
+                </div>
+              )}
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>
+                Batal
+              </Button>
+              <Button 
+                onClick={processPaymentWithSimpanan}
+                disabled={isProcessing || simpananBalance < (currentAngsuran?.nominal || 0)}
+                className="gap-2"
+              >
+                <Wallet size={16} />
+                {isProcessing ? "Memproses..." : "Konfirmasi Pembayaran"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

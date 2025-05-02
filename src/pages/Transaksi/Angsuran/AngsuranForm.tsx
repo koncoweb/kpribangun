@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAllAnggota } from "@/services/anggotaService";
@@ -21,10 +22,11 @@ import { Anggota, Transaksi } from "@/types";
 import { FormActions } from "@/components/anggota/FormActions";
 import { 
   calculateTotalPinjaman, 
+  calculateTotalSimpanan,
   createTransaksi, 
   getAllTransaksi, 
   getTransaksiById 
-} from "@/services/transaksiService";
+} from "@/services/transaksi";
 
 export default function AngsuranForm() {
   const navigate = useNavigate();
@@ -45,7 +47,8 @@ export default function AngsuranForm() {
     pinjamanId: initialPinjamanId,
     jumlah: 0,
     keterangan: "",
-    angsuranKe: 1
+    angsuranKe: 1,
+    useSimnpanan: false
   });
   
   const [pinjamanInfo, setPinjamanInfo] = useState({
@@ -54,7 +57,8 @@ export default function AngsuranForm() {
     sisaPinjaman: 0,
     angsuranPerBulan: 0,
     angsuranKe: 1,
-    tenor: 12
+    tenor: 12,
+    simpananBalance: 0
   });
   
   useEffect(() => {
@@ -84,6 +88,7 @@ export default function AngsuranForm() {
   // Load pinjaman info when anggota changes
   const loadPinjamanInfo = (anggotaId: string, selectedPinjamanId?: string) => {
     const totalPinjaman = calculateTotalPinjaman(anggotaId);
+    const simpananBalance = calculateTotalSimpanan(anggotaId);
     const allTransaksi = getAllTransaksi();
     
     // Filter pinjaman list to only show this anggota's pinjaman
@@ -135,7 +140,8 @@ export default function AngsuranForm() {
           sisaPinjaman,
           angsuranPerBulan,
           angsuranKe,
-          tenor
+          tenor,
+          simpananBalance
         });
         
         // Update formData with suggested angsuran amount
@@ -154,6 +160,13 @@ export default function AngsuranForm() {
     setFormData(prev => ({
       ...prev,
       [id]: id === "jumlah" ? Number(value) : value
+    }));
+  };
+  
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      useSimnpanan: checked
     }));
   };
   
@@ -214,6 +227,16 @@ export default function AngsuranForm() {
       });
       return false;
     }
+
+    // Validate if using simpanan payment
+    if (formData.useSimnpanan && formData.jumlah > pinjamanInfo.simpananBalance) {
+      toast({
+        title: "Saldo simpanan tidak mencukupi",
+        description: `Saldo simpanan anggota adalah Rp ${pinjamanInfo.simpananBalance.toLocaleString("id-ID")}`,
+        variant: "destructive",
+      });
+      return false;
+    }
     
     return true;
   };
@@ -236,14 +259,34 @@ export default function AngsuranForm() {
         anggotaId: formData.anggotaId,
         jenis: "Angsuran",
         jumlah: formData.jumlah,
-        keterangan: formData.keterangan ? `${keteranganPinjaman}: ${formData.keterangan}` : keteranganPinjaman,
+        keterangan: formData.useSimnpanan 
+          ? `${keteranganPinjaman} (Dibayar dari simpanan)${formData.keterangan ? ': ' + formData.keterangan : ''}`
+          : `${keteranganPinjaman}${formData.keterangan ? ': ' + formData.keterangan : ''}`,
         status: "Sukses"
       });
       
+      // If using simpanan for payment, create a withdraw transaction
+      if (formData.useSimnpanan) {
+        const simpananTransaksi = createTransaksi({
+          tanggal: formData.tanggal,
+          anggotaId: formData.anggotaId,
+          jenis: "Simpan",
+          jumlah: -formData.jumlah, // Negative for withdrawal
+          keterangan: `Penarikan simpanan untuk ${keteranganPinjaman}`,
+          status: "Sukses"
+        });
+
+        if (!simpananTransaksi) {
+          throw new Error("Gagal membuat transaksi penarikan simpanan");
+        }
+      }
+
       if (newTransaksi) {
         toast({
           title: "Angsuran berhasil disimpan",
-          description: `Angsuran dengan ID ${newTransaksi.id} telah berhasil disimpan`,
+          description: formData.useSimnpanan 
+            ? `Angsuran dengan ID ${newTransaksi.id} telah berhasil disimpan dengan menggunakan saldo simpanan` 
+            : `Angsuran dengan ID ${newTransaksi.id} telah berhasil disimpan`,
         });
         navigate("/transaksi/angsuran");
       } else {
@@ -252,7 +295,7 @@ export default function AngsuranForm() {
     } catch (error) {
       toast({
         title: "Terjadi kesalahan",
-        description: "Gagal menyimpan angsuran. Silakan coba lagi.",
+        description: error instanceof Error ? error.message : "Gagal menyimpan angsuran. Silakan coba lagi.",
         variant: "destructive",
       });
     } finally {
@@ -327,7 +370,7 @@ export default function AngsuranForm() {
               {selectedAnggotaId && pinjamanInfo.sisaPinjaman > 0 && (
                 <div className="bg-amber-50 p-4 rounded-md">
                   <p className="font-semibold mb-2">Informasi Pinjaman</p>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-2 text-sm">
                     <div>
                       <p className="text-muted-foreground">Total Pinjaman:</p>
                       <p className="font-medium">{formatCurrency(pinjamanInfo.total)}</p>
@@ -343,6 +386,10 @@ export default function AngsuranForm() {
                     <div>
                       <p className="text-muted-foreground">Angsuran ke-:</p>
                       <p className="font-medium">{pinjamanInfo.angsuranKe} dari {pinjamanInfo.tenor}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Saldo Simpanan:</p>
+                      <p className="font-medium">{formatCurrency(pinjamanInfo.simpananBalance)}</p>
                     </div>
                   </div>
                 </div>
@@ -411,6 +458,30 @@ export default function AngsuranForm() {
                       )}
                     </div>
                   </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="useSimnpanan" 
+                      checked={formData.useSimnpanan}
+                      onCheckedChange={handleCheckboxChange}
+                      disabled={pinjamanInfo.simpananBalance < formData.jumlah}
+                    />
+                    <label
+                      htmlFor="useSimnpanan"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Bayar menggunakan dana simpanan
+                    </label>
+                  </div>
+                  
+                  {formData.useSimnpanan && (
+                    <div className="bg-blue-50 p-4 rounded-md">
+                      <p className="text-sm">
+                        Pembayaran akan menggunakan dana simpanan anggota sebesar {formatCurrency(formData.jumlah)}.
+                        Saldo simpanan setelah pembayaran: {formatCurrency(pinjamanInfo.simpananBalance - formData.jumlah)}
+                      </p>
+                    </div>
+                  )}
                   
                   <div>
                     <Label htmlFor="keterangan">Keterangan</Label>
