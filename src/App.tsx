@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Auth/LoginPage";
 import AnggotaLoginPage from "./pages/Auth/AnggotaLoginPage";
-import AuthGuard from "./components/auth/AuthGuard";
+import { AuthGuard } from "./components/auth/AuthGuard";
 
 // Anggota Pages
 import AnggotaList from "./pages/Anggota/AnggotaList";
