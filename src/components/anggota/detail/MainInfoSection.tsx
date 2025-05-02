@@ -5,14 +5,10 @@ import { Anggota } from "@/types";
 
 interface MainInfoSectionProps {
   anggota: Anggota;
-  totalSimpanan: number;
-  totalPinjaman: number;
 }
 
 export function MainInfoSection({ 
-  anggota, 
-  totalSimpanan, 
-  totalPinjaman 
+  anggota
 }: MainInfoSectionProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
@@ -21,11 +17,7 @@ export function MainInfoSection({
       </div>
       
       <div className="lg:col-span-8">
-        <InfoCard 
-          anggota={anggota} 
-          totalSimpanan={totalSimpanan} 
-          totalPinjaman={totalPinjaman} 
-        />
+        <InfoCard anggota={anggota} />
       </div>
     </div>
   );
