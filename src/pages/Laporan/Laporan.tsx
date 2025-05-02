@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
@@ -85,6 +86,17 @@ import {
 } from "@/services/transaksi/financialOperations";
 import { Transaksi, Pengajuan, Anggota } from "@/types";
 
+// Function to filter transactions by date range
+const filterTransaksi = (transaksi: Transaksi[], startDate: string, endDate?: string) => {
+  return transaksi.filter(t => {
+    const transactionDate = new Date(t.tanggal).toISOString().split('T')[0];
+    if (endDate) {
+      return transactionDate >= startDate && transactionDate <= endDate;
+    }
+    return transactionDate >= startDate;
+  });
+};
+
 // Color palette for charts
 const CHART_COLORS = {
   simpanan: "#0EA5E9", // blue
@@ -131,6 +143,10 @@ export default function Laporan() {
   const [upcomingDueLoans, setUpcomingDueLoans] = useState<any[]>([]);
   const [totalPenalty, setTotalPenalty] = useState<number>(0);
   
+  // Filter state
+  const [filterDateStart, setFilterDateStart] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+  const [filterDateEnd, setFilterDateEnd] = useState<Date>(new Date());
+  
   // Load data on component mount
   useEffect(() => {
     const loadData = () => {
@@ -140,20 +156,20 @@ export default function Laporan() {
       const pengajuan = getPengajuanList();
       
       // Fix: Pass "ALL" as parameter to getOverdueLoans and getUpcomingDueLoans
-      const overdue = getOverdueLoans("ALL");
-      const upcoming = getUpcomingDueLoans("ALL", 30);
+      const rawTunggakan = getOverdueLoans("ALL"); // Pass "ALL" to get all overdue loans
+      const jatuhTempo = getUpcomingDueLoans("ALL", 30); // Pass "ALL" and days parameter
       
       setAnggotaList(anggota);
       setTransaksiList(transaksi);
       setPengajuanList(pengajuan);
-      setOverdueLoans(overdue);
-      setUpcomingDueLoans(upcoming);
+      setOverdueLoans(rawTunggakan);
+      setUpcomingDueLoans(jatuhTempo);
       
       // Calculate totals
       const totalSimpanan = getTotalAllSimpanan();
       const totalPinjaman = getTotalAllPinjaman();
       const totalAngsuran = getTotalAllAngsuran();
-      const totalPenaltyAmount = overdue.reduce((sum, loan) => {
+      const totalPenaltyAmount = rawTunggakan.reduce((sum, loan) => {
         const penalty = calculatePenalty(loan.transaksi.jumlah, loan.daysOverdue);
         return sum + penalty;
       }, 0);
@@ -166,8 +182,8 @@ export default function Laporan() {
         totalPinjaman,
         totalAngsuran,
         totalPengajuan: pengajuan.length,
-        totalTunggakan: overdue.length,
-        totalJatuhTempo: upcoming.length
+        totalTunggakan: rawTunggakan.length,
+        totalJatuhTempo: jatuhTempo.length
       });
       
       // Prepare chart data (using dummy data for now, would be replaced with real data)
@@ -211,6 +227,16 @@ export default function Laporan() {
     loadData();
   }, []);
 
+  // Filter transactions by date
+  const handleApplyFilter = () => {
+    if (dateRange?.from && dateRange?.to) {
+      setFilterDateStart(dateRange.from);
+      setFilterDateEnd(dateRange.to);
+    }
+    
+    // Additional filtering logic can be added here
+  };
+  
   const pieColors = [
     "#8B5CF6", // purple
     "#EC4899", // pink
@@ -283,7 +309,7 @@ export default function Laporan() {
                 />
               </div>
               <div className="pt-6">
-                <Button variant="default">
+                <Button variant="default" onClick={handleApplyFilter}>
                   Terapkan Filter
                 </Button>
               </div>
@@ -804,4 +830,112 @@ export default function Laporan() {
                         <SelectItem value="2023">2023</SelectItem>
                         <SelectItem value="2024">2024</SelectItem>
                         <SelectItem value="2025">2025</SelectItem>
-                      </
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="bulanSimpanan">Bulan</Label>
+                    <Select defaultValue="all">
+                      <SelectTrigger id="bulanSimpanan">
+                        <SelectValue placeholder="Pilih bulan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Bulan</SelectItem>
+                        <SelectItem value="01">Januari</SelectItem>
+                        <SelectItem value="02">Februari</SelectItem>
+                        <SelectItem value="03">Maret</SelectItem>
+                        <SelectItem value="04">April</SelectItem>
+                        <SelectItem value="05">Mei</SelectItem>
+                        <SelectItem value="06">Juni</SelectItem>
+                        <SelectItem value="07">Juli</SelectItem>
+                        <SelectItem value="08">Agustus</SelectItem>
+                        <SelectItem value="09">September</SelectItem>
+                        <SelectItem value="10">Oktober</SelectItem>
+                        <SelectItem value="11">November</SelectItem>
+                        <SelectItem value="12">Desember</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="jenisSimpanan">Jenis</Label>
+                    <Select defaultValue="all">
+                      <SelectTrigger id="jenisSimpanan">
+                        <SelectValue placeholder="Pilih jenis" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Jenis</SelectItem>
+                        <SelectItem value="pokok">Simpanan Pokok</SelectItem>
+                        <SelectItem value="wajib">Simpanan Wajib</SelectItem>
+                        <SelectItem value="sukarela">Simpanan Sukarela</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>ID</TableHead>
+                        <TableHead>Tanggal</TableHead>
+                        <TableHead>Nama Anggota</TableHead>
+                        <TableHead>Jenis Simpanan</TableHead>
+                        <TableHead>Jumlah</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transaksiList.filter(t => t.jenis === "Simpan").slice(0, 5).map((transaksi) => {
+                        // Apply date filtering if needed
+                        const pinjaman = filterTransaksi(
+                          transaksiList.filter(t => t.jenis === "Pinjam"),
+                          filterDateStart.toISOString().split('T')[0],
+                          filterDateEnd.toISOString().split('T')[0]
+                        );
+                        
+                        const simpanan = filterTransaksi(
+                          transaksiList.filter(t => t.jenis === "Simpan"),
+                          filterDateStart.toISOString().split('T')[0],
+                          filterDateEnd.toISOString().split('T')[0]
+                        );
+                        
+                        return (
+                          <TableRow key={transaksi.id}>
+                            <TableCell>{transaksi.id}</TableCell>
+                            <TableCell>{formatDate(transaksi.tanggal)}</TableCell>
+                            <TableCell>{transaksi.anggotaNama}</TableCell>
+                            <TableCell>{"Simpanan"}</TableCell>
+                            <TableCell>{formatCurrency(transaksi.jumlah)}</TableCell>
+                            <TableCell>
+                              <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                                transaksi.status === "Sukses" ? "bg-green-100 text-green-800" : 
+                                transaksi.status === "Gagal" ? "bg-red-100 text-red-800" : 
+                                "bg-amber-100 text-amber-800"
+                              }`}>
+                                {transaksi.status}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {transaksiList.filter(t => t.jenis === "Simpan").length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-10">
+                            Tidak ada data simpanan yang ditemukan
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Add more TabsContent for other tabs */}
+          {/* ... */}
+        </Tabs>
+      </div>
+    </Layout>
+  );
+}
