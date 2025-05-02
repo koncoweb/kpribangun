@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -10,7 +9,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getTransaksiById, getAllTransaksi } from "@/services/transaksi";
 import { getAnggotaById } from "@/services/anggotaService";
@@ -31,6 +30,7 @@ export default function AngsuranDetail() {
     tenor: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -102,6 +102,14 @@ export default function AngsuranDetail() {
     setLoading(false);
   }, [id, navigate, toast]);
 
+  const handlePrintReceipt = () => {
+    navigate(`/transaksi/${id}/cetak`);
+  };
+  
+  const handleShowReceipt = () => {
+    setIsReceiptOpen(true);
+  };
+
   // Format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
@@ -152,9 +160,13 @@ export default function AngsuranDetail() {
           </Link>
           <h1 className="page-title">Detail Angsuran</h1>
         </div>
-        <div>
-          <Button variant="outline" size="sm" onClick={() => navigate(`/transaksi/${id}/cetak`)}>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleShowReceipt}>
             <FileText size={16} className="mr-2" />
+            Lihat Bukti
+          </Button>
+          <Button size="sm" onClick={handlePrintReceipt}>
+            <Printer size={16} className="mr-2" />
             Cetak Bukti
           </Button>
         </div>
@@ -352,6 +364,14 @@ export default function AngsuranDetail() {
           </Card>
         </div>
       </div>
+
+      {transaksi && (
+        <ReceiptDialog 
+          open={isReceiptOpen} 
+          onOpenChange={setIsReceiptOpen} 
+          transaksi={transaksi} 
+        />
+      )}
     </Layout>
   );
 }

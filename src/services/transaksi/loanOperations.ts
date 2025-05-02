@@ -1,131 +1,140 @@
 
 import { Transaksi } from "@/types";
-import { getAllTransaksi } from "./transaksiCore";
-import { getPengaturan } from "@/services/pengaturanService";
+import { getAllTransaksi, getTransaksiById } from "./transaksiCore";
 
 /**
- * Get all pinjaman transactions
+ * Get overdue loans for an anggota
  */
-export function getAllPinjaman(): Transaksi[] {
-  return getAllTransaksi().filter(t => t.jenis === "Pinjam");
+export function getOverdueLoans(anggotaId: string): {
+  transaksi: Transaksi;
+  jatuhTempo: string;
+  daysOverdue: number;
+  penalty: number;
+}[] {
+  const transaksiList = getAllTransaksi();
+  const pinjamanList = transaksiList.filter(
+    (transaksi) => transaksi.anggotaId === anggotaId && 
+                  transaksi.jenis === "Pinjam" && 
+                  transaksi.status === "Sukses"
+  );
+  
+  const overdueLoans = [];
+  
+  for (const pinjaman of pinjamanList) {
+    // Calculate jatuh tempo based on tenor in keterangan
+    const jatuhTempoDate = calculateJatuhTempo(pinjaman);
+    const currentDate = new Date();
+    
+    // If jatuh tempo is already due
+    if (jatuhTempoDate && jatuhTempoDate < currentDate) {
+      const daysOverdue = Math.floor((currentDate.getTime() - jatuhTempoDate.getTime()) / (1000 * 60 * 60 * 24));
+      const penalty = calculatePenalty(pinjaman.jumlah, daysOverdue);
+      
+      overdueLoans.push({
+        transaksi: pinjaman,
+        jatuhTempo: jatuhTempoDate.toISOString(),
+        daysOverdue,
+        penalty
+      });
+    }
+  }
+  
+  return overdueLoans;
 }
 
 /**
- * Get all due loans (both upcoming and overdue)
+ * Get upcoming due loans for an anggota
  */
-export function getAllDueLoans(): { 
-  transaksi: Transaksi; 
+export function getUpcomingDueLoans(anggotaId: string, daysInFuture = 30): {
+  transaksi: Transaksi;
   jatuhTempo: string;
   daysUntilDue: number;
 }[] {
   const transaksiList = getAllTransaksi();
-  const currentDate = new Date();
+  const pinjamanList = transaksiList.filter(
+    (transaksi) => transaksi.anggotaId === anggotaId && 
+                  transaksi.jenis === "Pinjam" && 
+                  transaksi.status === "Sukses"
+  );
   
-  // Filter for pinjaman transactions
-  const pinjamanList = transaksiList.filter(t => t.jenis === "Pinjam" && t.status === "Sukses");
+  const upcomingLoans = [];
   
-  // Calculate due dates for each loan (dummy implementation)
-  return pinjamanList.map(transaksi => {
-    // For this example, let's assume loan is due in 30 days from creation
-    const createdDate = new Date(transaksi.createdAt);
-    const dueDate = new Date(createdDate);
-    dueDate.setDate(dueDate.getDate() + 30);
+  for (const pinjaman of pinjamanList) {
+    // Calculate jatuh tempo based on tenor in keterangan
+    const jatuhTempoDate = calculateJatuhTempo(pinjaman);
+    const currentDate = new Date();
     
-    // Calculate days until due
-    const timeDiff = dueDate.getTime() - currentDate.getTime();
-    const daysUntilDue = Math.ceil(timeDiff / (1000 * 3600 * 24));
-    
-    return {
-      transaksi,
-      jatuhTempo: dueDate.toISOString(),
-      daysUntilDue
-    };
-  });
+    // If jatuh tempo is upcoming within specified days
+    if (jatuhTempoDate && jatuhTempoDate > currentDate) {
+      const daysUntilDue = Math.floor((jatuhTempoDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysUntilDue <= daysInFuture) {
+        upcomingLoans.push({
+          transaksi: pinjaman,
+          jatuhTempo: jatuhTempoDate.toISOString(),
+          daysUntilDue
+        });
+      }
+    }
+  }
+  
+  return upcomingLoans;
 }
 
 /**
- * Get upcoming due loans (not yet overdue)
+ * Calculate jatuh tempo date based on transaksi data
  */
-export function getUpcomingDueLoans(daysThreshold: number = 30): { 
-  transaksi: Transaksi; 
-  jatuhTempo: string;
-  daysUntilDue: number;
-}[] {
-  return getAllDueLoans()
-    .filter(loan => loan.daysUntilDue > 0 && loan.daysUntilDue <= daysThreshold);
-}
-
-/**
- * Get overdue loans
- */
-export function getOverdueLoans(): { 
-  transaksi: Transaksi; 
-  jatuhTempo: string;
-  daysOverdue: number;
-}[] {
-  return getAllDueLoans()
-    .filter(loan => loan.daysUntilDue <= 0)
-    .map(loan => ({
-      transaksi: loan.transaksi,
-      jatuhTempo: loan.jatuhTempo,
-      daysOverdue: Math.abs(loan.daysUntilDue)
-    }));
-}
-
-/**
- * Calculate jatuh tempo date for a loan
- */
-export function calculateJatuhTempo(createdDate: string, tenorBulan: number = 12): string {
-  const date = new Date(createdDate);
-  date.setMonth(date.getMonth() + tenorBulan);
-  return date.toISOString();
+export function calculateJatuhTempo(transaksi: Transaksi): Date | null {
+  if (transaksi.jenis !== "Pinjam" || !transaksi.keterangan) {
+    return null;
+  }
+  
+  // Extract tenor from keterangan
+  const tenorMatch = transaksi.keterangan.match(/Tenor: (\d+) bulan/);
+  if (!tenorMatch || !tenorMatch[1]) {
+    return null;
+  }
+  
+  const tenor = parseInt(tenorMatch[1]);
+  const tanggalPinjam = new Date(transaksi.tanggal);
+  
+  // Calculate jatuh tempo by adding tenor months to pinjam date
+  const jatuhTempoDate = new Date(tanggalPinjam);
+  jatuhTempoDate.setMonth(jatuhTempoDate.getMonth() + tenor);
+  
+  return jatuhTempoDate;
 }
 
 /**
  * Calculate penalty for overdue loans
  */
-export function calculatePenalty(loanAmount: number, daysOverdue: number): number {
-  const pengaturan = getPengaturan();
-  const persentaseDenda = pengaturan?.denda?.persentase || 0.1; // Default 0.1%
-  const gracePeriod = pengaturan?.denda?.gracePeriod || 3; // Default 3 days grace period
+export function calculatePenalty(jumlahPinjaman: number, daysOverdue: number): number {
+  // Default penalty rate: 0.1% per day
+  const penaltyRatePerDay = 0.001;
   
-  // Apply grace period
-  const effectiveDaysOverdue = Math.max(0, daysOverdue - gracePeriod);
-  
-  if (effectiveDaysOverdue <= 0) {
-    return 0;
-  }
-  
-  // Calculate penalty based on method
-  if (pengaturan?.denda?.metodeDenda === "harian") {
-    // Daily calculation
-    return loanAmount * (persentaseDenda / 100) * effectiveDaysOverdue;
-  } else {
-    // Monthly calculation (simplified)
-    const monthsOverdue = Math.ceil(effectiveDaysOverdue / 30);
-    return loanAmount * (persentaseDenda / 100) * monthsOverdue;
-  }
+  return jumlahPinjaman * penaltyRatePerDay * daysOverdue;
 }
 
 /**
- * Get remaining loan amount for a specific loan
+ * Calculate remaining loan amount
  */
 export function getRemainingLoanAmount(pinjamanId: string): number {
-  const transactions = getAllTransaksi();
+  const pinjaman = getTransaksiById(pinjamanId);
+  if (!pinjaman || pinjaman.jenis !== "Pinjam") {
+    return 0;
+  }
   
-  // Find the pinjaman transaction
-  const pinjaman = transactions.find(t => t.id === pinjamanId && t.jenis === "Pinjam");
-  if (!pinjaman) return 0;
+  const transaksiList = getAllTransaksi();
+  const angsuranList = transaksiList.filter(
+    transaksi => 
+      transaksi.jenis === "Angsuran" && 
+      transaksi.status === "Sukses" && 
+      transaksi.keterangan && 
+      transaksi.keterangan.includes(pinjamanId)
+  );
   
-  // Calculate total angsuran paid for this pinjaman
-  const totalAngsuran = transactions
-    .filter(t => 
-      t.jenis === "Angsuran" && 
-      t.status === "Sukses" && 
-      t.keterangan?.includes(pinjamanId)
-    )
-    .reduce((sum, t) => sum + t.jumlah, 0);
+  const totalAngsuran = angsuranList.reduce((total, angsuran) => total + angsuran.jumlah, 0);
+  const remainingAmount = Math.max(0, pinjaman.jumlah - totalAngsuran);
   
-  // Return remaining amount
-  return Math.max(0, pinjaman.jumlah - totalAngsuran);
+  return remainingAmount;
 }

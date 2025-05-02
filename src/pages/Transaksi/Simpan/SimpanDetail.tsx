@@ -9,13 +9,14 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getTransaksiById } from "@/services/transaksiService";
 import { getAnggotaById } from "@/services/anggotaService";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatCurrency } from "@/utils/formatters";
+import { ReceiptDialog } from "@/components/transaksi/receipt/ReceiptDialog";
 
 export default function SimpanDetail() {
   const { id } = useParams<{ id: string }>();
@@ -24,6 +25,7 @@ export default function SimpanDetail() {
   const [transaksi, setTransaksi] = useState<Transaksi | null>(null);
   const [anggota, setAnggota] = useState<Anggota | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -47,6 +49,14 @@ export default function SimpanDetail() {
     }
     setLoading(false);
   }, [id, navigate, toast]);
+
+  const handlePrintReceipt = () => {
+    navigate(`/transaksi/${id}/cetak`);
+  };
+  
+  const handleShowReceipt = () => {
+    setIsReceiptOpen(true);
+  };
 
   if (loading) {
     return (
@@ -79,9 +89,13 @@ export default function SimpanDetail() {
           </Link>
           <h1 className="page-title">Detail Simpanan</h1>
         </div>
-        <div>
-          <Button variant="outline" size="sm" onClick={() => navigate(`/transaksi/${id}/cetak`)}>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleShowReceipt}>
             <FileText size={16} className="mr-2" />
+            Lihat Bukti
+          </Button>
+          <Button size="sm" onClick={handlePrintReceipt}>
+            <Printer size={16} className="mr-2" />
             Cetak Bukti
           </Button>
         </div>
@@ -194,6 +208,14 @@ export default function SimpanDetail() {
           </Card>
         </div>
       </div>
+
+      {transaksi && (
+        <ReceiptDialog 
+          open={isReceiptOpen} 
+          onOpenChange={setIsReceiptOpen} 
+          transaksi={transaksi} 
+        />
+      )}
     </Layout>
   );
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -10,13 +9,14 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getTransaksiById } from "@/services/transaksiService";
 import { getAnggotaById } from "@/services/anggotaService";
 import { getPengaturan } from "@/services/pengaturanService";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
+import { ReceiptDialog } from "@/components/transaksi/receipt/ReceiptDialog";
 
 export default function PinjamDetail() {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +25,7 @@ export default function PinjamDetail() {
   const [transaksi, setTransaksi] = useState<Transaksi | null>(null);
   const [anggota, setAnggota] = useState<Anggota | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -127,6 +128,14 @@ export default function PinjamDetail() {
     }).format(amount);
   };
 
+  const handlePrintReceipt = () => {
+    navigate(`/transaksi/${id}/cetak`);
+  };
+  
+  const handleShowReceipt = () => {
+    setIsReceiptOpen(true);
+  };
+
   if (loading) {
     return (
       <Layout pageTitle="Detail Pinjaman">
@@ -158,9 +167,13 @@ export default function PinjamDetail() {
           </Link>
           <h1 className="page-title">Detail Pinjaman</h1>
         </div>
-        <div>
-          <Button variant="outline" size="sm" onClick={() => navigate(`/transaksi/${id}/cetak`)}>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={handleShowReceipt}>
             <FileText size={16} className="mr-2" />
+            Lihat Bukti
+          </Button>
+          <Button size="sm" onClick={handlePrintReceipt}>
+            <Printer size={16} className="mr-2" />
             Cetak Bukti
           </Button>
         </div>
@@ -300,6 +313,14 @@ export default function PinjamDetail() {
           </Card>
         </div>
       </div>
+
+      {transaksi && (
+        <ReceiptDialog 
+          open={isReceiptOpen} 
+          onOpenChange={setIsReceiptOpen} 
+          transaksi={transaksi} 
+        />
+      )}
     </Layout>
   );
 }
