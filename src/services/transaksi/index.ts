@@ -19,7 +19,8 @@ export {
   getOverdueLoans,
   getUpcomingDueLoans,
   calculateJatuhTempo,
-  calculatePenalty
+  calculatePenalty,
+  getRemainingLoanAmount
 } from './loanOperations';
 
 // Export from transaksiService for backward compatibility
@@ -30,3 +31,4 @@ export {
 } from '../transaksiService';
 
 // Re-export any other important functions from the transaksi modules
+
