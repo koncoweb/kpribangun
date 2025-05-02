@@ -17,7 +17,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Transaksi } from "@/types";
-import { getTransaksiById } from "@/services/transaksiService";
+import { getTransaksiById, getAllTransaksi } from "@/services/transaksi";
 import { getRemainingLoanAmount } from "@/services/transaksi/loanOperations";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -112,13 +112,6 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
       month: "long",
       year: "numeric"
     });
-  };
-
-  // Import at the top of the file
-  const getAllTransaksi = () => {
-    // We need to get this from the service
-    const { getAllTransaksi } = require('@/services/transaksi');
-    return getAllTransaksi();
   };
 
   if (pinjamanTransaksi.length === 0) {
