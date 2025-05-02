@@ -52,6 +52,7 @@ export function getOverdueLoans(anggotaId: string): {
 
 /**
  * Get upcoming due loans for an anggota or all anggota
+ * Updated to handle the "ALL" value for anggotaId and accept daysInFuture as number
  */
 export function getUpcomingDueLoans(anggotaId: string, daysInFuture: number = 30): {
   transaksi: Transaksi;

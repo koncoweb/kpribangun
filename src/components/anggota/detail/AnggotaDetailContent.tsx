@@ -29,6 +29,8 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
   const angsuranTransaksi = transaksi.filter(t => t.jenis === "Angsuran");
   const totalSimpanan = calculateTotalSimpanan(id);
   const totalPinjaman = calculateTotalPinjaman(id);
+  
+  // Pass member id as string to these functions
   const jatuhTempo = getUpcomingDueLoans(id, 30);
   const rawTunggakan = getOverdueLoans(id);
   
