@@ -15,6 +15,7 @@ import { getTransaksiById, getAllTransaksi } from "@/services/transaksi";
 import { getAnggotaById } from "@/services/anggotaService";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
+import { ReceiptDialog } from "@/components/transaksi/receipt/ReceiptDialog";
 
 export default function AngsuranDetail() {
   const { id } = useParams<{ id: string }>();

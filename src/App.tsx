@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Auth/LoginPage";
@@ -74,68 +73,65 @@ function App() {
         <Route path="/anggota-login" element={<AnggotaLoginPage />} />
 
         {/* Protected Routes */}
-        <Route element={<AuthGuard />}>
-          {/* Dashboard */}
-          <Route path="/" element={<Index />} />
+        <Route path="/" element={<AuthGuard>{<Index />}</AuthGuard>} />
 
-          {/* Anggota Routes */}
-          <Route path="/anggota" element={<AnggotaList />} />
-          <Route path="/anggota/:id" element={<AnggotaDetail />} />
-          <Route path="/anggota/tambah" element={<AnggotaForm />} />
-          <Route path="/anggota/:id/edit" element={<AnggotaForm />} />
-          <Route path="/anggota/change-password" element={<AnggotaChangePassword />} />
+        {/* Anggota Routes */}
+        <Route path="/anggota" element={<AuthGuard>{<AnggotaList />}</AuthGuard>} />
+        <Route path="/anggota/:id" element={<AuthGuard>{<AnggotaDetail />}</AuthGuard>} />
+        <Route path="/anggota/tambah" element={<AuthGuard>{<AnggotaForm />}</AuthGuard>} />
+        <Route path="/anggota/:id/edit" element={<AuthGuard>{<AnggotaForm />}</AuthGuard>} />
+        <Route path="/anggota/change-password" element={<AuthGuard>{<AnggotaChangePassword />}</AuthGuard>} />
 
-          {/* Transaksi Routes */}
-          <Route path="/transaksi" element={<TransaksiList />} />
-          <Route path="/transaksi/:id" element={<TransaksiDetail />} />
-          <Route path="/transaksi/:id/cetak" element={<TransaksiCetak />} />
-          <Route path="/transaksi/tambah" element={<TransaksiForm />} />
+        {/* Transaksi Routes */}
+        <Route path="/transaksi" element={<AuthGuard>{<TransaksiList />}</AuthGuard>} />
+        <Route path="/transaksi/:id" element={<AuthGuard>{<TransaksiDetail />}</AuthGuard>} />
+        <Route path="/transaksi/:id/cetak" element={<AuthGuard>{<TransaksiCetak />}</AuthGuard>} />
+        <Route path="/transaksi/tambah" element={<AuthGuard>{<TransaksiForm />}</AuthGuard>} />
 
-          {/* Simpan Routes */}
-          <Route path="/transaksi/simpan" element={<SimpanList />} />
-          <Route path="/transaksi/simpan/tambah" element={<SimpanForm />} />
-          <Route path="/transaksi/simpan/:id" element={<SimpanDetail />} />
+        {/* Simpan Routes */}
+        <Route path="/transaksi/simpan" element={<AuthGuard>{<SimpanList />}</AuthGuard>} />
+        <Route path="/transaksi/simpan/tambah" element={<AuthGuard>{<SimpanForm />}</AuthGuard>} />
+        <Route path="/transaksi/simpan/:id" element={<AuthGuard>{<SimpanDetail />}</AuthGuard>} />
 
-          {/* Pinjam Routes */}
-          <Route path="/transaksi/pinjam" element={<PinjamList />} />
-          <Route path="/transaksi/pinjam/tambah" element={<PinjamForm />} />
-          <Route path="/transaksi/pinjam/:id" element={<PinjamDetail />} />
+        {/* Pinjam Routes */}
+        <Route path="/transaksi/pinjam" element={<AuthGuard>{<PinjamList />}</AuthGuard>} />
+        <Route path="/transaksi/pinjam/tambah" element={<AuthGuard>{<PinjamForm />}</AuthGuard>} />
+        <Route path="/transaksi/pinjam/:id" element={<AuthGuard>{<PinjamDetail />}</AuthGuard>} />
 
-          {/* Angsuran Routes */}
-          <Route path="/transaksi/angsuran" element={<AngsuranList />} />
-          <Route path="/transaksi/angsuran/tambah" element={<AngsuranForm />} />
-          <Route path="/transaksi/angsuran/:id" element={<AngsuranDetail />} />
+        {/* Angsuran Routes */}
+        <Route path="/transaksi/angsuran" element={<AuthGuard>{<AngsuranList />}</AuthGuard>} />
+        <Route path="/transaksi/angsuran/tambah" element={<AuthGuard>{<AngsuranForm />}</AuthGuard>} />
+        <Route path="/transaksi/angsuran/:id" element={<AuthGuard>{<AngsuranDetail />}</AuthGuard>} />
 
-          {/* Pengajuan Routes */}
-          <Route path="/transaksi/pengajuan" element={<PengajuanList />} />
-          <Route path="/transaksi/pengajuan/tambah" element={<PengajuanForm />} />
-          <Route path="/transaksi/pengajuan/:id" element={<PengajuanDetail />} />
+        {/* Pengajuan Routes */}
+        <Route path="/transaksi/pengajuan" element={<AuthGuard>{<PengajuanList />}</AuthGuard>} />
+        <Route path="/transaksi/pengajuan/tambah" element={<AuthGuard>{<PengajuanForm />}</AuthGuard>} />
+        <Route path="/transaksi/pengajuan/:id" element={<AuthGuard>{<PengajuanDetail />}</AuthGuard>} />
 
-          {/* POS Routes */}
-          <Route path="/pos" element={<POSIndex />} />
-          <Route path="/pos/penjualan" element={<PenjualanKasir />} />
-          <Route path="/pos/penjualan-list" element={<PenjualanList />} />
-          <Route path="/pos/penjualan/:id" element={<PenjualanDetail />} />
-          <Route path="/pos/pembelian" element={<Pembelian />} />
-          <Route path="/pos/laporan-jual-beli" element={<LaporanJualBeli />} />
-          <Route path="/pos/laporan-rugi-laba" element={<LaporanRugiLaba />} />
-          <Route path="/pos/inventori" element={<Inventori />} />
-          <Route path="/pos/stok-barang" element={<StokBarang />} />
-          <Route path="/pos/pemasok" element={<Pemasok />} />
-          <Route path="/pos/kasir" element={<NamaKasir />} />
-          <Route path="/pos/kuitansi/:id" element={<KuitansiPembayaran />} />
-          <Route path="/pos/riwayat" element={<RiwayatTransaksi />} />
+        {/* POS Routes */}
+        <Route path="/pos" element={<AuthGuard>{<POSIndex />}</AuthGuard>} />
+        <Route path="/pos/penjualan" element={<AuthGuard>{<PenjualanKasir />}</AuthGuard>} />
+        <Route path="/pos/penjualan-list" element={<AuthGuard>{<PenjualanList />}</AuthGuard>} />
+        <Route path="/pos/penjualan/:id" element={<AuthGuard>{<PenjualanDetail />}</AuthGuard>} />
+        <Route path="/pos/pembelian" element={<AuthGuard>{<Pembelian />}</AuthGuard>} />
+        <Route path="/pos/laporan-jual-beli" element={<AuthGuard>{<LaporanJualBeli />}</AuthGuard>} />
+        <Route path="/pos/laporan-rugi-laba" element={<AuthGuard>{<LaporanRugiLaba />}</AuthGuard>} />
+        <Route path="/pos/inventori" element={<AuthGuard>{<Inventori />}</AuthGuard>} />
+        <Route path="/pos/stok-barang" element={<AuthGuard>{<StokBarang />}</AuthGuard>} />
+        <Route path="/pos/pemasok" element={<AuthGuard>{<Pemasok />}</AuthGuard>} />
+        <Route path="/pos/kasir" element={<AuthGuard>{<NamaKasir />}</AuthGuard>} />
+        <Route path="/pos/kuitansi/:id" element={<AuthGuard>{<KuitansiPembayaran />}</AuthGuard>} />
+        <Route path="/pos/riwayat" element={<AuthGuard>{<RiwayatTransaksi />}</AuthGuard>} />
 
-          {/* Laporan Routes */}
-          <Route path="/laporan" element={<Laporan />} />
+        {/* Laporan Routes */}
+        <Route path="/laporan" element={<AuthGuard>{<Laporan />}</AuthGuard>} />
 
-          {/* User Management Routes */}
-          <Route path="/user-management" element={<UserManagement />} />
+        {/* User Management Routes */}
+        <Route path="/user-management" element={<AuthGuard>{<UserManagement />}</AuthGuard>} />
 
-          {/* Pengaturan Routes */}
-          <Route path="/pengaturan" element={<Pengaturan />} />
-          <Route path="/pengaturan/roles" element={<RolesManagement />} />
-        </Route>
+        {/* Pengaturan Routes */}
+        <Route path="/pengaturan" element={<AuthGuard>{<Pengaturan />}</AuthGuard>} />
+        <Route path="/pengaturan/roles" element={<AuthGuard>{<RolesManagement />}</AuthGuard>} />
 
         {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />

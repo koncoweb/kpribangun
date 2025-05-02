@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -35,7 +34,7 @@ export default function TransaksiCetak() {
     setLoading(false);
   }, [id, navigate, toast]);
   
-  // Handle printing
+  // Handle printing - Fixed to return Promise<void>
   const handlePrint = useReactToPrint({
     documentTitle: `Receipt-${transaksi?.id}`,
     onBeforePrint: () => {
@@ -43,17 +42,19 @@ export default function TransaksiCetak() {
         title: "Menyiapkan Cetakan",
         description: "Silakan pilih printer Anda",
       });
+      return Promise.resolve();
     },
     onAfterPrint: () => {
       toast({
         title: "Bukti Transaksi Dicetak",
         description: `Bukti transaksi ${transaksi?.id} berhasil dicetak.`,
       });
+      return Promise.resolve();
     },
     contentRef: receiptRef,
   });
 
-  // Handle sharing
+  // Handle sharing - already returns a Promise
   const handleShare = async () => {
     if (navigator.share) {
       try {

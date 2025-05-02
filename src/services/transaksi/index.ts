@@ -1,34 +1,12 @@
 
-// Export all functionality from the transaksi service modules
-export { 
-  getAllTransaksi, 
-  getTransaksiByAnggotaId, 
-  getTransaksiById 
-} from './transaksiCore';
+// Export all the functions from the transaksi services
+export * from './baseService';
+export * from './financialOperations';
+export * from './idGenerator';
+export * from './initialData';
+export * from './loanOperations';
+export * from './transaksiCore';
+export * from './utils';
 
-export { 
-  generateTransaksiId 
-} from './idGenerator';
-
-export { 
-  calculateTotalSimpanan, 
-  calculateTotalPinjaman 
-} from './financialOperations';
-
-export {
-  getOverdueLoans,
-  getUpcomingDueLoans,
-  calculateJatuhTempo,
-  calculatePenalty,
-  getRemainingLoanAmount
-} from './loanOperations';
-
-// Export from transaksiService for backward compatibility
-export { 
-  createTransaksi,
-  updateTransaksi,
-  deleteTransaksi
-} from '../transaksiService';
-
-// Re-export any other important functions from the transaksi modules
-
+// Export the getRemainingLoanAmount function explicitly
+export { getRemainingLoanAmount } from './loanOperations';
