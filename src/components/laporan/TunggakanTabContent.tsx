@@ -69,7 +69,7 @@ export function TunggakanTabContent({
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Tunggakan > 30 hari</span>
+                  <span className="text-sm">Tunggakan lebih dari 30 hari</span>
                   <span className="font-medium">
                     {overdueLoans.filter(loan => loan.daysOverdue > 30).length} Pinjaman
                   </span>
@@ -139,7 +139,7 @@ export function TunggakanTabContent({
               
               <div className="flex flex-col space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-sm">Denda berat (> 30 hari)</span>
+                  <span className="text-sm">Denda berat (lebih dari 30 hari)</span>
                   <span className="text-sm font-medium">
                     {formatCurrency(
                       overdueLoans
@@ -194,7 +194,7 @@ export function TunggakanTabContent({
                   <SelectItem value="all">Semua</SelectItem>
                   <SelectItem value="week">1-7 Hari</SelectItem>
                   <SelectItem value="month">8-30 Hari</SelectItem>
-                  <SelectItem value="overmonth">> 30 Hari</SelectItem>
+                  <SelectItem value="overmonth">Lebih dari 30 Hari</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -206,9 +206,9 @@ export function TunggakanTabContent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Jumlah</SelectItem>
-                  <SelectItem value="small">< 5 juta</SelectItem>
+                  <SelectItem value="small">Kurang dari 5 juta</SelectItem>
                   <SelectItem value="medium">5 - 20 juta</SelectItem>
-                  <SelectItem value="large">> 20 juta</SelectItem>
+                  <SelectItem value="large">Lebih dari 20 juta</SelectItem>
                 </SelectContent>
               </Select>
             </div>

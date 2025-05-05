@@ -54,7 +54,7 @@ export function JatuhTempoTabContent({
               
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm">Jatuh Tempo < 7 hari</span>
+                  <span className="text-sm">Jatuh Tempo kurang dari 7 hari</span>
                   <span className="font-medium">
                     {upcomingDueLoans.filter(loan => loan.daysUntilDue <= 7).length} Pinjaman
                   </span>
@@ -195,9 +195,9 @@ export function JatuhTempoTabContent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Jumlah</SelectItem>
-                  <SelectItem value="small">< 5 juta</SelectItem>
+                  <SelectItem value="small">Kurang dari 5 juta</SelectItem>
                   <SelectItem value="medium">5 - 20 juta</SelectItem>
-                  <SelectItem value="large">> 20 juta</SelectItem>
+                  <SelectItem value="large">Lebih dari 20 juta</SelectItem>
                 </SelectContent>
               </Select>
             </div>

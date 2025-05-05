@@ -158,9 +158,9 @@ export function PinjamanTabContent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Jumlah</SelectItem>
-                  <SelectItem value="small">< 5 juta</SelectItem>
+                  <SelectItem value="small">Kurang dari 5 juta</SelectItem>
                   <SelectItem value="medium">5 - 20 juta</SelectItem>
-                  <SelectItem value="large">> 20 juta</SelectItem>
+                  <SelectItem value="large">Lebih dari 20 juta</SelectItem>
                 </SelectContent>
               </Select>
             </div>
