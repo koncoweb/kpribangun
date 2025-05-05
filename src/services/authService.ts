@@ -1,18 +1,15 @@
 
 import { User } from "@/types";
+import { ExtendedUser } from "@/types/auth";
 import { getUsers, getUserById } from "@/services/userManagementService";
 import { getFromLocalStorage, saveToLocalStorage } from "@/utils/localStorage";
 import { getAnggotaById } from "@/services/anggotaService";
+import { getRoleById } from "@/services/user-management/roleService";
 
 const AUTH_STORAGE_KEY = "koperasi_auth";
 
-// Extending User type to add anggotaId for anggota users
-export interface AuthUser extends User {
-  anggotaId?: string;
-}
-
 interface AuthState {
-  currentUser: AuthUser | null;
+  currentUser: ExtendedUser | null;
   isAuthenticated: boolean;
 }
 
@@ -30,7 +27,7 @@ export const saveAuthState = (authState: AuthState): void => {
 };
 
 // Login function
-export const loginUser = async (username: string, password: string): Promise<AuthUser> => {
+export const loginUser = async (username: string, password: string): Promise<ExtendedUser> => {
   // In a real app, this would make an API call to validate credentials
   // For demo, we'll check against our mock users
   const users = getUsers();
@@ -45,17 +42,30 @@ export const loginUser = async (username: string, password: string): Promise<Aut
   // Update last login time
   user.lastLogin = new Date().toISOString();
   
+  // Get role information if available
+  const role = user.roleId ? getRoleById(user.roleId) : undefined;
+  
+  // Create extended user with role information
+  const extendedUser: ExtendedUser = {
+    ...user,
+    role: role ? {
+      id: role.id,
+      name: role.name,
+      permissions: role.permissions
+    } : undefined
+  };
+  
   // Save the authenticated user
   saveAuthState({
-    currentUser: user,
+    currentUser: extendedUser,
     isAuthenticated: true
   });
   
-  return user;
+  return extendedUser;
 };
 
 // Login function for anggota
-export const loginWithAnggotaId = async (anggotaId: string, password: string): Promise<AuthUser> => {
+export const loginWithAnggotaId = async (anggotaId: string, password: string): Promise<ExtendedUser> => {
   // In a real app, this would make an API call to validate credentials
   try {
     // Get anggota by ID
@@ -73,17 +83,22 @@ export const loginWithAnggotaId = async (anggotaId: string, password: string): P
     }
     
     // Create an auth user with anggota details
-    const authUser: AuthUser = {
+    const authUser: ExtendedUser = {
       id: `anggota-${anggota.id}`,
       username: anggota.nama,
       nama: anggota.nama,
-      email: anggota.email || "",  // Handle potentially missing email with a default empty string
+      email: anggota.email || "",
       roleId: "anggota", // Special role for anggota
       anggotaId: anggota.id,
-      aktif: true, // Using "aktif" instead of "active" to match the User type
+      aktif: true,
       lastLogin: new Date().toISOString(),
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      role: {
+        id: "anggota",
+        name: "Anggota",
+        permissions: ["view_own_data"]
+      }
     };
     
     // Save the authenticated anggota
@@ -137,7 +152,7 @@ export const isAuthenticated = (): boolean => {
 };
 
 // Get the current user
-export const getCurrentUser = (): AuthUser | null => {
+export const getCurrentUser = (): ExtendedUser | null => {
   const authState = getAuthState();
   return authState.currentUser;
 };

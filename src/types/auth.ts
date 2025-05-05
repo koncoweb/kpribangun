@@ -15,4 +15,9 @@ export interface AuthState {
 export interface ExtendedUser extends User {
   anggotaId?: string;
   permissions?: string[];
+  role?: {
+    id: string;
+    name: string;
+    permissions?: string[];
+  };
 }
