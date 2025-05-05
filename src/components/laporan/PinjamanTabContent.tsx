@@ -1,3 +1,4 @@
+
 import { ChartBar, Download, FileText, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,23 +32,19 @@ import {
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { Transaksi } from "@/types";
 
+// Define chart data interface for better type checking
 interface ChartDataItem {
   name: string;
+  pinjaman: number;
   [key: string]: number | string;
-}
-
-interface ChartData {
-  simpanan: ChartDataItem[];
-  pinjaman: ChartDataItem[];
-  angsuran: ChartDataItem[];
-  pengajuan: any[];
-  anggota: ChartDataItem[];
 }
 
 interface PinjamanTabContentProps {
   transaksiList: Transaksi[];
   totalPinjaman: number;
-  chartData: ChartData;
+  chartData: {
+    pinjaman: ChartDataItem[];
+  };
   chartColors: Record<string, string>;
   filterDateStart: Date;
   filterDateEnd: Date;
@@ -170,9 +167,9 @@ export function PinjamanTabContent({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Semua Jumlah</SelectItem>
-                  <SelectItem value="small">Kurang dari 5 juta</SelectItem>
+                  <SelectItem value="small">{"< 5 juta"}</SelectItem>
                   <SelectItem value="medium">5 - 20 juta</SelectItem>
-                  <SelectItem value="large">Lebih dari 20 juta</SelectItem>
+                  <SelectItem value="large">{"> 20 juta"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>

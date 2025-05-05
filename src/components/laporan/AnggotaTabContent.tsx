@@ -34,13 +34,17 @@ import {
   Cell,
 } from 'recharts';
 
+// Define chart data interface for better type checking
+interface ChartDataItem {
+  name: string;
+  anggota: number;
+  [key: string]: number | string;
+}
+
 interface AnggotaTabContentProps {
   anggotaList: Anggota[];
   chartData: {
-    anggota: Array<{
-      name: string;
-      anggota: number;
-    }>;
+    anggota: ChartDataItem[];
   };
   totalAnggota: number;
   chartColors: {

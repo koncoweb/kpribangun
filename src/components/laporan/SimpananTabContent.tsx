@@ -33,14 +33,18 @@ import {
 import { filterTransaksi } from "@/utils/filterTransaksi";
 import { formatDate } from "@/utils/formatters";
 
+// Define chart data interface for better type checking
+interface ChartDataItem {
+  name: string;
+  simpanan: number;
+  [key: string]: number | string;
+}
+
 interface SimpananTabContentProps {
   transaksiList: Transaksi[];
   totalSimpanan: number;
   chartData: {
-    simpanan: Array<{
-      name: string;
-      simpanan: number;
-    }>;
+    simpanan: ChartDataItem[];
   };
   chartColors: {
     simpanan: string;

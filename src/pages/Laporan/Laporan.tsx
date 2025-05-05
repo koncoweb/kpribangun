@@ -30,11 +30,11 @@ interface ChartDataItem {
 }
 
 interface LaporanChartData {
-  simpanan: ChartDataItem[];
-  pinjaman: ChartDataItem[];
-  angsuran: ChartDataItem[];
+  simpanan: Array<ChartDataItem & { simpanan: number }>;
+  pinjaman: Array<ChartDataItem & { pinjaman: number }>;
+  angsuran: Array<ChartDataItem & { angsuran: number }>;
   pengajuan: any[]; // This one is different as it's for PieChart
-  anggota: ChartDataItem[];
+  anggota: Array<ChartDataItem & { anggota: number }>;
 }
 
 // Color palette for charts

@@ -1,3 +1,4 @@
+
 import { ChartBar, Download, FileText, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,23 +32,19 @@ import {
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { Transaksi } from "@/types";
 
+// Define chart data interface for better type checking
 interface ChartDataItem {
   name: string;
+  angsuran: number;
   [key: string]: number | string;
-}
-
-interface ChartData {
-  simpanan: ChartDataItem[];
-  pinjaman: ChartDataItem[];
-  angsuran: ChartDataItem[];
-  pengajuan: any[];
-  anggota: ChartDataItem[];
 }
 
 interface AngsuranTabContentProps {
   transaksiList: Transaksi[];
   totalAngsuran: number;
-  chartData: ChartData;
+  chartData: {
+    angsuran: ChartDataItem[];
+  };
   chartColors: Record<string, string>;
   filterDateStart: Date;
   filterDateEnd: Date;
