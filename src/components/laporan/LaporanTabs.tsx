@@ -1,4 +1,3 @@
-
 import { AlertTriangle, Clock, CreditCard, FileCheck, Receipt, User, Wallet } from "lucide-react";
 import {
   Tabs,
@@ -15,17 +14,25 @@ import { JatuhTempoTabContent } from "./JatuhTempoTabContent";
 import { TunggakanTabContent } from "./TunggakanTabContent";
 import { Anggota, Pengajuan, Transaksi } from "@/types";
 
+// Define proper chart data interfaces
+interface ChartDataItem {
+  name: string;
+  [key: string]: number | string;
+}
+
+interface LaporanChartData {
+  simpanan: ChartDataItem[];
+  pinjaman: ChartDataItem[];
+  angsuran: ChartDataItem[];
+  pengajuan: any[]; // This one is different as it's for PieChart
+  anggota: ChartDataItem[];
+}
+
 interface LaporanTabsProps {
   anggotaList: Anggota[];
   transaksiList: Transaksi[];
   pengajuanList: Pengajuan[];
-  chartData: {
-    simpanan: any[];
-    pinjaman: any[];
-    angsuran: any[];
-    pengajuan: any[];
-    anggota: any[];
-  };
+  chartData: LaporanChartData;
   stats: {
     totalAnggota: number;
     totalSimpanan: number;

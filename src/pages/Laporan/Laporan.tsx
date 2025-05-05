@@ -23,6 +23,20 @@ import { FinancialStatsCards } from "@/components/laporan/FinancialStatsCards";
 import { DateRangeFilter } from "@/components/laporan/DateRangeFilter";
 import { LaporanTabs } from "@/components/laporan/LaporanTabs";
 
+// Define chart data interface
+interface ChartDataItem {
+  name: string;
+  [key: string]: number | string;
+}
+
+interface LaporanChartData {
+  simpanan: ChartDataItem[];
+  pinjaman: ChartDataItem[];
+  angsuran: ChartDataItem[];
+  pengajuan: any[]; // This one is different as it's for PieChart
+  anggota: ChartDataItem[];
+}
+
 // Color palette for charts
 const CHART_COLORS = {
   simpanan: "#0EA5E9", // blue
@@ -53,7 +67,7 @@ export default function Laporan() {
   });
 
   // Chart data
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<LaporanChartData>({
     simpanan: [],
     pinjaman: [],
     angsuran: [],
