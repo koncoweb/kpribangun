@@ -9,6 +9,10 @@ import {
 import { AnggotaTabContent } from "./AnggotaTabContent";
 import { PengajuanTabContent } from "./PengajuanTabContent";
 import { SimpananTabContent } from "./SimpananTabContent";
+import { PinjamanTabContent } from "./PinjamanTabContent";
+import { AngsuranTabContent } from "./AngsuranTabContent";
+import { JatuhTempoTabContent } from "./JatuhTempoTabContent";
+import { TunggakanTabContent } from "./TunggakanTabContent";
 import { Anggota, Pengajuan, Transaksi } from "@/types";
 
 interface LaporanTabsProps {
@@ -124,29 +128,44 @@ export function LaporanTabs({
         />
       </TabsContent>
       
-      {/* Additional tabs would be implemented similarly */}
+      {/* Tab Pinjaman */}
       <TabsContent value="pinjaman">
-        <p className="text-center text-muted-foreground py-10">
-          Konten Tab Pinjaman akan diimplementasikan berikutnya
-        </p>
+        <PinjamanTabContent
+          transaksiList={transaksiList}
+          totalPinjaman={stats.totalPinjaman}
+          chartData={chartData}
+          chartColors={chartColors}
+          filterDateStart={filterDateStart}
+          filterDateEnd={filterDateEnd}
+        />
       </TabsContent>
       
+      {/* Tab Angsuran */}
       <TabsContent value="angsuran">
-        <p className="text-center text-muted-foreground py-10">
-          Konten Tab Angsuran akan diimplementasikan berikutnya
-        </p>
+        <AngsuranTabContent
+          transaksiList={transaksiList}
+          totalAngsuran={stats.totalAngsuran}
+          chartData={chartData}
+          chartColors={chartColors}
+          filterDateStart={filterDateStart}
+          filterDateEnd={filterDateEnd}
+        />
       </TabsContent>
       
+      {/* Tab Jatuh Tempo */}
       <TabsContent value="jatuhtempo">
-        <p className="text-center text-muted-foreground py-10">
-          Konten Tab Jatuh Tempo akan diimplementasikan berikutnya
-        </p>
+        <JatuhTempoTabContent
+          upcomingDueLoans={upcomingDueLoans}
+          chartColors={chartColors}
+        />
       </TabsContent>
       
+      {/* Tab Tunggakan */}
       <TabsContent value="tunggakan">
-        <p className="text-center text-muted-foreground py-10">
-          Konten Tab Tunggakan akan diimplementasikan berikutnya
-        </p>
+        <TunggakanTabContent
+          overdueLoans={overdueLoans}
+          chartColors={chartColors}
+        />
       </TabsContent>
     </Tabs>
   );
