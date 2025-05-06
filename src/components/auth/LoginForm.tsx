@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -73,19 +73,20 @@ export function LoginForm({
     try {
       const user = await loginUser(values.username, values.password);
       
-      if (user) {
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${user.nama}`,
-        });
-        
-        // Redirect to appropriate page
-        navigate(onSuccessRedirect);
-      }
-    } catch (error) {
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${user.nama}`,
+      });
+      
+      // Clear form after successful login
+      form.reset();
+      
+      // Redirect to appropriate page
+      navigate(onSuccessRedirect);
+    } catch (error: any) {
       toast({
         title: "Login failed",
-        description: "Username or password is incorrect",
+        description: error.message || "Username or password is incorrect",
         variant: "destructive",
       });
     } finally {
@@ -97,6 +98,9 @@ export function LoginForm({
   const handleDemoLogin = (username: string, password: string) => {
     form.setValue("username", username);
     form.setValue("password", password);
+    
+    // Auto-submit the form with demo credentials
+    form.handleSubmit(onSubmit)();
   };
 
   return (
@@ -210,6 +214,12 @@ export function LoginForm({
               </div>
             </>
           )}
+          
+          <div className="flex justify-center w-full mt-2">
+            <Link to="/anggota-login" className="text-sm text-blue-600 hover:underline">
+              Login sebagai Anggota
+            </Link>
+          </div>
           
           <p className="text-xs text-center text-muted-foreground mt-4">
             KPRI Bangun &copy; 2023 - All rights reserved

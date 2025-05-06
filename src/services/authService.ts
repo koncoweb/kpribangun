@@ -24,19 +24,28 @@ export const getAuthState = (): AuthState => {
 // Save authentication state to local storage
 export const saveAuthState = (authState: AuthState): void => {
   saveToLocalStorage(AUTH_STORAGE_KEY, authState);
+  console.log("Auth state saved:", authState);
 };
 
 // Login function
 export const loginUser = async (username: string, password: string): Promise<ExtendedUser> => {
   // In a real app, this would make an API call to validate credentials
+  console.log("Attempting login with:", { username, password });
+  
   // For demo, we'll check against our mock users
   const users = getUsers();
   const user = users.find(user => user.username === username);
   
-  // For demo purposes, any password will work
-  // In production, you would compare password hashes
   if (!user) {
+    console.error("User not found:", username);
     throw new Error("User not found");
+  }
+  
+  // For demo purposes, any password matching "password123" will work
+  // In production, you would compare password hashes
+  if (password !== "password123") {
+    console.error("Invalid password for user:", username);
+    throw new Error("Invalid password");
   }
   
   // Update last login time
@@ -55,6 +64,8 @@ export const loginUser = async (username: string, password: string): Promise<Ext
     } : undefined
   };
   
+  console.log("User authenticated successfully:", extendedUser);
+  
   // Save the authenticated user
   saveAuthState({
     currentUser: extendedUser,
@@ -67,11 +78,14 @@ export const loginUser = async (username: string, password: string): Promise<Ext
 // Login function for anggota
 export const loginWithAnggotaId = async (anggotaId: string, password: string): Promise<ExtendedUser> => {
   // In a real app, this would make an API call to validate credentials
+  console.log("Attempting anggota login with ID:", anggotaId);
+  
   try {
     // Get anggota by ID
     const anggota = getAnggotaById(anggotaId);
     
     if (!anggota) {
+      console.error("Anggota not found:", anggotaId);
       throw new Error("ID Anggota tidak ditemukan");
     }
     
@@ -79,6 +93,7 @@ export const loginWithAnggotaId = async (anggotaId: string, password: string): P
     // In production, you would compare password hashes
     // Simple verification (for demo)
     if (password !== "password123" && password !== anggota.id) {
+      console.error("Invalid password for anggota:", anggotaId);
       throw new Error("Password salah");
     }
     
@@ -101,6 +116,8 @@ export const loginWithAnggotaId = async (anggotaId: string, password: string): P
       }
     };
     
+    console.log("Anggota authenticated successfully:", authUser);
+    
     // Save the authenticated anggota
     saveAuthState({
       currentUser: authUser,
@@ -110,6 +127,7 @@ export const loginWithAnggotaId = async (anggotaId: string, password: string): P
     return authUser;
   } catch (error) {
     // Re-throw the error to be handled by the calling component
+    console.error("Anggota login failed:", error);
     throw error;
   }
 };
@@ -139,6 +157,7 @@ export const updatePassword = async (userId: string, currentPassword: string, ne
 
 // Logout function
 export const logoutUser = (): void => {
+  console.log("Logging out user");
   saveAuthState({
     currentUser: null,
     isAuthenticated: false
@@ -162,6 +181,14 @@ export const hasPermission = (permissionId: string): boolean => {
   const user = getCurrentUser();
   if (!user) return false;
   
-  // Import from userManagementService
-  return require("@/services/userManagementService").hasPermission(user, permissionId);
+  // Check if user has the permission directly or through their role
+  if (user.permissions?.includes(permissionId)) {
+    return true;
+  }
+  
+  if (user.role?.permissions?.includes(permissionId)) {
+    return true;
+  }
+  
+  return false;
 };

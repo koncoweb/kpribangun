@@ -55,15 +55,16 @@ export default function AnggotaLoginPage() {
     try {
       const user = await loginWithAnggotaId(values.anggotaId, values.password);
       
-      if (user) {
-        toast({
-          title: "Login berhasil",
-          description: `Selamat datang, ${user.nama}`,
-        });
-        
-        // Redirect to anggota profile
-        navigate(`/anggota/${user.anggotaId}`);
-      }
+      toast({
+        title: "Login berhasil",
+        description: `Selamat datang, ${user.nama}`,
+      });
+      
+      // Clear form after successful login
+      form.reset();
+      
+      // Redirect to anggota profile
+      navigate(`/anggota/${user.anggotaId}`);
     } catch (error: any) {
       toast({
         title: "Login gagal",
@@ -79,6 +80,9 @@ export default function AnggotaLoginPage() {
   const handleDemoLogin = () => {
     form.setValue("anggotaId", "AG0001");
     form.setValue("password", "password123");
+    
+    // Auto-submit the form with demo credentials
+    form.handleSubmit(onSubmit)();
   };
 
   return (
