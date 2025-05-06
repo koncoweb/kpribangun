@@ -37,6 +37,8 @@ export const loginUser = async (username: string, password: string): Promise<Ext
   try {
     // For demo, we'll check against our mock users
     const users = getUsers();
+    console.log("Available users:", users);
+    
     const user = users.find(user => user.username === username);
     
     if (!user) {
@@ -56,6 +58,7 @@ export const loginUser = async (username: string, password: string): Promise<Ext
     
     // Get role information if available
     const role = user.roleId ? getRoleById(user.roleId) : undefined;
+    console.log("User role:", role);
     
     // Create extended user with role information
     const extendedUser: ExtendedUser = {

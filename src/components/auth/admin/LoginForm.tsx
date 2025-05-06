@@ -67,6 +67,7 @@ export function LoginForm({
     
     try {
       const user = await loginUser(values.username, values.password);
+      console.log("Login successful, user data:", user);
       
       toast({
         title: "Login successful",

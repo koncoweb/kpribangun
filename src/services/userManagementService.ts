@@ -11,7 +11,8 @@ import {
   createUser as createUserFromService, 
   updateUser as updateUserFromService, 
   deleteUser as deleteUserFromService, 
-  initUsers as initUsersFromService 
+  initUsers as initUsersFromService,
+  defaultUsers
 } from "./user-management/userService";
 
 import {
@@ -39,7 +40,17 @@ export const initUserManagementData = (): void => {
   initPermissionsFromService();
   initRolesFromService();
   initUsersFromService();
+
+  // Make sure users are initialized - fallback
+  const existingUsers = getFromLocalStorage("koperasi_users", []);
+  if (existingUsers.length === 0) {
+    console.log("No users found, initializing default users");
+    saveToLocalStorage("koperasi_users", defaultUsers);
+  }
 };
+
+// Make sure data is initialized
+initUserManagementData();
 
 // Export all functions
 export const getUsers = getUsersFromService;
