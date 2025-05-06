@@ -12,6 +12,7 @@ export default function LoginPage() {
       title="KPRI BANGUN"
       subtitle="Login Admin"
       demoCredentials={demoCredentials}
+      onSuccessRedirect="/"
     />
   );
 }

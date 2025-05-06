@@ -15,10 +15,12 @@ interface AuthState {
 
 // Get authentication state from local storage
 export const getAuthState = (): AuthState => {
-  return getFromLocalStorage(AUTH_STORAGE_KEY, {
+  const state = getFromLocalStorage(AUTH_STORAGE_KEY, {
     currentUser: null,
     isAuthenticated: false
   });
+  console.log("Retrieved auth state:", state);
+  return state;
 };
 
 // Save authentication state to local storage
@@ -32,47 +34,52 @@ export const loginUser = async (username: string, password: string): Promise<Ext
   // In a real app, this would make an API call to validate credentials
   console.log("Attempting login with:", { username, password });
   
-  // For demo, we'll check against our mock users
-  const users = getUsers();
-  const user = users.find(user => user.username === username);
-  
-  if (!user) {
-    console.error("User not found:", username);
-    throw new Error("User not found");
+  try {
+    // For demo, we'll check against our mock users
+    const users = getUsers();
+    const user = users.find(user => user.username === username);
+    
+    if (!user) {
+      console.error("User not found:", username);
+      throw new Error("User not found");
+    }
+    
+    // For demo purposes, any password matching "password123" will work
+    // In production, you would compare password hashes
+    if (password !== "password123") {
+      console.error("Invalid password for user:", username);
+      throw new Error("Invalid password");
+    }
+    
+    // Update last login time
+    user.lastLogin = new Date().toISOString();
+    
+    // Get role information if available
+    const role = user.roleId ? getRoleById(user.roleId) : undefined;
+    
+    // Create extended user with role information
+    const extendedUser: ExtendedUser = {
+      ...user,
+      role: role ? {
+        id: role.id,
+        name: role.name,
+        permissions: role.permissions
+      } : undefined
+    };
+    
+    console.log("User authenticated successfully:", extendedUser);
+    
+    // Save the authenticated user
+    saveAuthState({
+      currentUser: extendedUser,
+      isAuthenticated: true
+    });
+    
+    return extendedUser;
+  } catch (error) {
+    console.error("Login error:", error);
+    throw error;
   }
-  
-  // For demo purposes, any password matching "password123" will work
-  // In production, you would compare password hashes
-  if (password !== "password123") {
-    console.error("Invalid password for user:", username);
-    throw new Error("Invalid password");
-  }
-  
-  // Update last login time
-  user.lastLogin = new Date().toISOString();
-  
-  // Get role information if available
-  const role = user.roleId ? getRoleById(user.roleId) : undefined;
-  
-  // Create extended user with role information
-  const extendedUser: ExtendedUser = {
-    ...user,
-    role: role ? {
-      id: role.id,
-      name: role.name,
-      permissions: role.permissions
-    } : undefined
-  };
-  
-  console.log("User authenticated successfully:", extendedUser);
-  
-  // Save the authenticated user
-  saveAuthState({
-    currentUser: extendedUser,
-    isAuthenticated: true
-  });
-  
-  return extendedUser;
 };
 
 // Login function for anggota

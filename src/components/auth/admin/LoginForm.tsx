@@ -62,6 +62,7 @@ export function LoginForm({
   });
 
   async function onSubmit(values: FormValues) {
+    console.log("Login form submitted with values:", values);
     setIsLoading(true);
     
     try {
@@ -76,8 +77,10 @@ export function LoginForm({
       form.reset();
       
       // Redirect to appropriate page
+      console.log("Redirecting to:", onSuccessRedirect);
       navigate(onSuccessRedirect);
     } catch (error: any) {
+      console.error("Login error:", error);
       toast({
         title: "Login failed",
         description: error.message || "Username or password is incorrect",
@@ -90,6 +93,7 @@ export function LoginForm({
 
   // Function to handle demo login
   const handleDemoLogin = (username: string, password: string) => {
+    console.log("Demo login with:", { username, password });
     form.setValue("username", username);
     form.setValue("password", password);
     
