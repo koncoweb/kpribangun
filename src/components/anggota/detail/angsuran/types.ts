@@ -22,7 +22,7 @@ export interface LoanSelectorProps {
   onLoanSelect: (pinjamanId: string) => void;
 }
 
-// Adding the missing AngsuranDetail interface
+// This is kept for backwards compatibility
 export interface AngsuranDetail {
   nomorAngsuran: number;
   tanggalJatuhTempo: string;

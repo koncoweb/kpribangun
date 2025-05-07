@@ -1,7 +1,7 @@
 
 import { Transaksi } from "@/types";
 import { getAllTransaksi, getTransaksiById } from "@/services/transaksi";
-import { AngsuranDetail, AngsuranDetailItem } from "./types";
+import { AngsuranDetailItem } from "./types";
 
 /**
  * Format date for display

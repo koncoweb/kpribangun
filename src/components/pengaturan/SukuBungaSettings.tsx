@@ -15,6 +15,7 @@ import {
 import { Pengaturan } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
 import { updatePengaturan } from "@/services/pengaturanService";
+import { getPinjamanCategories } from "@/services/transaksi/categories";
 
 interface SukuBungaSettingsProps {
   settings: Pengaturan;
@@ -24,6 +25,7 @@ interface SukuBungaSettingsProps {
 export function SukuBungaSettings({ settings, setSettings }: SukuBungaSettingsProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const pinjamanCategories = getPinjamanCategories();
   
   const handleSukuBungaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,6 +34,21 @@ export function SukuBungaSettings({ settings, setSettings }: SukuBungaSettingsPr
       sukuBunga: {
         ...prev.sukuBunga,
         [name]: parseFloat(value)
+      }
+    }));
+  };
+  
+  const handleCategoryBungaChange = (category: string, value: string) => {
+    const floatValue = parseFloat(value);
+    
+    setSettings(prev => ({
+      ...prev,
+      sukuBunga: {
+        ...prev.sukuBunga,
+        pinjamanByCategory: {
+          ...(prev.sukuBunga.pinjamanByCategory || {}),
+          [category]: floatValue
+        }
       }
     }));
   };
@@ -68,6 +85,15 @@ export function SukuBungaSettings({ settings, setSettings }: SukuBungaSettingsPr
     }
   };
   
+  // Helper to safely get category bunga rate
+  const getCategoryBungaRate = (category: string): number => {
+    if (settings.sukuBunga.pinjamanByCategory && 
+        category in settings.sukuBunga.pinjamanByCategory) {
+      return settings.sukuBunga.pinjamanByCategory[category];
+    }
+    return settings.sukuBunga.pinjaman; // Default to general rate
+  };
+  
   return (
     <Card>
       <CardHeader>
@@ -92,7 +118,7 @@ export function SukuBungaSettings({ settings, setSettings }: SukuBungaSettingsPr
                 max="5"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Bunga yang diterapkan untuk pinjaman anggota
+                Bunga umum yang diterapkan untuk pinjaman anggota
               </p>
             </div>
             <div>
@@ -110,6 +136,28 @@ export function SukuBungaSettings({ settings, setSettings }: SukuBungaSettingsPr
               <p className="text-xs text-muted-foreground mt-1">
                 Bunga yang diberikan untuk simpanan anggota
               </p>
+            </div>
+          </div>
+          
+          <div className="mt-8">
+            <h3 className="text-base font-medium mb-4">Bunga Berdasarkan Kategori Pinjaman</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {pinjamanCategories.map(category => (
+                <div key={category}>
+                  <Label htmlFor={`bunga-${category}`}>
+                    Bunga Pinjaman {category} (% per bulan)
+                  </Label>
+                  <Input 
+                    id={`bunga-${category}`}
+                    type="number" 
+                    value={getCategoryBungaRate(category)}
+                    onChange={(e) => handleCategoryBungaChange(category, e.target.value)}
+                    step="0.1" 
+                    min="0" 
+                    max="5"
+                  />
+                </div>
+              ))}
             </div>
           </div>
           

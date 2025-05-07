@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,8 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { getPengaturan } from "@/services/pengaturanService";
 import { Anggota } from "@/types";
-import { createTransaksi } from "@/services/transaksiService";
+import { createTransaksi } from "@/services/transaksi";
+import { getPinjamanCategories, PinjamanCategory } from "@/services/transaksi/categories";
 
 interface PinjamanFormProps {
   anggotaList: Anggota[];
@@ -25,18 +26,24 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const pinjamanCategories = getPinjamanCategories();
   
   // Get pengaturan for bunga options
   const pengaturan = getPengaturan();
   const tenorOptions = pengaturan?.tenor?.tenorOptions || [3, 6, 12, 24, 36];
-  const sukuBunga = pengaturan?.sukuBunga?.pinjaman || 1; // Default 1%
+  const defaultCategory = PinjamanCategory.REGULER;
+  
+  // Get category-specific interest rates
+  const sukuBungaByCategory = pengaturan?.sukuBunga?.pinjamanByCategory || {};
+  const defaultBunga = pengaturan?.sukuBunga?.pinjaman || 1.5;
   
   const [formData, setFormData] = useState({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
     jumlah: 0,
     tenor: 12, // Default tenor
-    bunga: sukuBunga,
+    kategori: defaultCategory,
+    bunga: sukuBungaByCategory[defaultCategory] || defaultBunga,
     angsuran: 0,
     keterangan: ""
   });
@@ -66,9 +73,22 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
   const handleSelectChange = (name: string, value: string | number) => {
     let newFormData = { ...formData, [name]: value };
     
-    // If anggotaId or tenor changes, recalculate
-    if (name === "tenor") {
-      const calculatedAngsuran = calculateAngsuran(formData.jumlah, Number(value), formData.bunga);
+    // If kategori changes, update the bunga
+    if (name === "kategori") {
+      const categoryBunga = sukuBungaByCategory[value as string] || defaultBunga;
+      newFormData = {
+        ...newFormData,
+        bunga: categoryBunga
+      };
+    }
+    
+    // If anggotaId, tenor, or kategori changes, recalculate angsuran
+    if (name === "tenor" || name === "kategori") {
+      const calculatedAngsuran = calculateAngsuran(
+        formData.jumlah, 
+        name === "tenor" ? Number(value) : formData.tenor,
+        name === "kategori" ? (sukuBungaByCategory[value as string] || defaultBunga) : formData.bunga
+      );
       newFormData.angsuran = calculatedAngsuran;
     }
     
@@ -111,6 +131,14 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
       return false;
     }
     
+    if (!formData.kategori) {
+      toast({
+        title: "Kategori pinjaman wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     return true;
   };
   
@@ -125,7 +153,8 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
       // Create keterangan with loan details
       const totalBunga = formData.angsuran * formData.tenor - formData.jumlah;
       const detailKeterangan = 
-        `Pinjaman ${formData.tenor} bulan dengan bunga ${formData.bunga}%. ` +
+        `Pinjaman ${formData.kategori}, ${formData.tenor} bulan dengan bunga ${formData.bunga}%. ` +
+        `Tenor: ${formData.tenor} bulan. ` +
         `Angsuran per bulan: Rp ${formData.angsuran.toLocaleString("id-ID")}. ` +
         `Total bunga: Rp ${totalBunga.toLocaleString("id-ID")}. ` +
         (formData.keterangan ? `Catatan: ${formData.keterangan}` : "");
@@ -134,6 +163,7 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
         tanggal: formData.tanggal,
         anggotaId: formData.anggotaId,
         jenis: "Pinjam",
+        kategori: formData.kategori,
         jumlah: formData.jumlah,
         keterangan: detailKeterangan,
         status: "Sukses"
@@ -211,6 +241,29 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
         </div>
         
         <div>
+          <Label htmlFor="kategori" className="required">Kategori Pinjaman</Label>
+          <Select 
+            value={formData.kategori}
+            onValueChange={(value) => handleSelectChange("kategori", value)}
+            required
+          >
+            <SelectTrigger id="kategori">
+              <SelectValue placeholder="Pilih kategori pinjaman" />
+            </SelectTrigger>
+            <SelectContent>
+              {pinjamanCategories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  Pinjaman {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-muted-foreground text-xs mt-1">
+            Setiap kategori memiliki suku bunga yang berbeda
+          </p>
+        </div>
+        
+        <div>
           <Label htmlFor="jumlah" className="required">Jumlah Pinjaman (Rp)</Label>
           <Input 
             id="jumlah" 
@@ -255,6 +308,9 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
               onChange={handleInputChange}
               required 
             />
+            <p className="text-muted-foreground text-xs mt-1">
+              Bunga default untuk {formData.kategori}: {sukuBungaByCategory[formData.kategori] || defaultBunga}%
+            </p>
           </div>
           
           <div>
@@ -281,6 +337,10 @@ export function PinjamanForm({ anggotaList }: PinjamanFormProps) {
         <div className="bg-amber-50 p-4 rounded-md">
           <div className="mb-2 font-semibold">Ringkasan Pinjaman</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm text-muted-foreground">Kategori Pinjaman:</p>
+              <p className="font-medium">Pinjaman {formData.kategori}</p>
+            </div>
             <div>
               <p className="text-sm text-muted-foreground">Pokok Pinjaman:</p>
               <p className="font-medium">{formatCurrency(formData.jumlah)}</p>

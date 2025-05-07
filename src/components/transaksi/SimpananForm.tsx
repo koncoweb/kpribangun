@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { Anggota } from "@/types";
-import { createTransaksi } from "@/services/transaksiService";
+import { createTransaksi } from "@/services/transaksi";
+import { getSimpananCategories, SimpananCategory } from "@/services/transaksi/categories";
 
 interface SimpananFormProps {
   anggotaList: Anggota[];
@@ -24,11 +25,13 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const simpananCategories = getSimpananCategories();
   
   const [formData, setFormData] = useState({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
     jumlah: 0,
+    kategori: SimpananCategory.WAJIB, // Default to WAJIB
     keterangan: ""
   });
   
@@ -69,6 +72,14 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
       return false;
     }
     
+    if (!formData.kategori) {
+      toast({
+        title: "Kategori simpanan wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     return true;
   };
   
@@ -84,6 +95,7 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
         tanggal: formData.tanggal,
         anggotaId: formData.anggotaId,
         jenis: "Simpan",
+        kategori: formData.kategori,
         jumlah: formData.jumlah,
         keterangan: formData.keterangan,
         status: "Sukses"
@@ -144,6 +156,26 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
               {anggotaList.map((anggota) => (
                 <SelectItem key={anggota.id} value={anggota.id}>
                   {anggota.nama} ({anggota.id})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div>
+          <Label htmlFor="kategori" className="required">Kategori Simpanan</Label>
+          <Select 
+            value={formData.kategori}
+            onValueChange={(value) => handleSelectChange("kategori", value)}
+            required
+          >
+            <SelectTrigger id="kategori">
+              <SelectValue placeholder="Pilih kategori simpanan" />
+            </SelectTrigger>
+            <SelectContent>
+              {simpananCategories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  Simpanan {category}
                 </SelectItem>
               ))}
             </SelectContent>

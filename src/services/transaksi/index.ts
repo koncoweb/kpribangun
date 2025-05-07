@@ -23,3 +23,6 @@ export { createTransaksi } from './transaksiCore';
 
 // Explicitly re-export calculateSHU function
 export { calculateSHU } from './financialOperations';
+
+// Export category constants
+export * from './categories';

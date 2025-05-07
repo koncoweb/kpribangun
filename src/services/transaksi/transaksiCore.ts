@@ -46,6 +46,7 @@ export function createTransaksi(data: Partial<Transaksi>): Transaksi | null {
       anggotaId: data.anggotaId || "",
       anggotaNama: data.anggotaNama || "",
       jenis: data.jenis || "Simpan",
+      kategori: data.kategori || undefined,
       jumlah: data.jumlah || 0,
       keterangan: data.keterangan || "",
       status: data.status || "Sukses",

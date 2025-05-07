@@ -42,6 +42,7 @@ export interface Transaksi {
   jenis: "Simpan" | "Pinjam" | "Angsuran";
   jumlah: number;
   tanggal: string;
+  kategori?: string; // Add category for both simpanan and pinjaman
   keterangan?: string;
   status: "Sukses" | "Pending" | "Gagal"; // Added status field
   createdAt: string;
@@ -191,6 +192,9 @@ export interface Pengaturan {
     pinjaman: number;
     simpanan: number;
     metodeBunga: "flat" | "menurun";
+    pinjamanByCategory?: {
+      [key: string]: number;
+    };
   };
   tenor: {
     minTenor: number;
