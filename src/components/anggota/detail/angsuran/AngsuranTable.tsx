@@ -12,12 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, XCircle, Clock } from "lucide-react";
 import { formatDate } from "@/utils/formatters";
+import { AngsuranDetailItem } from "./types";
 
 interface AngsuranTableProps {
-  angsuranDetails: any[];
+  angsuranDetails: AngsuranDetailItem[];
   selectedPinjaman: string;
   onBayarAngsuran: (pinjamanId: string) => void;
-  onPayWithSimpanan: (angsuran: any) => void;
+  onPayWithSimpanan: (angsuran: AngsuranDetailItem) => void;
   simpananBalance: number;
   disableSelfPayment?: boolean;
 }
@@ -92,9 +93,13 @@ export function AngsuranTable({
                 >
                   <TableCell>{angsuran.angsuranKe}</TableCell>
                   <TableCell>
-                    {formatDate(angsuran.jatuhTempo)}
+                    {angsuran.jatuhTempo ? formatDate(angsuran.jatuhTempo) : "-"}
                   </TableCell>
-                  <TableCell>Rp {angsuran.jumlah.toLocaleString("id-ID")}</TableCell>
+                  <TableCell>
+                    {angsuran.jumlah !== undefined && angsuran.jumlah !== null 
+                      ? `Rp ${angsuran.jumlah.toLocaleString("id-ID")}`
+                      : "Rp 0"}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={statusColor} className="gap-1 items-center">
                       {isPaid ? (
@@ -117,7 +122,10 @@ export function AngsuranTable({
                   </TableCell>
                   {!disableSelfPayment && (
                     <TableCell className="text-right">
-                      {!isPaid && simpananBalance >= angsuran.jumlah && (
+                      {!isPaid && 
+                       simpananBalance !== undefined && 
+                       angsuran.jumlah !== undefined &&
+                       simpananBalance >= angsuran.jumlah && (
                         <Button
                           variant="ghost"
                           size="sm"

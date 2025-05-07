@@ -1,7 +1,7 @@
 
 import { Transaksi } from "@/types";
 import { getAllTransaksi, getTransaksiById } from "@/services/transaksi";
-import { AngsuranDetail } from "./types";
+import { AngsuranDetail, AngsuranDetailItem } from "./types";
 
 /**
  * Format date for display
@@ -17,11 +17,11 @@ export function formatDate(dateString: string): string {
 /**
  * Calculate angsuran details for a specific loan
  */
-export function calculateAngsuran(pinjamanId: string): AngsuranDetail[] {
+export function calculateAngsuran(pinjamanId: string): AngsuranDetailItem[] {
   const pinjaman = getTransaksiById(pinjamanId);
   if (!pinjaman) return [];
 
-  const angsuranDetails: AngsuranDetail[] = [];
+  const angsuranDetails: AngsuranDetailItem[] = [];
   const pinjamanDate = new Date(pinjaman.tanggal);
   let tenor = 12; // Default tenor
   let angsuranPerBulan = Math.ceil(pinjaman.jumlah / tenor);
@@ -64,12 +64,19 @@ export function calculateAngsuran(pinjamanId: string): AngsuranDetail[] {
 
     totalTerbayar += relatedAngsuran ? relatedAngsuran.jumlah : 0;
     
+    const angsuranKe = i + 1;
+    const jatuhTempo = jatuhTempoDate.toISOString();
+    const jumlah = i === tenor - 1 ? (pinjaman.jumlah - totalTerbayar) : angsuranPerBulan;
+    const status = relatedAngsuran ? "lunas" : 
+                  new Date() > jatuhTempoDate ? "terlambat" : "belum-bayar";
+    
     angsuranDetails.push({
-      nomorAngsuran: i + 1,
-      tanggalJatuhTempo: jatuhTempoDate.toISOString(),
-      nominal: i === tenor - 1 ? (pinjaman.jumlah - totalTerbayar) : angsuranPerBulan,
-      status: relatedAngsuran ? "Terbayar" : "Belum Terbayar",
-      transaksiId: relatedAngsuran?.id
+      angsuranKe,
+      jatuhTempo,
+      jumlah,
+      status,
+      tanggalBayar: relatedAngsuran ? relatedAngsuran.tanggal : undefined,
+      petugas: relatedAngsuran ? "Admin Koperasi" : undefined
     });
   }
   
