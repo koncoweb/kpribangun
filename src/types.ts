@@ -1,3 +1,4 @@
+
 // Anggota (Member) type
 export interface Anggota {
   id: string;
@@ -58,6 +59,7 @@ export interface Pengajuan {
   jumlah: number;
   tanggal: string;
   status: "Menunggu" | "Disetujui" | "Ditolak";
+  kategori?: string; // Add the kategori property that was missing
   keterangan?: string;
   createdAt: string;
   updatedAt: string;

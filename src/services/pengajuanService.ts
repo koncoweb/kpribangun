@@ -1,3 +1,4 @@
+
 import { Pengajuan } from "../types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { getAnggotaById } from "./anggotaService";
@@ -15,6 +16,7 @@ const initialPengajuan: Pengajuan[] = [
     jenis: "Simpan",
     jumlah: 500000,
     status: "Disetujui",
+    kategori: "Wajib",
     keterangan: "Simpanan wajib bulan April",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -26,6 +28,7 @@ const initialPengajuan: Pengajuan[] = [
     anggotaNama: "Sri Wahyuni",
     jenis: "Pinjam",
     jumlah: 2000000,
+    kategori: "Reguler",
     keterangan: "Pinjaman untuk modal usaha",
     status: "Menunggu",
     createdAt: new Date().toISOString(),
@@ -39,6 +42,7 @@ const initialPengajuan: Pengajuan[] = [
     jenis: "Simpan",
     jumlah: 750000,
     status: "Ditolak",
+    kategori: "Sukarela",
     keterangan: "Simpanan sukarela",
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -160,6 +164,7 @@ export function approvePengajuan(id: string): boolean {
     anggotaId: pengajuan.anggotaId,
     jenis: pengajuan.jenis,
     jumlah: pengajuan.jumlah,
+    kategori: pengajuan.kategori, // Make sure to include kategori in the transaction
     keterangan: `Dari Pengajuan #${pengajuan.id}: ${pengajuan.keterangan || ""}`.trim(),
     status: "Sukses"
   });
