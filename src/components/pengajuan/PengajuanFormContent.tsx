@@ -10,6 +10,7 @@ import { AnggotaField } from "./AnggotaField";
 import { PengajuanFields } from "./PengajuanFields";
 import { KeteranganField } from "./KeteranganField";
 import { DateField } from "./DateField";
+import { DokumenPersyaratanUpload, PersyaratanDokumen } from "./DokumenPersyaratanUpload";
 import { getSimpananCategories, getPinjamanCategories } from "@/services/transaksi/categories";
 
 interface PengajuanFormContentProps {
@@ -23,6 +24,7 @@ interface PengajuanFormContentProps {
     jumlah: number;
     keterangan: string;
     status: "Menunggu" | "Disetujui" | "Ditolak";
+    dokumen?: PersyaratanDokumen[];
   };
   anggotaList: Anggota[];
   onSubmit: (formData: any) => void;
@@ -37,7 +39,10 @@ export function PengajuanFormContent({
   isSubmitting
 }: PengajuanFormContentProps) {
   // Local form state
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState({
+    ...initialFormData,
+    dokumen: initialFormData.dokumen || []
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
   
@@ -59,16 +64,31 @@ export function PengajuanFormContent({
       setFormData(prev => ({ 
         ...prev, 
         [name]: value as "Simpan" | "Pinjam",
-        kategori: defaultCategory 
+        kategori: defaultCategory,
+        dokumen: [] // Reset documents when changing application type
       }));
     } else if (name === "status") {
       setFormData(prev => ({ 
         ...prev, 
         [name]: value as "Menunggu" | "Disetujui" | "Ditolak" 
       }));
+    } else if (name === "kategori") {
+      // Reset documents when changing category
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: value,
+        dokumen: []
+      }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+  
+  const handleDokumenChange = (dokumen: PersyaratanDokumen[]) => {
+    setFormData(prev => ({
+      ...prev,
+      dokumen
+    }));
   };
   
   const validateForm = () => {
@@ -110,6 +130,31 @@ export function PengajuanFormContent({
         variant: "destructive",
       });
       return false;
+    }
+    
+    // Check required documents for loan applications
+    if (formData.jenis === "Pinjam") {
+      const requiredDocTypes = ["KTP", "KK", "Buku Rekening"];
+      
+      // Add category-specific required documents
+      if (formData.kategori === "Reguler") {
+        requiredDocTypes.push("Sertifikat Tanah");
+      } else if (formData.kategori === "Sertifikasi") {
+        requiredDocTypes.push("Sertifikat Sertifikasi");
+      }
+      
+      // Check if all required documents are uploaded
+      for (const docType of requiredDocTypes) {
+        const hasDoc = formData.dokumen?.some(doc => doc.jenis === docType);
+        if (!hasDoc) {
+          toast({
+            title: `Dokumen ${docType} wajib diunggah`,
+            description: "Mohon unggah semua dokumen persyaratan yang wajib",
+            variant: "destructive",
+          });
+          return false;
+        }
+      }
     }
     
     return true;
@@ -160,6 +205,14 @@ export function PengajuanFormContent({
               value={formData.keterangan}
               onChange={handleInputChange}
             />
+            
+            {formData.jenis === "Pinjam" && formData.kategori && (
+              <DokumenPersyaratanUpload
+                selectedKategori={formData.kategori}
+                dokumenList={formData.dokumen || []}
+                onChange={handleDokumenChange}
+              />
+            )}
             
             <FormActions 
               isSubmitting={isSubmitting} 

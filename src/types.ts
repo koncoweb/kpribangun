@@ -59,10 +59,21 @@ export interface Pengajuan {
   jumlah: number;
   tanggal: string;
   status: "Menunggu" | "Disetujui" | "Ditolak";
-  kategori?: string; // Add the kategori property that was missing
+  kategori: string; // Add the kategori property that was missing
   keterangan?: string;
+  dokumen?: PersyaratanDokumen[]; // Add document requirements for loan applications
   createdAt: string;
   updatedAt: string;
+}
+
+// Document requirements for loan applications
+export interface PersyaratanDokumen {
+  id: string;
+  jenis: "KTP" | "KK" | "Sertifikat Tanah" | "Sertifikat Sertifikasi" | "Buku Rekening" | "ATM Sertifikasi";
+  file: string | null; // base64 string
+  namaFile: string;
+  required: boolean;
+  kategori: "Reguler" | "Sertifikasi" | "Musiman" | "All"; // Which loan category requires this document
 }
 
 // POS Types

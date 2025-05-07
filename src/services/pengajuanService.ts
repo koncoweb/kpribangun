@@ -1,5 +1,5 @@
 
-import { Pengajuan } from "../types";
+import { Pengajuan, PersyaratanDokumen } from "../types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { getAnggotaById } from "./anggotaService";
 import { createTransaksi } from "./transaksiService";
@@ -31,6 +31,24 @@ const initialPengajuan: Pengajuan[] = [
     kategori: "Reguler",
     keterangan: "Pinjaman untuk modal usaha",
     status: "Menunggu",
+    dokumen: [
+      {
+        id: "doc-1",
+        jenis: "KTP",
+        file: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+        namaFile: "ktp_sri_wahyuni.jpg",
+        required: true,
+        kategori: "All"
+      },
+      {
+        id: "doc-2",
+        jenis: "KK",
+        file: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=",
+        namaFile: "kk_sri_wahyuni.pdf",
+        required: true,
+        kategori: "All"
+      }
+    ],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -87,7 +105,9 @@ export function generatePengajuanId(): string {
 /**
  * Create a new pengajuan
  */
-export function createPengajuan(pengajuan: Omit<Pengajuan, "id" | "anggotaNama" | "createdAt" | "updatedAt">): Pengajuan | null {
+export function createPengajuan(
+  pengajuan: Omit<Pengajuan, "id" | "anggotaNama" | "createdAt" | "updatedAt"> & { dokumen?: PersyaratanDokumen[] }
+): Pengajuan | null {
   const anggota = getAnggotaById(pengajuan.anggotaId);
   if (!anggota) return null;
   
@@ -111,7 +131,10 @@ export function createPengajuan(pengajuan: Omit<Pengajuan, "id" | "anggotaNama" 
 /**
  * Update an existing pengajuan
  */
-export function updatePengajuan(id: string, pengajuan: Partial<Pengajuan>): Pengajuan | null {
+export function updatePengajuan(
+  id: string, 
+  pengajuan: Partial<Pengajuan & { dokumen?: PersyaratanDokumen[] }>
+): Pengajuan | null {
   const pengajuanList = getPengajuanList();
   const index = pengajuanList.findIndex(p => p.id === id);
   

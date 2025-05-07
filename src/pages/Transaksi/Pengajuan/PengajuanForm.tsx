@@ -9,6 +9,7 @@ import { getAllAnggota } from "@/services/anggotaService";
 import { Anggota } from "@/types";
 import { createPengajuan, getPengajuanById, updatePengajuan } from "@/services/pengajuanService";
 import { PengajuanFormContent } from "@/components/pengajuan/PengajuanFormContent";
+import { PersyaratanDokumen } from "@/components/pengajuan/DokumenPersyaratanUpload";
 import { getSimpananCategories } from "@/services/transaksi/categories";
 
 export default function PengajuanForm() {
@@ -31,6 +32,7 @@ export default function PengajuanForm() {
     jumlah: number;
     keterangan: string;
     status: "Menunggu" | "Disetujui" | "Ditolak";
+    dokumen?: PersyaratanDokumen[];
   }>({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
@@ -38,7 +40,8 @@ export default function PengajuanForm() {
     kategori: defaultSimpananCategory,
     jumlah: 0,
     keterangan: "",
-    status: "Menunggu"
+    status: "Menunggu",
+    dokumen: []
   });
   
   useEffect(() => {
@@ -57,7 +60,8 @@ export default function PengajuanForm() {
           kategori: pengajuan.kategori || defaultSimpananCategory, // Use the category or default
           jumlah: pengajuan.jumlah,
           keterangan: pengajuan.keterangan || "",
-          status: pengajuan.status
+          status: pengajuan.status,
+          dokumen: (pengajuan as any).dokumen || [] // Cast to any to access potential dokumen field
         });
       } else {
         // Handle case where pengajuan with ID is not found
@@ -84,7 +88,8 @@ export default function PengajuanForm() {
           kategori: submittedData.kategori,
           jumlah: submittedData.jumlah,
           keterangan: submittedData.keterangan,
-          status: submittedData.status
+          status: submittedData.status,
+          dokumen: submittedData.dokumen
         });
         
         if (updated) {
@@ -105,7 +110,8 @@ export default function PengajuanForm() {
           kategori: submittedData.kategori,
           jumlah: submittedData.jumlah,
           keterangan: submittedData.keterangan,
-          status: submittedData.status
+          status: submittedData.status,
+          dokumen: submittedData.dokumen
         });
         
         if (newPengajuan) {
