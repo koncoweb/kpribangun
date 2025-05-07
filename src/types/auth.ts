@@ -1,5 +1,5 @@
 
-import { User } from "@/types";
+import { User } from "./user";
 
 // Authentication related types
 export interface LoginCredentials {

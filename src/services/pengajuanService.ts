@@ -1,5 +1,5 @@
 
-import { Pengajuan, PersyaratanDokumen } from "../types";
+import { Pengajuan, PersyaratanDokumen } from "@/types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { getAnggotaById } from "./anggotaService";
 import { createTransaksi } from "./transaksiService";
