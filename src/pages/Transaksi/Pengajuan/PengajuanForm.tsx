@@ -9,6 +9,7 @@ import { getAllAnggota } from "@/services/anggotaService";
 import { Anggota } from "@/types";
 import { createPengajuan, getPengajuanById, updatePengajuan } from "@/services/pengajuanService";
 import { PengajuanFormContent } from "@/components/pengajuan/PengajuanFormContent";
+import { getSimpananCategories } from "@/services/transaksi/categories";
 
 export default function PengajuanForm() {
   const { id } = useParams<{ id: string }>();
@@ -18,18 +19,23 @@ export default function PengajuanForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
   
+  // Get default category
+  const defaultSimpananCategory = getSimpananCategories()[0];
+  
   // Initialize form data with default values
   const [formData, setFormData] = useState<{
     tanggal: string;
     anggotaId: string;
     jenis: "Simpan" | "Pinjam";
+    kategori: string;
     jumlah: number;
     keterangan: string;
     status: "Menunggu" | "Disetujui" | "Ditolak";
   }>({
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
-    jenis: "Simpan", // Default to a valid value
+    jenis: "Simpan",
+    kategori: defaultSimpananCategory,
     jumlah: 0,
     keterangan: "",
     status: "Menunggu"
@@ -48,6 +54,7 @@ export default function PengajuanForm() {
           tanggal: pengajuan.tanggal,
           anggotaId: pengajuan.anggotaId,
           jenis: pengajuan.jenis,
+          kategori: pengajuan.kategori || defaultSimpananCategory, // Use the category or default
           jumlah: pengajuan.jumlah,
           keterangan: pengajuan.keterangan || "",
           status: pengajuan.status
@@ -62,7 +69,7 @@ export default function PengajuanForm() {
         navigate("/transaksi/pengajuan");
       }
     }
-  }, [id, isEditMode, navigate, toast]);
+  }, [id, isEditMode, navigate, toast, defaultSimpananCategory]);
   
   const handleSubmit = (submittedData: typeof formData) => {
     setIsSubmitting(true);
@@ -74,6 +81,7 @@ export default function PengajuanForm() {
           tanggal: submittedData.tanggal,
           anggotaId: submittedData.anggotaId,
           jenis: submittedData.jenis,
+          kategori: submittedData.kategori,
           jumlah: submittedData.jumlah,
           keterangan: submittedData.keterangan,
           status: submittedData.status
@@ -94,6 +102,7 @@ export default function PengajuanForm() {
           tanggal: submittedData.tanggal,
           anggotaId: submittedData.anggotaId,
           jenis: submittedData.jenis,
+          kategori: submittedData.kategori,
           jumlah: submittedData.jumlah,
           keterangan: submittedData.keterangan,
           status: submittedData.status

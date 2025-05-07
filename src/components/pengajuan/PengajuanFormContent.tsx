@@ -10,6 +10,7 @@ import { AnggotaField } from "./AnggotaField";
 import { PengajuanFields } from "./PengajuanFields";
 import { KeteranganField } from "./KeteranganField";
 import { DateField } from "./DateField";
+import { getSimpananCategories, getPinjamanCategories } from "@/services/transaksi/categories";
 
 interface PengajuanFormContentProps {
   isEditMode: boolean;
@@ -18,6 +19,7 @@ interface PengajuanFormContentProps {
     tanggal: string;
     anggotaId: string;
     jenis: "Simpan" | "Pinjam";
+    kategori: string;
     jumlah: number;
     keterangan: string;
     status: "Menunggu" | "Disetujui" | "Ditolak";
@@ -49,10 +51,15 @@ export function PengajuanFormContent({
   
   const handleSelectChange = (name: string, value: string) => {
     if (name === "jenis") {
-      // Ensure jenis is always a valid value
+      // When jenis changes, we need to reset kategori and set it to a valid default based on the new type
+      const defaultCategory = value === "Simpan" 
+        ? getSimpananCategories()[0] 
+        : getPinjamanCategories()[0];
+      
       setFormData(prev => ({ 
         ...prev, 
-        [name]: value as "Simpan" | "Pinjam" 
+        [name]: value as "Simpan" | "Pinjam",
+        kategori: defaultCategory 
       }));
     } else if (name === "status") {
       setFormData(prev => ({ 
@@ -84,6 +91,14 @@ export function PengajuanFormContent({
     if (!formData.jenis) {
       toast({
         title: "Jenis pengajuan wajib dipilih",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!formData.kategori) {
+      toast({
+        title: `Kategori ${formData.jenis === "Simpan" ? "simpanan" : "pinjaman"} wajib dipilih`,
         variant: "destructive",
       });
       return false;
@@ -134,8 +149,10 @@ export function PengajuanFormContent({
             
             <PengajuanFields 
               jenis={formData.jenis} 
+              kategori={formData.kategori}
               jumlah={formData.jumlah}
               onJenisChange={(value) => handleSelectChange("jenis", value)}
+              onKategoriChange={(value) => handleSelectChange("kategori", value)}
               onJumlahChange={handleInputChange}
             />
             

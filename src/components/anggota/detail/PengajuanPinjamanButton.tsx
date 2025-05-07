@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,19 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createPengajuan } from "@/services/pengajuanService";
+import { getPinjamanCategories } from "@/services/transaksi/categories";
+import { getPengaturan } from "@/services/pengaturanService";
 
 interface PengajuanPinjamanButtonProps {
   anggotaId: string;
@@ -25,14 +35,31 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const pinjamanCategories = getPinjamanCategories();
+  const pengaturan = getPengaturan();
+  
   const [formData, setFormData] = useState({
     jumlah: '',
-    keterangan: ''
+    keterangan: '',
+    kategori: pinjamanCategories[0]
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleCategoryChange = (kategori: string) => {
+    setFormData(prev => ({ ...prev, kategori }));
+  };
+
+  // Helper function to display interest rate for pinjaman categories
+  const getInterestRateForCategory = (category: string): string => {
+    if (pengaturan.sukuBunga.pinjamanByCategory && 
+        category in pengaturan.sukuBunga.pinjamanByCategory) {
+      return `${pengaturan.sukuBunga.pinjamanByCategory[category]}%`;
+    }
+    return `${pengaturan.sukuBunga.pinjaman}%`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,10 +72,15 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
         throw new Error("Jumlah pinjaman harus diisi dengan angka yang valid");
       }
       
+      if (!formData.kategori) {
+        throw new Error("Kategori pinjaman harus dipilih");
+      }
+      
       // Create pengajuan
       const result = await createPengajuan({
         anggotaId: anggotaId,
         jenis: "Pinjam",
+        kategori: formData.kategori,
         jumlah: Number(formData.jumlah),
         tanggal: new Date().toISOString().split('T')[0],
         status: "Menunggu",
@@ -61,7 +93,11 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
           description: "Pengajuan pinjaman Anda telah berhasil dikirim dan sedang menunggu persetujuan",
         });
         setIsDialogOpen(false);
-        setFormData({ jumlah: '', keterangan: '' });
+        setFormData({ 
+          jumlah: '', 
+          keterangan: '', 
+          kategori: pinjamanCategories[0] 
+        });
       } else {
         throw new Error("Gagal membuat pengajuan");
       }
@@ -99,6 +135,29 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
             <div className="grid w-full items-center gap-2">
               <Label htmlFor="anggota">Nama Anggota</Label>
               <Input id="anggota" value={anggotaNama} disabled />
+            </div>
+            
+            <div className="grid w-full items-center gap-2">
+              <Label htmlFor="kategori" className="required">Kategori Pinjaman</Label>
+              <Select
+                value={formData.kategori}
+                onValueChange={handleCategoryChange}
+                required
+              >
+                <SelectTrigger id="kategori">
+                  <SelectValue placeholder="Pilih kategori pinjaman" />
+                </SelectTrigger>
+                <SelectContent>
+                  {pinjamanCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat} - Bunga {getInterestRateForCategory(cat)} per bulan
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Suku bunga untuk kategori ini: {getInterestRateForCategory(formData.kategori)} per bulan
+              </p>
             </div>
             
             <div className="grid w-full items-center gap-2">
