@@ -1,9 +1,9 @@
-
 import { Transaksi } from "../types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { initialTransaksi } from "./transaksi/initialData";
 import { getPengaturan } from "./pengaturanService";
 import { getAnggotaById } from "./anggotaService";
+import { calculateSHU as calculateSHUFromFinancialOperations } from "./transaksi/financialOperations";
 
 const TRANSAKSI_KEY = "koperasi_transaksi";
 
@@ -182,6 +182,14 @@ export function calculateJatuhTempo(createdDate: string, tenorBulan: number = 12
 export function calculatePenalty(loanAmount: number, daysOverdue: number): number {
   // Example: 0.1% penalty per day
   return loanAmount * 0.001 * daysOverdue;
+}
+
+/**
+ * Calculate SHU (Sisa Hasil Usaha) for an anggota
+ * Re-export the function from financialOperations
+ */
+export function calculateSHU(anggotaId: string): number {
+  return calculateSHUFromFinancialOperations(anggotaId);
 }
 
 /**

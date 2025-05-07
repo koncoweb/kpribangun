@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -49,14 +48,11 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
       // Create pengajuan
       const result = await createPengajuan({
         anggotaId: anggotaId,
-        anggotaNama: anggotaNama,
         jenis: "Pinjam",
         jumlah: Number(formData.jumlah),
         tanggal: new Date().toISOString().split('T')[0],
         status: "Menunggu",
         keterangan: formData.keterangan || "Pengajuan pinjaman baru",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
       });
       
       if (result) {

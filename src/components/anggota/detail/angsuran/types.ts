@@ -21,3 +21,12 @@ export interface LoanSelectorProps {
   selectedPinjaman: string;
   onLoanSelect: (pinjamanId: string) => void;
 }
+
+// Adding the missing AngsuranDetail interface
+export interface AngsuranDetail {
+  nomorAngsuran: number;
+  tanggalJatuhTempo: string;
+  nominal: number;
+  status: "Terbayar" | "Belum Terbayar";
+  transaksiId?: string;
+}
