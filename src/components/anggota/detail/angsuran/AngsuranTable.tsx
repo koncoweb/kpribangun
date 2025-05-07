@@ -1,6 +1,5 @@
 
-import { useNavigate } from "react-router-dom";
-import { Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,17 +8,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AngsuranDetail } from "./types";
-import { formatDate } from "./utils";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { formatDate } from "@/utils/formatters";
 
 interface AngsuranTableProps {
-  angsuranDetails: AngsuranDetail[];
+  angsuranDetails: any[];
   selectedPinjaman: string;
   onBayarAngsuran: (pinjamanId: string) => void;
-  onPayWithSimpanan: (angsuran: AngsuranDetail) => void;
+  onPayWithSimpanan: (angsuran: any) => void;
   simpananBalance: number;
+  disableSelfPayment?: boolean;
 }
 
 export function AngsuranTable({
@@ -28,91 +28,112 @@ export function AngsuranTable({
   onBayarAngsuran,
   onPayWithSimpanan,
   simpananBalance,
+  disableSelfPayment = false,
 }: AngsuranTableProps) {
-  const navigate = useNavigate();
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
+  const toggleRow = (index: number) => {
+    setExpandedRow(expandedRow === index ? null : index);
+  };
+
+  if (!angsuranDetails || angsuranDetails.length === 0) {
+    return (
+      <div className="text-center py-4">
+        <p className="text-muted-foreground">Tidak ada data angsuran untuk pinjaman ini</p>
+      </div>
+    );
+  }
+
+  // Get the first unpaid installment
+  const unpaidInstallment = angsuranDetails.find(
+    (item) => item.status === "belum-bayar" || item.status === "terlambat"
+  );
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>No</TableHead>
-            <TableHead>Jatuh Tempo</TableHead>
-            <TableHead>Nominal</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Aksi</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {angsuranDetails.length === 0 ? (
+    <div className="mt-4">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="font-semibold">Daftar Angsuran</h3>
+        
+        {!disableSelfPayment && unpaidInstallment && (
+          <Button 
+            onClick={() => onBayarAngsuran(selectedPinjaman)}
+            size="sm"
+            variant="outline"
+          >
+            Bayar Angsuran
+          </Button>
+        )}
+      </div>
+      
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-10">
-                Tidak ada data angsuran yang ditemukan
-              </TableCell>
+              <TableHead>Angsuran Ke</TableHead>
+              <TableHead>Jatuh Tempo</TableHead>
+              <TableHead>Jumlah</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Tanggal Bayar</TableHead>
+              <TableHead>Petugas</TableHead>
+              {!disableSelfPayment && <TableHead className="text-right">Aksi</TableHead>}
             </TableRow>
-          ) : (
-            angsuranDetails.map((item) => (
-              <TableRow key={`angsuran-${item.nomorAngsuran}`}>
-                <TableCell>{item.nomorAngsuran}</TableCell>
-                <TableCell className="flex items-center gap-2">
-                  <Calendar size={16} className="text-muted-foreground" />
-                  {formatDate(item.tanggalJatuhTempo)}
-                </TableCell>
-                <TableCell>Rp {item.nominal.toLocaleString("id-ID")}</TableCell>
-                <TableCell>
-                  {item.status === "Terbayar" ? (
-                    <div className="flex items-center gap-1">
-                      <CheckCircle2 size={16} className="text-green-600" />
-                      <Badge variant="success">Terbayar</Badge>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-1">
-                      <XCircle size={16} className="text-amber-600" />
-                      <Badge variant="outline">Belum Terbayar</Badge>
-                    </div>
+          </TableHeader>
+          <TableBody>
+            {angsuranDetails.map((angsuran, index) => {
+              const isLate = angsuran.status === "terlambat";
+              const isPaid = angsuran.status === "lunas";
+              const isDue = angsuran.status === "belum-bayar";
+              const statusColor = isPaid ? "success" : isLate ? "destructive" : "warning";
+              
+              return (
+                <TableRow 
+                  key={index}
+                  className={isLate ? "bg-red-50" : ""}
+                >
+                  <TableCell>{angsuran.angsuranKe}</TableCell>
+                  <TableCell>
+                    {formatDate(angsuran.jatuhTempo)}
+                  </TableCell>
+                  <TableCell>Rp {angsuran.jumlah.toLocaleString("id-ID")}</TableCell>
+                  <TableCell>
+                    <Badge variant={statusColor} className="gap-1 items-center">
+                      {isPaid ? (
+                        <CheckCircle className="h-3 w-3" />
+                      ) : isLate ? (
+                        <XCircle className="h-3 w-3" />
+                      ) : (
+                        <Clock className="h-3 w-3" />
+                      )}
+                      {isPaid ? "Lunas" : isLate ? "Terlambat" : "Belum Bayar"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {isPaid && angsuran.tanggalBayar
+                      ? formatDate(angsuran.tanggalBayar)
+                      : "-"}
+                  </TableCell>
+                  <TableCell>
+                    {isPaid && angsuran.petugas ? angsuran.petugas : "-"}
+                  </TableCell>
+                  {!disableSelfPayment && (
+                    <TableCell className="text-right">
+                      {!isPaid && simpananBalance >= angsuran.jumlah && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onPayWithSimpanan(angsuran)}
+                        >
+                          Bayar dari Simpanan
+                        </Button>
+                      )}
+                    </TableCell>
                   )}
-                </TableCell>
-                <TableCell>
-                  {item.status === "Terbayar" && item.transaksiId ? (
-                    <Button 
-                      variant="link" 
-                      size="sm" 
-                      className="p-0 h-auto"
-                      onClick={() => navigate(`/transaksi/${item.transaksiId}`)}
-                    >
-                      Lihat Detail
-                    </Button>
-                  ) : (
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="link" 
-                        size="sm"
-                        className="p-0 h-auto"
-                        onClick={() => onBayarAngsuran(selectedPinjaman)}
-                        disabled={item.nomorAngsuran !== angsuranDetails.find(a => a.status === "Belum Terbayar")?.nomorAngsuran}
-                      >
-                        Bayar Manual
-                      </Button>
-                      <Button 
-                        variant="link" 
-                        size="sm"
-                        className="p-0 h-auto text-emerald-600"
-                        onClick={() => onPayWithSimpanan(item)}
-                        disabled={
-                          item.nomorAngsuran !== angsuranDetails.find(a => a.status === "Belum Terbayar")?.nomorAngsuran ||
-                          simpananBalance < item.nominal
-                        }
-                      >
-                        Bayar dari Simpanan
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

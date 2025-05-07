@@ -5,7 +5,8 @@ import {
   CreditCard, 
   ArrowUpRight, 
   AlertTriangle, 
-  Calculator 
+  Calculator,
+  BadgeDollarSign // Import for SHU icon
 } from "lucide-react";
 
 interface FinancialSummaryCardsProps {
@@ -13,16 +14,18 @@ interface FinancialSummaryCardsProps {
   totalPinjaman: number;
   totalAngsuran: number;
   totalTunggakan: number;
+  totalSHU: number; // Add totalSHU to props
 }
 
 export function FinancialSummaryCards({
   totalSimpanan,
   totalPinjaman,
   totalAngsuran,
-  totalTunggakan
+  totalTunggakan,
+  totalSHU
 }: FinancialSummaryCardsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
       <Card className="hover:shadow-md transition-shadow">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
@@ -88,6 +91,21 @@ export function FinancialSummaryCards({
             </div>
             <div className="rounded-full bg-red-100 p-3">
               <AlertTriangle className="h-5 w-5 text-red-600" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Add new card for SHU */}
+      <Card className="hover:shadow-md transition-shadow">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">SHU</p>
+              <p className="text-xl font-bold">Rp {totalSHU.toLocaleString("id-ID")}</p>
+            </div>
+            <div className="rounded-full bg-purple-100 p-3">
+              <BadgeDollarSign className="h-5 w-5 text-purple-600" />
             </div>
           </div>
         </CardContent>

@@ -16,7 +16,11 @@ import { LoanSummary } from "./angsuran/LoanSummary";
 import { AngsuranTable } from "./angsuran/AngsuranTable";
 import { PaymentDialog } from "./angsuran/PaymentDialog";
 
-export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
+export interface ExtendedAngsuranListProps extends AngsuranListProps {
+  disableSelfPayment?: boolean;
+}
+
+export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: ExtendedAngsuranListProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedPinjaman, setSelectedPinjaman] = useState<string>(
@@ -83,6 +87,7 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
             simpananBalance={simpananBalance}
             onBayarAngsuran={handleBayarAngsuran}
             selectedPinjaman={selectedPinjaman}
+            disableSelfPayment={disableSelfPayment}
           />
         )}
 
@@ -92,16 +97,19 @@ export function AngsuranList({ pinjamanTransaksi }: AngsuranListProps) {
           onBayarAngsuran={handleBayarAngsuran}
           onPayWithSimpanan={handlePayWithSimpanan}
           simpananBalance={simpananBalance}
+          disableSelfPayment={disableSelfPayment}
         />
         
-        <PaymentDialog
-          isOpen={isPaymentDialogOpen}
-          onOpenChange={setIsPaymentDialogOpen}
-          currentAngsuran={currentAngsuran}
-          selectedPinjaman={selectedPinjaman}
-          simpananBalance={simpananBalance}
-          onPaymentComplete={handlePaymentComplete}
-        />
+        {!disableSelfPayment && (
+          <PaymentDialog
+            isOpen={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+            currentAngsuran={currentAngsuran}
+            selectedPinjaman={selectedPinjaman}
+            simpananBalance={simpananBalance}
+            onPaymentComplete={handlePaymentComplete}
+          />
+        )}
       </CardContent>
     </Card>
   );

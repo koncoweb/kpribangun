@@ -35,7 +35,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, MoreHorizontal, Edit, Trash, Eye, LayoutGrid, LayoutList } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAllAnggota, deleteAnggota } from "@/services/anggotaService";
-import { calculateTotalSimpanan, calculateTotalPinjaman } from "@/services/transaksiService";
+import { calculateTotalSimpanan, calculateTotalPinjaman, calculateSHU } from "@/services/transaksiService";
 import { Anggota } from "@/types";
 import { TableColumnToggle } from "@/components/ui/table-column-toggle";
 import { AnggotaGridView } from "@/components/anggota/AnggotaGridView";
@@ -59,6 +59,8 @@ export default function AnggotaList() {
     { id: "pekerjaan", label: "Pekerjaan", isVisible: true },
     { id: "simpanan", label: "Simpanan", isVisible: true },
     { id: "pinjaman", label: "Pinjaman", isVisible: true },
+    { id: "shu", label: "SHU", isVisible: true }, // Add SHU column
+    { id: "petugas", label: "Petugas", isVisible: true }, // Add Petugas column
   ]);
   
   useEffect(() => {
@@ -105,6 +107,17 @@ export default function AnggotaList() {
   const getTotalPinjaman = (anggotaId: string): string => {
     const total = calculateTotalPinjaman(anggotaId);
     return total > 0 ? `Rp ${total.toLocaleString("id-ID")}` : "Rp 0";
+  };
+
+  const getTotalSHU = (anggotaId: string): string => {
+    const total = calculateSHU(anggotaId);
+    return `Rp ${total.toLocaleString("id-ID")}`;
+  };
+  
+  const getPetugas = (anggotaId: string): string => {
+    // This would normally come from a service that tracks which staff member
+    // is assigned to this member. For now return a placeholder.
+    return "Admin";
   };
   
   const handleToggleColumn = (columnId: string) => {
@@ -202,6 +215,8 @@ export default function AnggotaList() {
                         {columns[5].isVisible && <TableCell>{anggota.pekerjaan}</TableCell>}
                         {columns[6].isVisible && <TableCell className="text-green-600">{getTotalSimpanan(anggota.id)}</TableCell>}
                         {columns[7].isVisible && <TableCell className="text-amber-600">{getTotalPinjaman(anggota.id)}</TableCell>}
+                        {columns[8].isVisible && <TableCell className="text-purple-600">{getTotalSHU(anggota.id)}</TableCell>}
+                        {columns[9].isVisible && <TableCell>{getPetugas(anggota.id)}</TableCell>}
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

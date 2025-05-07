@@ -20,3 +20,7 @@ export * from './initialData';
 
 // Add a createTransaksi export from the service where it's defined
 export { createTransaksi } from './transaksiCore';
+
+// Export calculateSHU function
+export { calculateSHU } from './financialOperations';
+

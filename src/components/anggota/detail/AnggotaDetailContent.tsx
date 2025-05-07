@@ -6,7 +6,8 @@ import {
   calculateTotalPinjaman,
   getOverdueLoans,
   getUpcomingDueLoans,
-  calculatePenalty
+  calculatePenalty,
+  calculateSHU // Import the new SHU calculation function
 } from "@/services/transaksi";
 
 import { AnggotaDetailHeader } from "./AnggotaDetailHeader";
@@ -15,6 +16,7 @@ import { TransactionSection } from "./TransactionSection";
 import { KeluargaSection } from "./KeluargaSection";
 import { AngsuranList } from "./AngsuranList";
 import { FinancialSummaryCards } from "./FinancialSummaryCards";
+import { PengajuanPinjamanButton } from "./PengajuanPinjamanButton"; // Import the new component
 
 interface AnggotaDetailContentProps {
   anggota: Anggota;
@@ -29,6 +31,9 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
   const angsuranTransaksi = transaksi.filter(t => t.jenis === "Angsuran");
   const totalSimpanan = calculateTotalSimpanan(id);
   const totalPinjaman = calculateTotalPinjaman(id);
+  
+  // Calculate SHU for this member
+  const totalSHU = calculateSHU(id);
   
   // Pass member id as string to these functions
   const jatuhTempo = getUpcomingDueLoans(id, 30);
@@ -59,6 +64,10 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
         anggotaId={anggota.id}
       />
       
+      <div className="mt-4 mb-6 flex justify-end">
+        <PengajuanPinjamanButton anggotaId={anggota.id} anggotaNama={anggota.nama} />
+      </div>
+      
       <MainInfoSection anggota={anggota} />
       
       <FinancialSummaryCards 
@@ -66,6 +75,7 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
         totalPinjaman={totalPinjaman}
         totalAngsuran={totalAngsuran}
         totalTunggakan={totalTunggakan}
+        totalSHU={totalSHU} // Added SHU to the financial summary
       />
       
       <div className="mt-6">
@@ -81,7 +91,10 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
       </div>
       
       {pinjamanTransaksi.length > 0 && (
-        <AngsuranList pinjamanTransaksi={pinjamanTransaksi} />
+        <AngsuranList 
+          pinjamanTransaksi={pinjamanTransaksi} 
+          disableSelfPayment={true} // Disable self-payment option
+        />
       )}
       
       <div className="mt-6">
