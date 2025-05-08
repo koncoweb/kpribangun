@@ -1,0 +1,114 @@
+
+import React from 'react';
+import {
+  Chart,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell, ResponsiveContainer, LineChart, Line, Legend, Tooltip } from 'recharts';
+import { formatCurrency } from '@/utils/formatters';
+
+interface ChartDataItem {
+  name: string;
+  pemasukan: number;
+  pengeluaran: number;
+}
+
+interface TransaksiChartProps {
+  data: ChartDataItem[];
+  title: string;
+  showLegend?: boolean;
+  chartType?: 'bar' | 'line';
+  height?: number;
+}
+
+const COLORS = {
+  pemasukan: "#3b82f6", // Blue
+  pengeluaran: "#ef4444", // Red
+};
+
+export default function TransaksiChart({ 
+  data, 
+  title, 
+  showLegend = true,
+  chartType = 'bar',
+  height = 300
+}: TransaksiChartProps) {
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer
+          config={{
+            pemasukan: { label: "Pemasukan", color: COLORS.pemasukan },
+            pengeluaran: { label: "Pengeluaran", color: COLORS.pengeluaran },
+          }}
+        >
+          <div style={{ height }}>
+            {chartType === 'bar' ? (
+              <BarChart
+                data={data}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis 
+                  tickFormatter={(value) => 
+                    value >= 1000000
+                      ? `${(value / 1000000).toFixed(0)} JT`
+                      : value >= 1000
+                      ? `${(value / 1000).toFixed(0)} RB`
+                      : value.toString()
+                  }
+                />
+                <ChartTooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
+                <Bar dataKey="pemasukan" fill={COLORS.pemasukan} />
+                <Bar dataKey="pengeluaran" fill={COLORS.pengeluaran} />
+                {showLegend && <Legend content={<ChartLegendContent />} />}
+              </BarChart>
+            ) : (
+              <LineChart
+                data={data}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis 
+                  tickFormatter={(value) => 
+                    value >= 1000000
+                      ? `${(value / 1000000).toFixed(0)} JT`
+                      : value >= 1000
+                      ? `${(value / 1000).toFixed(0)} RB`
+                      : value.toString()
+                  }
+                />
+                <ChartTooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
+                <Line 
+                  type="monotone" 
+                  dataKey="pemasukan" 
+                  stroke={COLORS.pemasukan} 
+                  strokeWidth={2} 
+                  activeDot={{ r: 6 }} 
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="pengeluaran" 
+                  stroke={COLORS.pengeluaran} 
+                  strokeWidth={2} 
+                  activeDot={{ r: 6 }} 
+                />
+                {showLegend && <Legend content={<ChartLegendContent />} />}
+              </LineChart>
+            )}
+          </div>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
