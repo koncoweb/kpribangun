@@ -9,42 +9,50 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import { PemasukanPengeluaran } from '@/types';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  transaction: PemasukanPengeluaran | null;
+  transaction?: PemasukanPengeluaran | null;
+  itemName?: string;
+  itemType?: string;
 }
 
-export function DeleteConfirmDialog({
-  isOpen,
-  onClose,
-  onConfirm,
-  transaction
+export function DeleteConfirmDialog({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  transaction, 
+  itemName,
+  itemType = "transaksi"
 }: DeleteConfirmDialogProps) {
-  if (!transaction) return null;
-
+  // Get the name to display
+  const displayName = transaction?.kategori || itemName || "item";
+  
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
+          <AlertDialogTitle>
+            Konfirmasi Hapus {itemType.charAt(0).toUpperCase() + itemType.slice(1)}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Apakah Anda yakin ingin menghapus transaksi {transaction.jenis.toLowerCase()} ini?
-            <br /><br />
-            <strong>ID:</strong> {transaction.id}<br />
-            <strong>Kategori:</strong> {transaction.kategori}<br />
-            <strong>Tanggal:</strong> {new Date(transaction.tanggal).toLocaleDateString('id-ID')}
-            <br /><br />
+            Apakah Anda yakin ingin menghapus {itemType} <strong>"{displayName}"</strong>?<br />
             Tindakan ini tidak dapat dibatalkan.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground">
+          <AlertDialogAction 
+            className="bg-red-500 hover:bg-red-600"
+            onClick={(e) => {
+              e.preventDefault();
+              onConfirm();
+            }}
+          >
             Hapus
           </AlertDialogAction>
         </AlertDialogFooter>

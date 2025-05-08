@@ -1,22 +1,11 @@
+
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, FileText, Printer } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon, Download, Printer } from 'lucide-react';
 
 interface LaporanFiltersProps {
   startDate: Date;
@@ -24,9 +13,9 @@ interface LaporanFiltersProps {
   onStartDateChange: (date: Date) => void;
   onEndDateChange: (date: Date) => void;
   onFilterApply: () => void;
-  onPeriodChange?: (period: string) => void;
-  onExport?: () => void;
-  onPrint?: () => void;
+  onPeriodChange: (period: string) => void;
+  onExport: () => void;
+  onPrint: () => void;
 }
 
 export default function LaporanFilters({
@@ -37,56 +26,47 @@ export default function LaporanFilters({
   onFilterApply,
   onPeriodChange,
   onExport,
-  onPrint
+  onPrint,
 }: LaporanFiltersProps) {
-  // Generate month and year options
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
-  const months = [
-    { value: '1', label: 'Januari' },
-    { value: '2', label: 'Februari' },
-    { value: '3', label: 'Maret' },
-    { value: '4', label: 'April' },
-    { value: '5', label: 'Mei' },
-    { value: '6', label: 'Juni' },
-    { value: '7', label: 'Juli' },
-    { value: '8', label: 'Agustus' },
-    { value: '9', label: 'September' },
-    { value: '10', label: 'Oktober' },
-    { value: '11', label: 'November' },
-    { value: '12', label: 'Desember' }
-  ];
-  
-  // Handle quick period change
-  const handlePeriodChange = (value: string) => {
+  // Function to set predefined period filters
+  const setPeriod = (period: string) => {
     const today = new Date();
     let start = new Date();
     let end = new Date();
     
-    switch (value) {
+    switch (period) {
+      case 'today':
+        // Today
+        start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        break;
+      case 'current-week':
+        // Current week (Sunday - Saturday)
+        const day = today.getDay(); // 0 is Sunday, 6 is Saturday
+        start = new Date(today);
+        start.setDate(today.getDate() - day); // Go to beginning of week (Sunday)
+        end = new Date(start);
+        end.setDate(start.getDate() + 6); // Go to end of week (Saturday)
+        break;
       case 'current-month':
+        // Current month
         start = new Date(today.getFullYear(), today.getMonth(), 1);
         end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         break;
       case 'last-month':
+        // Last month
         start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         end = new Date(today.getFullYear(), today.getMonth(), 0);
         break;
-      case 'current-quarter':
-        const quarter = Math.floor(today.getMonth() / 3);
-        start = new Date(today.getFullYear(), quarter * 3, 1);
-        end = new Date(today.getFullYear(), quarter * 3 + 3, 0);
+      case 'last-3-months':
+        // Last 3 months
+        start = new Date(today.getFullYear(), today.getMonth() - 3, 1);
+        end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         break;
       case 'current-year':
+        // Current year
         start = new Date(today.getFullYear(), 0, 1);
         end = new Date(today.getFullYear(), 11, 31);
-        break;
-      case 'last-year':
-        start = new Date(today.getFullYear() - 1, 0, 1);
-        end = new Date(today.getFullYear() - 1, 11, 31);
-        break;
-      case 'custom':
-        // Keep existing dates
         break;
       default:
         // Default to current month
@@ -94,112 +74,78 @@ export default function LaporanFilters({
         end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
     }
     
-    if (value !== 'custom') {
-      onStartDateChange(start);
-      onEndDateChange(end);
-      
-      // Automatically apply filter if not custom
-      setTimeout(() => onFilterApply(), 100);
-    }
-    
-    if (onPeriodChange) onPeriodChange(value);
+    onStartDateChange(start);
+    onEndDateChange(end);
+    onPeriodChange(period);
+    onFilterApply();
   };
   
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="grid gap-4 md:grid-cols-12">
-          {/* Period Quick Select */}
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Periode
-            </label>
-            <Select onValueChange={handlePeriodChange} defaultValue="current-month">
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih periode" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="current-month">Bulan Ini</SelectItem>
-                <SelectItem value="last-month">Bulan Lalu</SelectItem>
-                <SelectItem value="current-quarter">Kuartal Ini</SelectItem>
-                <SelectItem value="current-year">Tahun Ini</SelectItem>
-                <SelectItem value="last-year">Tahun Lalu</SelectItem>
-                <SelectItem value="custom">Kustom</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          {/* Date Range Pickers */}
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tanggal Mulai
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(startDate, 'dd MMMM yyyy', { locale: id })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={(date) => date && onStartDateChange(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tanggal Akhir
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className="w-full justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {format(endDate, 'dd MMMM yyyy', { locale: id })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={endDate}
-                  onSelect={(date) => date && onEndDateChange(date)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          {/* Action Buttons */}
-          <div className="md:col-span-3 flex items-end gap-2">
-            <Button onClick={onFilterApply} className="flex-1">
-              Terapkan Filter
-            </Button>
-            
-            {onExport && (
-              <Button variant="outline" onClick={onExport}>
-                <FileText className="h-4 w-4" />
+    <div className="flex flex-col sm:flex-row justify-between gap-4 pb-2">
+      {/* Date Range Picker */}
+      <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className="w-[240px] justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(startDate, "PPP", { locale: id })}
               </Button>
-            )}
-            
-            {onPrint && (
-              <Button variant="outline" onClick={onPrint}>
-                <Printer className="h-4 w-4" />
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={(date) => date && onStartDateChange(date)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <span>s/d</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className="w-[240px] justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(endDate, "PPP", { locale: id })}
               </Button>
-            )}
-          </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={(date) => date && onEndDateChange(date)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <Button onClick={onFilterApply}>Filter</Button>
         </div>
-      </CardContent>
-    </Card>
+        
+        <div className="flex flex-wrap gap-2 mt-2 sm:mt-0">
+          <Button variant="outline" size="sm" onClick={() => setPeriod('today')}>Hari Ini</Button>
+          <Button variant="outline" size="sm" onClick={() => setPeriod('current-month')}>Bulan Ini</Button>
+          <Button variant="outline" size="sm" onClick={() => setPeriod('last-month')}>Bulan Lalu</Button>
+          <Button variant="outline" size="sm" onClick={() => setPeriod('current-year')}>Tahun Ini</Button>
+        </div>
+      </div>
+      
+      {/* Export and Print Buttons */}
+      <div className="flex gap-2">
+        <Button variant="outline" onClick={onExport}>
+          <Download className="mr-2 h-4 w-4" />
+          Export
+        </Button>
+        <Button variant="outline" onClick={onPrint}>
+          <Printer className="mr-2 h-4 w-4" />
+          Print
+        </Button>
+      </div>
+    </div>
   );
 }
