@@ -90,8 +90,12 @@ export default function TransaksiForm({ initialData, onSuccess, onCancel }: Tran
   const onSubmit = (values: FormValues) => {
     try {
       const transactionData = {
-        ...values,
-        tanggal: format(values.tanggal, 'yyyy-MM-dd')
+        tanggal: format(values.tanggal, 'yyyy-MM-dd'),
+        kategori: values.kategori, 
+        jumlah: values.jumlah,
+        keterangan: values.keterangan,
+        jenis: values.jenis,
+        bukti: values.bukti
       };
       
       if (isEdit && initialData) {

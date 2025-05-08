@@ -45,10 +45,20 @@ export default function KategoriForm({ initialData, onSuccess, onCancel }: Kateg
   const onSubmit = (values: FormValues) => {
     try {
       if (isEdit && initialData) {
-        updateKategoriTransaksi(initialData.id, values);
+        // Ensure all required fields are present for the update
+        updateKategoriTransaksi(initialData.id, {
+          nama: values.nama,
+          deskripsi: values.deskripsi,
+          jenis: values.jenis
+        });
         toast.success('Kategori berhasil diperbarui');
       } else {
-        createKategoriTransaksi(values);
+        // Ensure all required fields are present for create
+        createKategoriTransaksi({
+          nama: values.nama,
+          deskripsi: values.deskripsi,
+          jenis: values.jenis
+        });
         toast.success('Kategori berhasil ditambahkan');
       }
       

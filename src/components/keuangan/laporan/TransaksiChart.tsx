@@ -1,7 +1,6 @@
 
 import React from 'react';
 import {
-  Chart,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
