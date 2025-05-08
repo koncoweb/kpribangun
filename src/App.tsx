@@ -39,8 +39,11 @@ import PengajuanDetail from "./pages/Transaksi/Pengajuan/PengajuanDetail";
 
 // Keuangan Pages (New)
 import { default as KeuanganTransaksiList } from "./pages/Keuangan/TransaksiList";
-import KategoriTransaksi from "./pages/Keuangan/KategoriTransaksi";
+import KategoriTransaksiPage from "./pages/Keuangan/KategoriTransaksi";
 import LaporanKeuangan from "./pages/Keuangan/LaporanKeuangan";
+import ArusKas from "./pages/Keuangan/ArusKas";
+import PemasukanDetail from "./pages/Keuangan/PemasukanDetail";
+import PengeluaranDetail from "./pages/Keuangan/PengeluaranDetail";
 
 // POS Pages
 import POSIndex from "./pages/POS/POSIndex";
@@ -114,10 +117,13 @@ function App() {
         <Route path="/transaksi/pengajuan/tambah" element={<AuthGuard>{<PengajuanForm />}</AuthGuard>} />
         <Route path="/transaksi/pengajuan/:id" element={<AuthGuard>{<PengajuanDetail />}</AuthGuard>} />
 
-        {/* Keuangan Routes (New) */}
+        {/* Keuangan Routes */}
         <Route path="/keuangan/transaksi" element={<AuthGuard>{<KeuanganTransaksiList />}</AuthGuard>} />
-        <Route path="/keuangan/kategori" element={<AuthGuard>{<KategoriTransaksi />}</AuthGuard>} />
+        <Route path="/keuangan/kategori" element={<AuthGuard>{<KategoriTransaksiPage />}</AuthGuard>} />
         <Route path="/keuangan/laporan" element={<AuthGuard>{<LaporanKeuangan />}</AuthGuard>} />
+        <Route path="/keuangan/arus-kas" element={<AuthGuard>{<ArusKas />}</AuthGuard>} />
+        <Route path="/keuangan/pemasukan/:id" element={<AuthGuard>{<PemasukanDetail />}</AuthGuard>} />
+        <Route path="/keuangan/pengeluaran/:id" element={<AuthGuard>{<PengeluaranDetail />}</AuthGuard>} />
 
         {/* POS Routes */}
         <Route path="/pos" element={<AuthGuard>{<POSIndex />}</AuthGuard>} />

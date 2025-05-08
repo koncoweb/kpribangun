@@ -21,7 +21,11 @@ import {
   Cog, 
   UserCheck,
   Truck,
-  LayoutDashboard
+  LayoutDashboard,
+  Wallet,
+  ArrowDown,
+  ArrowUp,
+  DollarSign
 } from "lucide-react";
 
 export type MenuItemType = {
@@ -62,6 +66,16 @@ export const menuSections: MenuSectionType[] = [
         ] 
       },
       { title: "Laporan", path: "/laporan", icon: FileText }
+    ]
+  },
+  {
+    title: "Keuangan",
+    icon: Wallet,
+    items: [
+      { title: "Transaksi Keuangan", path: "/keuangan/transaksi", icon: DollarSign },
+      { title: "Arus Kas", path: "/keuangan/arus-kas", icon: DollarSign },
+      { title: "Kategori", path: "/keuangan/kategori", icon: FileText },
+      { title: "Laporan Keuangan", path: "/keuangan/laporan", icon: BarChart },
     ]
   },
   {
