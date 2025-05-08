@@ -38,7 +38,7 @@ import PengajuanForm from "./pages/Transaksi/Pengajuan/PengajuanForm";
 import PengajuanDetail from "./pages/Transaksi/Pengajuan/PengajuanDetail";
 
 // Keuangan Pages (New)
-import TransaksiList as KeuanganTransaksiList from "./pages/Keuangan/TransaksiList";
+import { default as KeuanganTransaksiList } from "./pages/Keuangan/TransaksiList";
 import KategoriTransaksi from "./pages/Keuangan/KategoriTransaksi";
 import LaporanKeuangan from "./pages/Keuangan/LaporanKeuangan";
 

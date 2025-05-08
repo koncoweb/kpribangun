@@ -8,7 +8,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, Legend, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { formatCurrency } from '@/utils/formatters';
 
 interface ChartDataItem {
@@ -69,7 +69,7 @@ export default function TransaksiChart({
                 <ChartTooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
                 <Bar dataKey="pemasukan" fill={COLORS.pemasukan} />
                 <Bar dataKey="pengeluaran" fill={COLORS.pengeluaran} />
-                {showLegend && <Legend content={<ChartLegendContent />} />}
+                {showLegend && <ChartLegend content={<ChartLegendContent />} />}
               </BarChart>
             ) : (
               <LineChart
@@ -102,7 +102,7 @@ export default function TransaksiChart({
                   strokeWidth={2} 
                   activeDot={{ r: 6 }} 
                 />
-                {showLegend && <Legend content={<ChartLegendContent />} />}
+                {showLegend && <ChartLegend content={<ChartLegendContent />} />}
               </LineChart>
             )}
           </div>
