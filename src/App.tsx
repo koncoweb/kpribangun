@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Auth/LoginPage";
@@ -38,7 +37,7 @@ import PengajuanForm from "./pages/Transaksi/Pengajuan/PengajuanForm";
 import PengajuanDetail from "./pages/Transaksi/Pengajuan/PengajuanDetail";
 
 // Keuangan Pages (New)
-import TransaksiList as KeuanganTransaksiList from "./pages/Keuangan/TransaksiList";
+import KeuanganTransaksiList from "./pages/Keuangan/TransaksiList";
 import KategoriTransaksi from "./pages/Keuangan/KategoriTransaksi";
 import LaporanKeuangan from "./pages/Keuangan/LaporanKeuangan";
 
