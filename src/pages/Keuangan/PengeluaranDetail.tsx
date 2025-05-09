@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as idLocale } from 'date-fns/locale';
 import { ArrowLeft, Edit, Trash, Receipt } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -100,7 +100,7 @@ export default function PengeluaranDetail() {
     );
   }
   
-  const formattedDate = format(new Date(transaction.tanggal), 'd MMMM yyyy', { locale: id });
+  const formattedDate = format(new Date(transaction.tanggal), 'd MMMM yyyy', { locale: idLocale });
   const formattedAmount = new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
@@ -175,13 +175,13 @@ export default function PengeluaranDetail() {
                 <div>
                   <p className="text-sm text-muted-foreground">Dibuat pada</p>
                   <p className="text-base">
-                    {format(new Date(transaction.createdAt), 'dd MMM yyyy, HH:mm', { locale: id })}
+                    {format(new Date(transaction.createdAt), 'dd MMM yyyy, HH:mm', { locale: idLocale })}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Terakhir diupdate</p>
                   <p className="text-base">
-                    {format(new Date(transaction.updatedAt), 'dd MMM yyyy, HH:mm', { locale: id })}
+                    {format(new Date(transaction.updatedAt), 'dd MMM yyyy, HH:mm', { locale: idLocale })}
                   </p>
                 </div>
               </div>
