@@ -2,34 +2,20 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Card, CardContent } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { CalendarIcon } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Form } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 import { PemasukanPengeluaran, KategoriTransaksi } from '@/types';
 import { getAllKategoriTransaksi, createPemasukanPengeluaran, updatePemasukanPengeluaran } from '@/services/keuanganService';
-import { formatNumberInput, cleanNumberInput } from '@/utils/formatters';
-
-// Define form schema
-const formSchema = z.object({
-  tanggal: z.date(),
-  kategori: z.string().min(1, { message: 'Kategori harus dipilih' }),
-  jumlah: z.coerce.number().positive({ message: 'Jumlah harus lebih dari 0' }),
-  keterangan: z.string().min(3, { message: 'Keterangan minimal 3 karakter' }).max(200, { message: 'Keterangan maksimal 200 karakter' }),
-  jenis: z.enum(['Pemasukan', 'Pengeluaran']),
-  bukti: z.string().optional()
-});
-
-type FormValues = z.infer<typeof formSchema>;
+import { formatNumberInput } from '@/utils/formatters';
+import { transactionFormSchema, TransactionFormValues } from './schema';
+import { TransactionTypeField } from './forms/TransactionTypeField';
+import { DateField } from './forms/DateField';
+import { CategoryField } from './forms/CategoryField';
+import { AmountField } from './forms/AmountField';
+import { DescriptionField } from './forms/DescriptionField';
+import { FileUploadField } from './forms/FileUploadField';
+import { FormActions } from './forms/FormActions';
 
 interface TransaksiFormProps {
   initialData?: PemasukanPengeluaran;
@@ -41,11 +27,12 @@ export default function TransaksiForm({ initialData, onSuccess, onCancel }: Tran
   const [categories, setCategories] = useState<KategoriTransaksi[]>([]);
   const [filePreview, setFilePreview] = useState<string | null>(initialData?.bukti || null);
   const [formattedJumlah, setFormattedJumlah] = useState<string>("");
+  const [filteredCategories, setFilteredCategories] = useState<KategoriTransaksi[]>([]);
   const isEdit = !!initialData;
   
   // Initialize form with data if editing
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionFormSchema),
     defaultValues: {
       tanggal: initialData ? new Date(initialData.tanggal) : new Date(),
       kategori: initialData?.kategori || '',
@@ -70,61 +57,34 @@ export default function TransaksiForm({ initialData, onSuccess, onCancel }: Tran
   useEffect(() => {
     const allCategories = getAllKategoriTransaksi();
     setCategories(allCategories);
+    
+    // Initial filtering based on current type
+    const currentType = form.watch('jenis');
+    setFilteredCategories(allCategories.filter(cat => cat.jenis === currentType));
   }, []);
   
-  // Filter categories based on selected transaction type
-  const filteredCategories = categories.filter(cat => 
-    cat.jenis === form.watch('jenis')
-  );
-  
-  // Handle amount input with formatting
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = e.target.value;
+  // Handle transaction type change
+  const handleTransactionTypeChange = (type: 'Pemasukan' | 'Pengeluaran') => {
+    // Reset category when transaction type changes
+    form.setValue('kategori', '');
     
-    // Remove any non-numeric characters
-    const numericValue = inputValue.replace(/[^\d]/g, '');
-    
-    if (!numericValue) {
-      setFormattedJumlah("");
-      form.setValue('jumlah', 0);
-      return;
-    }
-    
-    // Format the value with thousand separators
-    const formatted = formatNumberInput(numericValue);
-    setFormattedJumlah(formatted);
-    
-    // Update the form value with the cleaned numeric value
-    const numericAmount = cleanNumberInput(formatted);
-    form.setValue('jumlah', numericAmount);
+    // Filter categories based on selected transaction type
+    setFilteredCategories(categories.filter(cat => cat.jenis === type));
   };
   
-  // Handle file upload
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    // File size validation (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Ukuran file maksimal 2MB');
-      return;
+  // Handle file upload value setting
+  const handleSetFilePreview = (preview: string | null) => {
+    setFilePreview(preview);
+    if (preview) {
+      form.setValue('bukti', preview);
     }
-    
-    // Read and convert to base64
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64String = e.target?.result as string;
-      setFilePreview(base64String);
-      form.setValue('bukti', base64String);
-    };
-    reader.readAsDataURL(file);
   };
   
   // Form submission handler
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = (values: TransactionFormValues) => {
     try {
       const transactionData = {
-        tanggal: format(values.tanggal, 'yyyy-MM-dd'),
+        tanggal: values.tanggal.toISOString().split('T')[0],
         kategori: values.kategori, 
         jumlah: values.jumlah,
         keterangan: values.keterangan,
@@ -157,170 +117,42 @@ export default function TransaksiForm({ initialData, onSuccess, onCancel }: Tran
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Transaction Type */}
-            <FormField
-              control={form.control}
-              name="jenis"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jenis Transaksi</FormLabel>
-                  <Select 
-                    onValueChange={(value: 'Pemasukan' | 'Pengeluaran') => {
-                      field.onChange(value);
-                      // Reset category when transaction type changes
-                      form.setValue('kategori', '');
-                    }}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih jenis transaksi" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Pemasukan">Pemasukan</SelectItem>
-                      <SelectItem value="Pengeluaran">Pengeluaran</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <TransactionTypeField 
+              control={form.control} 
+              onTypeChange={handleTransactionTypeChange} 
             />
             
             {/* Date Field */}
-            <FormField
-              control={form.control}
-              name="tanggal"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Tanggal</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className="pl-3 text-left font-normal"
-                        >
-                          {field.value ? (
-                            format(field.value, 'PPP', { locale: id })
-                          ) : (
-                            <span>Pilih tanggal</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date > new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <DateField control={form.control} />
             
             {/* Category Field */}
-            <FormField
-              control={form.control}
-              name="kategori"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Kategori</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih kategori" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {filteredCategories.map(category => (
-                        <SelectItem key={category.id} value={category.nama}>
-                          {category.nama}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <CategoryField 
+              control={form.control} 
+              categories={filteredCategories} 
             />
             
             {/* Amount Field */}
-            <FormField
+            <AmountField 
               control={form.control}
-              name="jumlah"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Jumlah (Rp)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      value={formattedJumlah} 
-                      onChange={handleAmountChange}
-                      placeholder="Contoh: 1.000.000"
-                    />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Masukkan jumlah tanpa titik atau koma, pemisah ribuan akan otomatis ditampilkan
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
+              formattedJumlah={formattedJumlah}
+              setFormattedJumlah={setFormattedJumlah}
             />
             
             {/* Description Field */}
-            <FormField
-              control={form.control}
-              name="keterangan"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Keterangan</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} rows={3} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <DescriptionField control={form.control} />
             
             {/* File Upload */}
-            <FormItem>
-              <FormLabel>Bukti Transaksi (opsional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="image/*,.pdf"
-                  onChange={handleFileChange}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90"
-                />
-              </FormControl>
-              {filePreview && (
-                <div className="mt-2">
-                  {filePreview.startsWith('data:image') ? (
-                    <img src={filePreview} alt="Bukti transaksi" className="w-40 h-auto object-contain border rounded-md" />
-                  ) : (
-                    <div className="p-4 border rounded-md bg-slate-100 text-sm">
-                      Dokumen tersedia
-                    </div>
-                  )}
-                </div>
-              )}
-            </FormItem>
+            <FileUploadField 
+              control={form.control} 
+              filePreview={filePreview}
+              setFilePreview={handleSetFilePreview}
+            />
             
             {/* Form Actions */}
-            <div className="flex justify-end space-x-2 pt-2">
-              {onCancel && (
-                <Button type="button" variant="outline" onClick={onCancel}>
-                  Batal
-                </Button>
-              )}
-              <Button type="submit">
-                {isEdit ? 'Update' : 'Simpan'} Transaksi
-              </Button>
-            </div>
+            <FormActions 
+              isEdit={isEdit} 
+              onCancel={onCancel} 
+            />
           </form>
         </Form>
       </CardContent>
