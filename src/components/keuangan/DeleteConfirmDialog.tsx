@@ -31,16 +31,18 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   // Get the name to display
   const displayName = transaction?.kategori || itemName || "item";
+  const jenisLabel = transaction?.jenis === "Pemasukan" ? "pemasukan" : "pengeluaran";
   
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Konfirmasi Hapus {itemType.charAt(0).toUpperCase() + itemType.slice(1)}
+            Konfirmasi Hapus {transaction?.jenis || itemType}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Apakah Anda yakin ingin menghapus {itemType} <strong>"{displayName}"</strong>?<br />
+            Apakah Anda yakin ingin menghapus {jenisLabel} <strong>"{displayName}"</strong>? <br />
+            {transaction && <span className="text-sm">ID: {transaction.id}</span>}<br />
             Tindakan ini tidak dapat dibatalkan.
           </AlertDialogDescription>
         </AlertDialogHeader>

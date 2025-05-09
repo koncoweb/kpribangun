@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import { id as idLocale } from 'date-fns/locale';
 import {
   Table,
   TableHeader,
@@ -17,11 +17,9 @@ import {
   Eye, 
   Pencil, 
   Trash2,
-  File,
   FileUp,
   FileDown
 } from 'lucide-react';
-import { formatCurrency } from '@/utils/formatters';
 
 interface TransaksiTableProps {
   data: PemasukanPengeluaran[];
@@ -36,6 +34,16 @@ export default function TransaksiTable({
   onEdit,
   onDelete
 }: TransaksiTableProps) {
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
@@ -63,7 +71,7 @@ export default function TransaksiTable({
                 <TableRow key={transaction.id}>
                   <TableCell className="font-medium">{transaction.id}</TableCell>
                   <TableCell>
-                    {format(new Date(transaction.tanggal), 'dd MMM yyyy', { locale: id })}
+                    {format(new Date(transaction.tanggal), 'dd MMM yyyy', { locale: idLocale })}
                   </TableCell>
                   <TableCell>
                     <Badge variant={transaction.jenis === 'Pemasukan' ? 'success' : 'destructive'}>
@@ -80,7 +88,7 @@ export default function TransaksiTable({
                     {formatCurrency(transaction.jumlah)}
                   </TableCell>
                   <TableCell className="max-w-[200px] truncate">
-                    {transaction.keterangan}
+                    {transaction.keterangan || "-"}
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-2">
@@ -89,6 +97,7 @@ export default function TransaksiTable({
                           variant="ghost" 
                           size="icon" 
                           onClick={() => onView(transaction)}
+                          title="Lihat Detail"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -98,6 +107,7 @@ export default function TransaksiTable({
                           variant="ghost" 
                           size="icon" 
                           onClick={() => onEdit(transaction)}
+                          title="Edit"
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -107,6 +117,7 @@ export default function TransaksiTable({
                           variant="ghost" 
                           size="icon" 
                           onClick={() => onDelete(transaction)}
+                          title="Hapus"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

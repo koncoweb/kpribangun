@@ -1,25 +1,19 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowDown, ArrowUp, BarChart, Calendar, Search, Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { ArrowDown, ArrowUp, BarChart, Search, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { DateRange } from 'react-day-picker';
-import { format, isAfter, isBefore, isEqual } from 'date-fns';
-import { id } from 'date-fns/locale';
-import { addDays, subDays } from 'date-fns';
+import { format } from 'date-fns';
+import { id as idLocale } from 'date-fns/locale';
+import { subDays } from 'date-fns';
 
 import { PemasukanPengeluaran } from '@/types';
-import { 
-  getPemasukanPengeluaranByJenis, 
-  getPemasukanPengeluaranByPeriod,
-  deletePemasukanPengeluaran 
-} from '@/services/keuanganService';
+import { useKeuanganTransaksi } from '@/hooks/useKeuanganTransaksi';
 
 import TransaksiTable from '@/components/keuangan/TransaksiTable';
 import TransaksiForm from '@/components/keuangan/TransaksiForm';
@@ -30,79 +24,37 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 export default function ArusKas() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("pemasukan");
-  const [transactions, setTransactions] = useState<PemasukanPengeluaran[]>([]);
-  const [filteredTransactions, setFilteredTransactions] = useState<PemasukanPengeluaran[]>([]);
+  
+  const {
+    filteredTransactions,
+    searchQuery,
+    setSearchQuery,
+    dateRange,
+    setDateRange,
+    calculateTotal,
+    loadTransactions,
+    deleteTransaction
+  } = useKeuanganTransaksi(activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran");
   
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<PemasukanPengeluaran | null>(null);
-  
-  const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 30),
-    to: new Date(),
-  });
 
-  // Load transactions on component mount and when tab changes
-  useEffect(() => {
-    loadTransactions();
-  }, [activeTab]);
-  
-  // Filter transactions when search query or date range updates
-  useEffect(() => {
-    filterTransactions();
-  }, [transactions, searchQuery, dateRange]);
-
-  // Load transactions based on active tab
-  const loadTransactions = () => {
-    try {
-      let data: PemasukanPengeluaran[] = [];
-      
-      if (activeTab === "pemasukan") {
-        data = getPemasukanPengeluaranByJenis("Pemasukan");
-      } else if (activeTab === "pengeluaran") {
-        data = getPemasukanPengeluaranByJenis("Pengeluaran");
-      } else {
-        // Error case, default to pemasukan
-        data = getPemasukanPengeluaranByJenis("Pemasukan");
-      }
-      
-      // Sort by date descending (newest first)
-      data.sort((a, b) => new Date(b.tanggal).getTime() - new Date(a.tanggal).getTime());
-      setTransactions(data);
-    } catch (error) {
-      console.error("Error loading transactions:", error);
-      toast.error("Gagal memuat data transaksi");
-    }
-  };
-
-  // Filter transactions based on search query and date range
-  const filterTransactions = () => {
-    let filtered = [...transactions];
-    
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(t => 
-        t.id.toLowerCase().includes(query) ||
-        t.kategori.toLowerCase().includes(query) ||
-        t.keterangan.toLowerCase().includes(query)
-      );
-    }
-    
-    // Filter by date range if both from and to dates are set
-    if (dateRange?.from && dateRange?.to) {
-      filtered = filtered.filter(t => {
-        const transactionDate = new Date(t.tanggal);
-        return (
-          (isEqual(transactionDate, dateRange.from) || isAfter(transactionDate, dateRange.from)) &&
-          (isEqual(transactionDate, dateRange.to) || isBefore(transactionDate, dateRange.to))
-        );
+  // Initialize default date range if not set
+  React.useEffect(() => {
+    if (!dateRange) {
+      setDateRange({
+        from: subDays(new Date(), 30),
+        to: new Date(),
       });
     }
-    
-    setFilteredTransactions(filtered);
+  }, [dateRange, setDateRange]);
+  
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    loadTransactions(value === "pemasukan" ? "Pemasukan" : "Pengeluaran");
   };
 
   // Handle search input change
@@ -110,15 +62,18 @@ export default function ArusKas() {
     setSearchQuery(event.target.value);
   };
 
-  // Handle date range change
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    setDateRange(range);
-  };
-
   // Handle transaction view
   const handleViewTransaction = (transaction: PemasukanPengeluaran) => {
     setSelectedTransaction(transaction);
     setIsDetailOpen(true);
+  };
+  
+  // Redirect to detail view
+  const handleDetailView = (transaction: PemasukanPengeluaran) => {
+    const route = transaction.jenis === "Pemasukan" 
+      ? `/keuangan/pemasukan/${transaction.id}` 
+      : `/keuangan/pengeluaran/${transaction.id}`;
+    navigate(route);
   };
   
   // Handle transaction edit
@@ -134,30 +89,20 @@ export default function ArusKas() {
   };
   
   // Handle transaction delete confirm
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (selectedTransaction) {
-      try {
-        deletePemasukanPengeluaran(selectedTransaction.id);
-        toast.success("Transaksi berhasil dihapus");
-        loadTransactions();
+      const success = await deleteTransaction(selectedTransaction.id);
+      if (success) {
         setIsDeleteOpen(false);
-      } catch (error) {
-        console.error("Error deleting transaction:", error);
-        toast.error("Gagal menghapus transaksi");
       }
     }
   };
 
   // Form success handler
   const handleFormSuccess = () => {
-    loadTransactions();
+    loadTransactions(activeTab === "pemasukan" ? "Pemasukan" : "Pengeluaran");
     setIsFormOpen(false);
     setSelectedTransaction(null);
-  };
-
-  // Calculate total for displayed transactions
-  const calculateTotal = () => {
-    return filteredTransactions.reduce((total, t) => total + t.jumlah, 0);
   };
 
   return (
@@ -193,7 +138,7 @@ export default function ArusKas() {
           </div>
         </div>
         
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <TabsList>
               <TabsTrigger value="pemasukan" className="flex items-center gap-2">
@@ -219,7 +164,7 @@ export default function ArusKas() {
               
               <DateRangePicker
                 value={dateRange}
-                onValueChange={handleDateRangeChange}
+                onValueChange={setDateRange}
                 className="w-full sm:w-auto"
               />
             </div>
@@ -246,7 +191,7 @@ export default function ArusKas() {
                 <p className="text-sm text-muted-foreground mt-1">
                   Periode: {
                     dateRange?.from && dateRange?.to ?
-                    `${format(dateRange.from, 'dd MMM yyyy', { locale: id })} - ${format(dateRange.to, 'dd MMM yyyy', { locale: id })}` :
+                    `${format(dateRange.from, 'dd MMM yyyy', { locale: idLocale })} - ${format(dateRange.to, 'dd MMM yyyy', { locale: idLocale })}` :
                     'Semua waktu'
                   }
                 </p>
@@ -256,7 +201,7 @@ export default function ArusKas() {
             {/* Transactions Table */}
             <TransaksiTable
               data={filteredTransactions}
-              onView={handleViewTransaction}
+              onView={handleDetailView}
               onEdit={handleEditTransaction}
               onDelete={handleDeletePrompt}
             />
@@ -283,7 +228,7 @@ export default function ArusKas() {
                 <p className="text-sm text-muted-foreground mt-1">
                   Periode: {
                     dateRange?.from && dateRange?.to ?
-                    `${format(dateRange.from, 'dd MMM yyyy', { locale: id })} - ${format(dateRange.to, 'dd MMM yyyy', { locale: id })}` :
+                    `${format(dateRange.from, 'dd MMM yyyy', { locale: idLocale })} - ${format(dateRange.to, 'dd MMM yyyy', { locale: idLocale })}` :
                     'Semua waktu'
                   }
                 </p>
@@ -293,7 +238,7 @@ export default function ArusKas() {
             {/* Transactions Table */}
             <TransaksiTable
               data={filteredTransactions}
-              onView={handleViewTransaction}
+              onView={handleDetailView}
               onEdit={handleEditTransaction}
               onDelete={handleDeletePrompt}
             />
