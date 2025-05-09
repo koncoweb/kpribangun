@@ -15,6 +15,15 @@ export const formatCurrency = (amount: number, includeSymbol = true): string => 
 };
 
 /**
+ * Format a number with thousand separators
+ * @param value number to format
+ * @returns formatted number string
+ */
+export const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat('id-ID').format(value);
+};
+
+/**
  * Format a date string to Indonesian format
  * @param dateString ISO date string
  * @param format format type ('short', 'medium', 'long', 'full')
@@ -38,5 +47,5 @@ export const formatDate = (dateString: string, format: 'short' | 'medium' | 'lon
     options.minute = '2-digit';
   }
   
-  return new Intl.DateTimeFormatter('id-ID', options).format(date);
+  return new Intl.DateTimeFormat('id-ID', options).format(date);
 };

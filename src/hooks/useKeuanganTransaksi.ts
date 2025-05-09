@@ -100,11 +100,23 @@ export function useKeuanganTransaksi(initialJenis: "Pemasukan" | "Pengeluaran" =
           return null;
         }
       } else {
+        // Create new transaction - ensure required fields are present
+        if (!transaction.tanggal || !transaction.kategori || transaction.jumlah === undefined) {
+          toast.error("Data transaksi tidak lengkap");
+          return null;
+        }
+        
         // Create new transaction
-        const created = createPemasukanPengeluaran({
-          ...transaction,
-          createdBy: 'user_1' // Normally this would come from auth context
-        });
+        const newTransaction = {
+          tanggal: transaction.tanggal,
+          kategori: transaction.kategori,
+          jumlah: transaction.jumlah,
+          keterangan: transaction.keterangan || "",
+          jenis: transaction.jenis,
+          createdBy: transaction.createdBy || 'user_1' // Default if not provided
+        };
+        
+        const created = createPemasukanPengeluaran(newTransaction);
         toast.success("Transaksi berhasil disimpan");
         loadTransactions(transaction.jenis);
         return created;

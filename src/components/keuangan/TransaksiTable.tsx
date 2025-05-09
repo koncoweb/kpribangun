@@ -20,6 +20,7 @@ import {
   FileUp,
   FileDown
 } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
 
 interface TransaksiTableProps {
   data: PemasukanPengeluaran[];
@@ -34,16 +35,6 @@ export default function TransaksiTable({
   onEdit,
   onDelete
 }: TransaksiTableProps) {
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(amount);
-  };
-
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
