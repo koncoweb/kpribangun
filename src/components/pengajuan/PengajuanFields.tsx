@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,10 +12,9 @@ import {
 import { 
   getSimpananCategories, 
   getPinjamanCategories,
-  SimpananCategory,
-  PinjamanCategory
 } from "@/services/transaksi/categories";
 import { getPengaturan } from "@/services/pengaturanService";
+import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 
 interface PengajuanFieldsProps {
   jenis: "Simpan" | "Pinjam";
@@ -36,6 +36,50 @@ export function PengajuanFields({
   const simpananCategories = getSimpananCategories();
   const pinjamanCategories = getPinjamanCategories();
   const pengaturan = getPengaturan();
+  const [formattedJumlah, setFormattedJumlah] = useState<string>("");
+
+  // Initialize formatted amount when component loads or jumlah changes from outside
+  useEffect(() => {
+    if (jumlah) {
+      setFormattedJumlah(formatNumberInput(jumlah));
+    } else {
+      setFormattedJumlah("");
+    }
+  }, [jumlah]);
+
+  // Handle the input change with formatting
+  const handleJumlahChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Remove any non-numeric characters for processing
+    const numericValue = inputValue.replace(/[^\d]/g, '');
+    
+    if (!numericValue) {
+      setFormattedJumlah("");
+      
+      // Create a synthetic event with value 0
+      const syntheticEvent = {
+        ...e,
+        target: { ...e.target, value: "0" }
+      } as React.ChangeEvent<HTMLInputElement>;
+      
+      onJumlahChange(syntheticEvent);
+      return;
+    }
+    
+    // Format the value with thousand separators
+    const formatted = formatNumberInput(numericValue);
+    setFormattedJumlah(formatted);
+    
+    // Create a synthetic event with the cleaned numeric value
+    const numericAmount = cleanNumberInput(formatted);
+    const syntheticEvent = {
+      ...e,
+      target: { ...e.target, value: String(numericAmount) }
+    } as React.ChangeEvent<HTMLInputElement>;
+    
+    onJumlahChange(syntheticEvent);
+  };
 
   // Helper function to display interest rate for pinjaman categories
   const getInterestRateForCategory = (category: string): string => {
@@ -103,15 +147,13 @@ export function PengajuanFields({
         <Label htmlFor="jumlah" className="required">Jumlah (Rp)</Label>
         <Input 
           id="jumlah" 
-          placeholder="Contoh: 500000" 
-          type="number" 
-          min="0" 
-          value={jumlah || ""}
-          onChange={onJumlahChange}
+          placeholder="Contoh: 500.000" 
+          value={formattedJumlah}
+          onChange={handleJumlahChange}
           required 
         />
         <p className="text-muted-foreground text-xs mt-1">
-          Masukkan jumlah tanpa titik atau koma. Contoh: 500000 untuk Rp 500,000
+          Masukkan jumlah tanpa titik atau koma, pemisah ribuan akan otomatis ditampilkan
         </p>
       </div>
     </>

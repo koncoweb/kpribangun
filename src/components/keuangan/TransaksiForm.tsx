@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { PemasukanPengeluaran, KategoriTransaksi } from '@/types';
 import { getAllKategoriTransaksi, createPemasukanPengeluaran, updatePemasukanPengeluaran } from '@/services/keuanganService';
+import { formatNumberInput, cleanNumberInput } from '@/utils/formatters';
 
 // Define form schema
 const formSchema = z.object({
@@ -39,6 +40,7 @@ interface TransaksiFormProps {
 export default function TransaksiForm({ initialData, onSuccess, onCancel }: TransaksiFormProps) {
   const [categories, setCategories] = useState<KategoriTransaksi[]>([]);
   const [filePreview, setFilePreview] = useState<string | null>(initialData?.bukti || null);
+  const [formattedJumlah, setFormattedJumlah] = useState<string>("");
   const isEdit = !!initialData;
   
   // Initialize form with data if editing
@@ -53,6 +55,16 @@ export default function TransaksiForm({ initialData, onSuccess, onCancel }: Tran
       bukti: initialData?.bukti || ''
     }
   });
+
+  // Update formatted amount when form values change
+  useEffect(() => {
+    const amount = form.watch('jumlah');
+    if (amount) {
+      setFormattedJumlah(formatNumberInput(amount));
+    } else {
+      setFormattedJumlah("");
+    }
+  }, [form.watch('jumlah')]);
   
   // Load categories on component mount
   useEffect(() => {
@@ -64,6 +76,28 @@ export default function TransaksiForm({ initialData, onSuccess, onCancel }: Tran
   const filteredCategories = categories.filter(cat => 
     cat.jenis === form.watch('jenis')
   );
+  
+  // Handle amount input with formatting
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Remove any non-numeric characters
+    const numericValue = inputValue.replace(/[^\d]/g, '');
+    
+    if (!numericValue) {
+      setFormattedJumlah("");
+      form.setValue('jumlah', 0);
+      return;
+    }
+    
+    // Format the value with thousand separators
+    const formatted = formatNumberInput(numericValue);
+    setFormattedJumlah(formatted);
+    
+    // Update the form value with the cleaned numeric value
+    const numericAmount = cleanNumberInput(formatted);
+    form.setValue('jumlah', numericAmount);
+  };
   
   // Handle file upload
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,8 +257,15 @@ export default function TransaksiForm({ initialData, onSuccess, onCancel }: Tran
                 <FormItem>
                   <FormLabel>Jumlah (Rp)</FormLabel>
                   <FormControl>
-                    <Input {...field} type="number" min="0" step="1000" />
+                    <Input 
+                      value={formattedJumlah} 
+                      onChange={handleAmountChange}
+                      placeholder="Contoh: 1.000.000"
+                    />
                   </FormControl>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Masukkan jumlah tanpa titik atau koma, pemisah ribuan akan otomatis ditampilkan
+                  </p>
                   <FormMessage />
                 </FormItem>
               )}

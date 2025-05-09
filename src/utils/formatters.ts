@@ -24,6 +24,45 @@ export const formatNumber = (value: number): string => {
 };
 
 /**
+ * Format a number input with thousand separators
+ * @param value the input value to format
+ * @returns formatted string for display
+ */
+export const formatNumberInput = (value: string | number): string => {
+  if (value === null || value === undefined || value === '') {
+    return '';
+  }
+  
+  // Convert to string and remove any non-numeric characters except decimal point
+  const numericString = typeof value === 'string' 
+    ? value.replace(/[^\d]/g, '') 
+    : String(value).replace(/[^\d]/g, '');
+  
+  if (!numericString) return '';
+  
+  // Parse the numeric string to a number
+  const numericValue = parseInt(numericString, 10);
+  
+  if (isNaN(numericValue)) return '';
+  
+  // Format with thousand separators
+  return new Intl.NumberFormat('id-ID').format(numericValue);
+};
+
+/**
+ * Clean formatted number input to get raw numeric value
+ * @param formattedValue formatted string input with separators
+ * @returns cleaned numeric value as number
+ */
+export const cleanNumberInput = (formattedValue: string): number => {
+  // Remove all non-digit characters
+  const cleanValue = formattedValue.replace(/[^\d]/g, '');
+  
+  // Parse to number, default to 0 if invalid
+  return cleanValue ? parseInt(cleanValue, 10) : 0;
+};
+
+/**
  * Format a date string to Indonesian format
  * @param dateString ISO date string
  * @param format format type ('short', 'medium', 'long', 'full')

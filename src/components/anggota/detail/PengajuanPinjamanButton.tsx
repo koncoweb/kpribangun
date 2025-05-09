@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { createPengajuan } from "@/services/pengajuanService";
 import { getPinjamanCategories } from "@/services/transaksi/categories";
 import { getPengaturan } from "@/services/pengaturanService";
+import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 
 interface PengajuanPinjamanButtonProps {
   anggotaId: string;
@@ -44,9 +45,43 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
     kategori: pinjamanCategories[0]
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const [formattedJumlah, setFormattedJumlah] = useState('');
+
+  // Update formatted amount when raw amount changes
+  useEffect(() => {
+    if (formData.jumlah) {
+      setFormattedJumlah(formatNumberInput(formData.jumlah));
+    } else {
+      setFormattedJumlah('');
+    }
+  }, [formData.jumlah]);
+
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleJumlahChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Remove any non-numeric characters
+    const numericValue = inputValue.replace(/[^\d]/g, '');
+    
+    if (!numericValue) {
+      setFormattedJumlah('');
+      setFormData(prev => ({ ...prev, jumlah: '' }));
+      return;
+    }
+    
+    // Format with thousand separators
+    const formatted = formatNumberInput(numericValue);
+    setFormattedJumlah(formatted);
+    
+    // Store the cleaned numeric value in state
+    setFormData(prev => ({ 
+      ...prev, 
+      jumlah: String(cleanNumberInput(formatted))
+    }));
   };
 
   const handleCategoryChange = (kategori: string) => {
@@ -98,6 +133,7 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
           keterangan: '', 
           kategori: pinjamanCategories[0] 
         });
+        setFormattedJumlah('');
       } else {
         throw new Error("Gagal membuat pengajuan");
       }
@@ -165,13 +201,14 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
               <Input
                 id="jumlah"
                 name="jumlah"
-                placeholder="Contoh: 5000000"
-                value={formData.jumlah}
-                onChange={handleInputChange}
-                type="number"
-                min="0"
+                placeholder="Contoh: 5.000.000"
+                value={formattedJumlah}
+                onChange={handleJumlahChange}
                 required
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Masukkan jumlah tanpa titik atau koma, pemisah ribuan akan otomatis ditampilkan
+              </p>
             </div>
             
             <div className="grid w-full items-center gap-2">
@@ -181,7 +218,7 @@ export function PengajuanPinjamanButton({ anggotaId, anggotaNama }: PengajuanPin
                 name="keterangan"
                 placeholder="Tujuan pinjaman (opsional)"
                 value={formData.keterangan}
-                onChange={handleInputChange}
+                onChange={handleTextareaChange}
                 rows={3}
               />
             </div>
