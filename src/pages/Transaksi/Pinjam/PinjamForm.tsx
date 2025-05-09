@@ -1,12 +1,12 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { getAllAnggota } from "@/services/anggotaService";
-import { PinjamanForm } from "@/components/transaksi/PinjamanForm";
+import { PinjamanForm } from "@/components/transaksi/pinjaman-form";
 
 export default function SimplePinjamForm() {
   const [anggotaList, setAnggotaList] = useState([]);
