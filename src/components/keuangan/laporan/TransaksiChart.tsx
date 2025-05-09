@@ -37,6 +37,11 @@ export default function TransaksiChart({
   chartType = 'bar',
   height = 300
 }: TransaksiChartProps) {
+  // Create a chart-compatible formatter function that adapts our formatCurrency
+  const chartCurrencyFormatter = (value: number, name?: string) => {
+    return formatCurrency(value);
+  };
+  
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -66,7 +71,7 @@ export default function TransaksiChart({
                       : value.toString()
                   }
                 />
-                <ChartTooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
+                <ChartTooltip content={<ChartTooltipContent formatter={chartCurrencyFormatter} />} />
                 <Bar dataKey="pemasukan" fill={COLORS.pemasukan} />
                 <Bar dataKey="pengeluaran" fill={COLORS.pengeluaran} />
                 {showLegend && <ChartLegend content={<ChartLegendContent />} />}
@@ -87,7 +92,7 @@ export default function TransaksiChart({
                       : value.toString()
                   }
                 />
-                <ChartTooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
+                <ChartTooltip content={<ChartTooltipContent formatter={chartCurrencyFormatter} />} />
                 <Line 
                   type="monotone" 
                   dataKey="pemasukan" 
