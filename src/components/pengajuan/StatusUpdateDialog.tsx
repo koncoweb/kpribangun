@@ -24,13 +24,21 @@ interface StatusUpdateDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: (status: "Menunggu" | "Disetujui" | "Ditolak") => void;
   currentStatus: string;
+  title?: string; // Added to match the usage in PengajuanTable
+  description?: string; // Added to match the usage in PengajuanTable
+  confirmLabel?: string; // Added to match the usage in PengajuanTable
+  confirmVariant?: string; // Added to match the usage in PengajuanTable
 }
 
 export function StatusUpdateDialog({
   open,
   onOpenChange,
   onConfirm,
-  currentStatus
+  currentStatus,
+  title = "Ubah Status Pengajuan",
+  description = "Pilih status baru untuk pengajuan ini.",
+  confirmLabel = "Simpan Perubahan",
+  confirmVariant = "default"
 }: StatusUpdateDialogProps) {
   const [selectedStatus, setSelectedStatus] = useState<"Menunggu" | "Disetujui" | "Ditolak">(
     currentStatus as "Menunggu" | "Disetujui" | "Ditolak"
@@ -44,9 +52,9 @@ export function StatusUpdateDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Ubah Status Pengajuan</AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
-            Pilih status baru untuk pengajuan ini.
+            {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
         
@@ -75,8 +83,11 @@ export function StatusUpdateDialog({
         
         <AlertDialogFooter>
           <AlertDialogCancel>Batal</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm}>
-            Simpan Perubahan
+          <AlertDialogAction 
+            onClick={handleConfirm}
+            className={confirmVariant === "destructive" ? "bg-red-600 hover:bg-red-700" : ""}
+          >
+            {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { 
   Table, 
@@ -25,6 +24,7 @@ import {
   approvePengajuan, 
   rejectPengajuan 
 } from "@/services/pengajuanService";
+import { Pengajuan } from "@/types"; // Import Pengajuan from types instead
 import { DeletePengajuanDialog } from "./DeletePengajuanDialog";
 import { StatusUpdateDialog } from "./StatusUpdateDialog";
 
@@ -281,22 +281,24 @@ export default function PengajuanTable({ data, onDataChange }: PengajuanTablePro
       
       {/* Approve Confirmation Dialog */}
       <StatusUpdateDialog
-        title="Setujui Pengajuan"
-        description="Pengajuan yang disetujui akan diubah statusnya menjadi 'Disetujui' dan akan otomatis membuat transaksi baru. Apakah Anda yakin?"
+        currentStatus="Menunggu"
         open={isApproveDialogOpen}
         onOpenChange={setIsApproveDialogOpen}
         onConfirm={handleApproveConfirm}
+        title="Setujui Pengajuan"
+        description="Pengajuan yang disetujui akan diubah statusnya menjadi 'Disetujui' dan akan otomatis membuat transaksi baru. Apakah Anda yakin?"
         confirmLabel="Setujui"
         confirmVariant="default"
       />
       
       {/* Reject Confirmation Dialog */}
       <StatusUpdateDialog
-        title="Tolak Pengajuan"
-        description="Pengajuan yang ditolak akan diubah statusnya menjadi 'Ditolak'. Apakah Anda yakin?"
+        currentStatus="Menunggu"
         open={isRejectDialogOpen}
         onOpenChange={setIsRejectDialogOpen}
         onConfirm={handleRejectConfirm}
+        title="Tolak Pengajuan"
+        description="Pengajuan yang ditolak akan diubah statusnya menjadi 'Ditolak'. Apakah Anda yakin?"
         confirmLabel="Tolak"
         confirmVariant="destructive"
       />

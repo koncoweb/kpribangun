@@ -10,6 +10,7 @@ export interface Anggota {
   agama: string;
   status: string;
   unitKerja: string; // Changed from array to single string for single select
+  pekerjaan?: string; // Added missing pekerjaan property
   tanggalBergabung?: string;
   foto?: string;
   email: string;
