@@ -134,6 +134,34 @@ export default function PengajuanDetail() {
     );
   }
 
+  // Get dialog title and description based on status
+  const getStatusDialogProps = () => {
+    if (newStatus === "Disetujui") {
+      return {
+        title: "Setujui Pengajuan",
+        description: "Pengajuan yang disetujui akan diubah statusnya menjadi 'Disetujui' dan akan otomatis membuat transaksi baru. Apakah Anda yakin?",
+        confirmLabel: "Setujui",
+        confirmVariant: "default"
+      };
+    } else if (newStatus === "Ditolak") {
+      return {
+        title: "Tolak Pengajuan",
+        description: "Pengajuan yang ditolak akan diubah statusnya menjadi 'Ditolak'. Apakah Anda yakin?",
+        confirmLabel: "Tolak",
+        confirmVariant: "destructive"
+      };
+    } else {
+      return {
+        title: "Ubah Status Pengajuan",
+        description: "Pilih status baru untuk pengajuan ini.",
+        confirmLabel: "Simpan Perubahan",
+        confirmVariant: "default"
+      };
+    }
+  };
+
+  const statusDialogProps = getStatusDialogProps();
+
   return (
     <Layout pageTitle="Detail Pengajuan">
       <PengajuanHeader 
@@ -180,7 +208,11 @@ export default function PengajuanDetail() {
         open={isStatusDialogOpen}
         onOpenChange={setIsStatusDialogOpen}
         onConfirm={handleUpdateStatus}
-        currentStatus={pengajuan.status}
+        currentStatus={pengajuan.status as "Menunggu" | "Disetujui" | "Ditolak"}
+        title={statusDialogProps.title}
+        description={statusDialogProps.description}
+        confirmLabel={statusDialogProps.confirmLabel}
+        confirmVariant={statusDialogProps.confirmVariant}
       />
     </Layout>
   );
