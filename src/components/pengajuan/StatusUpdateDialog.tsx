@@ -24,10 +24,10 @@ interface StatusUpdateDialogProps {
   onOpenChange: (open: boolean) => void;
   onConfirm: (status: "Menunggu" | "Disetujui" | "Ditolak") => void;
   currentStatus: string;
-  title?: string; // Added to match the usage in PengajuanTable
-  description?: string; // Added to match the usage in PengajuanTable
-  confirmLabel?: string; // Added to match the usage in PengajuanTable
-  confirmVariant?: string; // Added to match the usage in PengajuanTable
+  title: string;
+  description: string;
+  confirmLabel: string;
+  confirmVariant: string;
 }
 
 export function StatusUpdateDialog({

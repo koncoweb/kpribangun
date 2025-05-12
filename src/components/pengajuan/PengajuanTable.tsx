@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { 
   Table, 
@@ -7,25 +8,16 @@ import {
   TableBody, 
   TableCell 
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
 import { 
   deletePengajuan, 
   approvePengajuan, 
   rejectPengajuan 
 } from "@/services/pengajuanService";
-import { Pengajuan } from "@/types"; // Import Pengajuan type only from types
-import { DeletePengajuanDialog } from "./DeletePengajuanDialog";
-import { StatusUpdateDialog } from "./StatusUpdateDialog";
+import { Pengajuan } from "@/types";
+import { PengajuanTableRow } from "./PengajuanTableRow";
+import { PengajuanDialogs } from "./PengajuanDialogs";
 
 interface PengajuanTableProps {
   data: Pengajuan[];
@@ -40,23 +32,6 @@ export default function PengajuanTable({ data, onDataChange }: PengajuanTablePro
   const [isApproveDialogOpen, setIsApproveDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
-  };
-  
-  const getBadgeColor = (status: string) => {
-    switch (status) {
-      case "Menunggu": return "bg-yellow-100 text-yellow-800";
-      case "Disetujui": return "bg-green-100 text-green-800";
-      case "Ditolak": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
   const handleViewPengajuan = (pengajuan: Pengajuan) => {
     navigate(`/transaksi/pengajuan/${pengajuan.id}`);
   };
@@ -198,108 +173,32 @@ export default function PengajuanTable({ data, onDataChange }: PengajuanTablePro
               </TableRow>
             ) : (
               data.map((pengajuan) => (
-                <TableRow key={pengajuan.id}>
-                  <TableCell className="font-medium">{pengajuan.id}</TableCell>
-                  <TableCell>{formatDate(pengajuan.tanggal)}</TableCell>
-                  <TableCell>{pengajuan.anggotaNama}</TableCell>
-                  <TableCell>{pengajuan.jenis}</TableCell>
-                  <TableCell>{pengajuan.kategori}</TableCell>
-                  <TableCell className="text-right">
-                    Rp {pengajuan.jumlah.toLocaleString("id-ID")}
-                  </TableCell>
-                  <TableCell>
-                    <Badge 
-                      variant="outline" 
-                      className={getBadgeColor(pengajuan.status)}
-                    >
-                      {pengajuan.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem 
-                          onClick={() => handleViewPengajuan(pengajuan)}
-                          className="flex items-center gap-2"
-                        >
-                          <Eye size={16} /> Lihat Detail
-                        </DropdownMenuItem>
-                        
-                        {pengajuan.status === "Menunggu" && (
-                          <>
-                            <DropdownMenuItem 
-                              onClick={() => handleEditPengajuan(pengajuan)}
-                              className="flex items-center gap-2"
-                            >
-                              <Pencil size={16} /> Edit
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem 
-                              onClick={() => handleApproveClick(pengajuan)}
-                              className="flex items-center gap-2 text-green-600"
-                            >
-                              <CheckCircle size={16} /> Setujui
-                            </DropdownMenuItem>
-                            
-                            <DropdownMenuItem 
-                              onClick={() => handleRejectClick(pengajuan)}
-                              className="flex items-center gap-2 text-amber-600"
-                            >
-                              <XCircle size={16} /> Tolak
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                        
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteClick(pengajuan)}
-                          className="flex items-center gap-2 text-red-600"
-                        >
-                          <Trash2 size={16} /> Hapus
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                <PengajuanTableRow
+                  key={pengajuan.id}
+                  pengajuan={pengajuan}
+                  onView={handleViewPengajuan}
+                  onEdit={handleEditPengajuan}
+                  onApprove={handleApproveClick}
+                  onReject={handleRejectClick}
+                  onDelete={handleDeleteClick}
+                />
               ))
             )}
           </TableBody>
         </Table>
       </div>
       
-      {/* Delete Confirmation Dialog */}
-      <DeletePengajuanDialog
-        open={isDeleteDialogOpen}
-        onOpenChange={setIsDeleteDialogOpen}
-        onConfirm={handleDeleteConfirm}
-      />
-      
-      {/* Approve Confirmation Dialog */}
-      <StatusUpdateDialog
-        currentStatus="Menunggu"
-        open={isApproveDialogOpen}
-        onOpenChange={setIsApproveDialogOpen}
-        onConfirm={handleApproveConfirm}
-        title="Setujui Pengajuan"
-        description="Pengajuan yang disetujui akan diubah statusnya menjadi 'Disetujui' dan akan otomatis membuat transaksi baru. Apakah Anda yakin?"
-        confirmLabel="Setujui"
-        confirmVariant="default"
-      />
-      
-      {/* Reject Confirmation Dialog */}
-      <StatusUpdateDialog
-        currentStatus="Menunggu"
-        open={isRejectDialogOpen}
-        onOpenChange={setIsRejectDialogOpen}
-        onConfirm={handleRejectConfirm}
-        title="Tolak Pengajuan"
-        description="Pengajuan yang ditolak akan diubah statusnya menjadi 'Ditolak'. Apakah Anda yakin?"
-        confirmLabel="Tolak"
-        confirmVariant="destructive"
+      <PengajuanDialogs
+        selectedPengajuan={selectedPengajuan}
+        isDeleteDialogOpen={isDeleteDialogOpen}
+        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+        isApproveDialogOpen={isApproveDialogOpen}
+        setIsApproveDialogOpen={setIsApproveDialogOpen}
+        isRejectDialogOpen={isRejectDialogOpen}
+        setIsRejectDialogOpen={setIsRejectDialogOpen}
+        onDeleteConfirm={handleDeleteConfirm}
+        onApproveConfirm={handleApproveConfirm}
+        onRejectConfirm={handleRejectConfirm}
       />
     </>
   );
