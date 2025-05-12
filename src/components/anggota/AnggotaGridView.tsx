@@ -83,8 +83,8 @@ export function AnggotaGridView({
                 <div className="flex items-center space-x-2">
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-muted-foreground">NIK</p>
-                    <p className="text-sm font-medium truncate">{item.nik}</p>
+                    <p className="text-xs text-muted-foreground">NIP</p>
+                    <p className="text-sm font-medium truncate">{item.nip}</p>
                   </div>
                 </div>
                 

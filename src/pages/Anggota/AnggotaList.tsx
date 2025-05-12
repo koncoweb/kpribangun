@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -53,14 +52,14 @@ export default function AnggotaList() {
   const [columns, setColumns] = useState([
     { id: "id", label: "ID", isVisible: true },
     { id: "nama", label: "Nama", isVisible: true },
-    { id: "nik", label: "NIK", isVisible: true },
+    { id: "nip", label: "NIP", isVisible: true },
     { id: "noHp", label: "No HP", isVisible: true },
     { id: "jenisKelamin", label: "Jenis Kelamin", isVisible: true },
     { id: "pekerjaan", label: "Pekerjaan", isVisible: true },
     { id: "simpanan", label: "Simpanan", isVisible: true },
     { id: "pinjaman", label: "Pinjaman", isVisible: true },
-    { id: "shu", label: "SHU", isVisible: true }, // Add SHU column
-    { id: "petugas", label: "Petugas", isVisible: true }, // Add Petugas column
+    { id: "shu", label: "SHU", isVisible: true },
+    { id: "petugas", label: "Petugas", isVisible: true },
   ]);
   
   useEffect(() => {
@@ -133,7 +132,7 @@ export default function AnggotaList() {
   const filteredAnggota = anggotaList.filter(anggota => 
     anggota.nama.toLowerCase().includes(searchQuery.toLowerCase()) || 
     anggota.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    anggota.nik.includes(searchQuery)
+    anggota.nip.includes(searchQuery)
   );
 
   return (
@@ -153,7 +152,7 @@ export default function AnggotaList() {
             <div className="relative flex-1 min-w-[200px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
               <Input 
-                placeholder="Cari berdasarkan nama, ID, atau NIK..." 
+                placeholder="Cari berdasarkan nama, ID, atau NIP..." 
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -209,7 +208,7 @@ export default function AnggotaList() {
                       <TableRow key={anggota.id}>
                         {columns[0].isVisible && <TableCell className="font-medium">{anggota.id}</TableCell>}
                         {columns[1].isVisible && <TableCell>{anggota.nama}</TableCell>}
-                        {columns[2].isVisible && <TableCell>{anggota.nik}</TableCell>}
+                        {columns[2].isVisible && <TableCell>{anggota.nip}</TableCell>}
                         {columns[3].isVisible && <TableCell>{anggota.noHp}</TableCell>}
                         {columns[4].isVisible && <TableCell>{anggota.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</TableCell>}
                         {columns[5].isVisible && <TableCell>{anggota.pekerjaan}</TableCell>}
