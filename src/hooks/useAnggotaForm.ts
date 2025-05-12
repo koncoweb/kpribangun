@@ -25,6 +25,7 @@ export const useAnggotaForm = () => {
   const {
     handleChange,
     handleSelectChange,
+    handleUnitKerjaChange, // Added new handler
     handleImageChange,
     handleDokumenChange,
     handleKeluargaChange,
@@ -57,6 +58,7 @@ export const useAnggotaForm = () => {
     isFormDirty,
     handleChange,
     handleSelectChange,
+    handleUnitKerjaChange, // Added new handler
     handleImageChange,
     handleDokumenChange,
     handleKeluargaChange,

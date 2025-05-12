@@ -9,16 +9,17 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0001", 
     nama: "Budi Santoso", 
-    nik: "3201011001800001",
+    nip: "197201011998031001", // Changed to NIP format
     alamat: "Jl. Merdeka No. 123, Jakarta",
     noHp: "081234567890",
     jenisKelamin: "L",
     agama: "Islam",
     pekerjaan: "PNS",
-    status: "active", // Adding status field
-    tanggalBergabung: "2023-01-15", // Adding tanggalBergabung field
+    status: "active",
+    unitKerja: ["SDN Jatilor 01"], // Added unitKerja
+    tanggalBergabung: "2023-01-15",
     foto: null,
-    email: "budi.santoso@example.com", // Added email field
+    email: "budi.santoso@example.com",
     dokumen: [],
     keluarga: [],
     createdAt: new Date().toISOString(),
@@ -27,16 +28,17 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0002", 
     nama: "Dewi Lestari", 
-    nik: "3201012002800002",
+    nip: "198505122005042002", // Changed to NIP format
     alamat: "Jl. Pahlawan No. 45, Bandung",
     noHp: "081234567891",
     jenisKelamin: "P",
     agama: "Kristen",
     pekerjaan: "Guru",
     status: "active",
+    unitKerja: ["SDN Bringin", "SDN Klampok 01"], // Added multiple unitKerja
     tanggalBergabung: "2023-02-20",
     foto: null,
-    email: "dewi.lestari@example.com", // Added email field
+    email: "dewi.lestari@example.com",
     dokumen: [],
     keluarga: [],
     createdAt: new Date().toISOString(),
@@ -45,16 +47,17 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0003", 
     nama: "Ahmad Hidayat", 
-    nik: "3201013003800003",
+    nip: "198107182008011003", // Changed to NIP format
     alamat: "Jl. Sudirman No. 78, Surabaya",
     noHp: "081234567892",
     jenisKelamin: "L",
     agama: "Islam",
     pekerjaan: "Wiraswasta",
     status: "active",
+    unitKerja: ["SDN Jatilor 01", "SDN Bringin"], // Added multiple unitKerja
     tanggalBergabung: "2023-03-10",
     foto: null,
-    email: "ahmad.hidayat@example.com", // Added email field
+    email: "ahmad.hidayat@example.com",
     dokumen: [],
     keluarga: [],
     createdAt: new Date().toISOString(),
@@ -63,16 +66,17 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0004", 
     nama: "Sri Wahyuni", 
-    nik: "3201014004800004",
+    nip: "199206152015032004", // Changed to NIP format
     alamat: "Jl. Gatot Subroto No. 55, Medan",
     noHp: "081234567893",
     jenisKelamin: "P",
     agama: "Hindu",
     pekerjaan: "Dosen",
     status: "active",
+    unitKerja: ["SDN Klampok 01"], // Added unitKerja
     tanggalBergabung: "2023-04-05",
     foto: null,
-    email: "sri.wahyuni@example.com", // Added email field
+    email: "sri.wahyuni@example.com",
     dokumen: [],
     keluarga: [],
     createdAt: new Date().toISOString(),
@@ -81,16 +85,17 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0005", 
     nama: "Agus Setiawan", 
-    nik: "3201015005800005",
+    nip: "198903042010011008", // Changed to NIP format
     alamat: "Jl. Ahmad Yani No. 12, Semarang",
     noHp: "081234567894",
     jenisKelamin: "L",
     agama: "Katolik",
     pekerjaan: "Pedagang",
     status: "active",
+    unitKerja: [], // Empty unitKerja
     tanggalBergabung: "2023-05-15",
     foto: null,
-    email: "agus.setiawan@example.com", // Added email field
+    email: "agus.setiawan@example.com",
     dokumen: [],
     keluarga: [],
     createdAt: new Date().toISOString(),

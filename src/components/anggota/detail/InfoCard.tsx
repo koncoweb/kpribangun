@@ -16,8 +16,8 @@ export function InfoCard({ anggota }: InfoCardProps) {
         <div className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <h3 className="text-sm font-medium mb-1">NIK</h3>
-              <p>{anggota.nik}</p>
+              <h3 className="text-sm font-medium mb-1">NIP</h3>
+              <p>{anggota.nip}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium mb-1">Jenis Kelamin</h3>
@@ -32,6 +32,22 @@ export function InfoCard({ anggota }: InfoCardProps) {
           <div>
             <h3 className="text-sm font-medium mb-1">Pekerjaan</h3>
             <p>{anggota.pekerjaan}</p>
+          </div>
+          
+          {/* Added Unit Kerja section */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Unit Kerja</h3>
+            <div className="flex flex-wrap gap-2">
+              {anggota.unitKerja && anggota.unitKerja.length > 0 ? (
+                anggota.unitKerja.map((unit) => (
+                  <Badge key={unit} variant="outline" className="py-1">
+                    {unit}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-muted-foreground">Tidak ada unit kerja</span>
+              )}
+            </div>
           </div>
           
           <div>

@@ -15,14 +15,15 @@ export const useAnggotaFormState = () => {
   // Form state with properly typed jenisKelamin and added email field
   const [formData, setFormData] = useState({
     nama: "",
-    nik: "",
+    nip: "", // Changed from nik to nip
     alamat: "",
     noHp: "",
     jenisKelamin: "L" as "L" | "P", 
     agama: "",
     pekerjaan: "",
     foto: "",
-    email: "" // Added email field
+    email: "",
+    unitKerja: [] as string[] // Added unitKerja field
   });
   
   const [dokumen, setDokumen] = useState<AnggotaDokumen[]>([]);
@@ -40,14 +41,15 @@ export const useAnggotaFormState = () => {
         if (anggota) {
           setFormData({
             nama: anggota.nama,
-            nik: anggota.nik,
+            nip: anggota.nip, // Changed from nik to nip
             alamat: anggota.alamat,
             noHp: anggota.noHp,
             jenisKelamin: anggota.jenisKelamin,
             agama: anggota.agama,
             pekerjaan: anggota.pekerjaan,
             foto: anggota.foto || "",
-            email: anggota.email || "" // Handle email property
+            email: anggota.email || "",
+            unitKerja: anggota.unitKerja || [] // Added unitKerja field
           });
           
           if (anggota.foto) {

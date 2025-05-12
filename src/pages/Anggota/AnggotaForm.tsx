@@ -19,6 +19,7 @@ export default function AnggotaForm() {
     isFormDirty,
     handleChange,
     handleSelectChange,
+    handleUnitKerjaChange, // Added new handler
     handleImageChange,
     handleDokumenChange,
     handleKeluargaChange,
@@ -53,6 +54,7 @@ export default function AnggotaForm() {
             isEditMode={isEditMode}
             onInputChange={handleChange}
             onSelectChange={handleSelectChange}
+            onUnitKerjaChange={handleUnitKerjaChange} // Added new handler
           />
         </div>
         

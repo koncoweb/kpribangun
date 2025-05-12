@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { createAnggota, updateAnggota } from "@/services/anggotaService";
@@ -5,14 +6,15 @@ import { AnggotaKeluarga, AnggotaDokumen } from "@/types";
 
 interface FormData {
   nama: string;
-  nik: string;
+  nip: string; // Changed from nik to nip
   alamat: string;
   noHp: string;
   jenisKelamin: "L" | "P";
   agama: string;
   pekerjaan: string;
   foto: string;
-  email: string; // Added email field
+  email: string;
+  unitKerja: string[]; // Added unitKerja field
 }
 
 interface HandlerParams {
@@ -70,6 +72,12 @@ export const useAnggotaFormHandlers = ({
     setIsFormDirty(true);
   };
   
+  // Add handler for unitKerja multi-select
+  const handleUnitKerjaChange = (unitKerja: string[]) => {
+    setFormData(prev => ({ ...prev, unitKerja }));
+    setIsFormDirty(true);
+  };
+  
   const handleImageChange = (imageDataUrl: string) => {
     setPreviewImage(imageDataUrl);
     setFormData(prev => ({ ...prev, foto: imageDataUrl }));
@@ -100,7 +108,7 @@ export const useAnggotaFormHandlers = ({
     e.preventDefault();
     
     // Basic validation
-    if (!formData.nama || !formData.nik || !formData.alamat || !formData.noHp || !formData.agama || !formData.pekerjaan) {
+    if (!formData.nama || !formData.nip || !formData.alamat || !formData.noHp || !formData.agama || !formData.pekerjaan) {
       toast({
         title: "Data tidak lengkap",
         description: "Harap lengkapi semua field yang diperlukan",
@@ -116,9 +124,10 @@ export const useAnggotaFormHandlers = ({
         ...formData,
         dokumen,
         keluarga,
-        status: 'active', // Adding the required status field
-        tanggalBergabung: new Date().toISOString(), // Adding the required tanggalBergabung field
-        email: formData.email || `${formData.nama.replace(/\s+/g, '').toLowerCase()}@example.com`, // Ensure email is present
+        status: 'active',
+        tanggalBergabung: new Date().toISOString(),
+        email: formData.email || `${formData.nama.replace(/\s+/g, '').toLowerCase()}@example.com`,
+        unitKerja: formData.unitKerja || [] // Ensure unitKerja is included
       };
       
       if (isEditMode && id) {
@@ -161,6 +170,7 @@ export const useAnggotaFormHandlers = ({
   return {
     handleChange,
     handleSelectChange,
+    handleUnitKerjaChange, // Added new handler
     handleImageChange,
     handleDokumenChange,
     handleKeluargaChange,
