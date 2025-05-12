@@ -19,12 +19,11 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { MoreHorizontal, Pencil, Trash2, Eye, CheckCircle, XCircle } from "lucide-react";
 import { 
-  Pengajuan, 
   deletePengajuan, 
   approvePengajuan, 
   rejectPengajuan 
 } from "@/services/pengajuanService";
-import { Pengajuan } from "@/types"; // Import Pengajuan from types instead
+import { Pengajuan } from "@/types"; // Import Pengajuan type only from types
 import { DeletePengajuanDialog } from "./DeletePengajuanDialog";
 import { StatusUpdateDialog } from "./StatusUpdateDialog";
 
