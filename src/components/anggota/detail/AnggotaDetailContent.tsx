@@ -71,6 +71,14 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
       
       <MainInfoSection anggota={anggota} />
       
+      {/* Moved KeluargaSection up, before FinancialSummaryCards */}
+      <div className="mt-6 mb-6">
+        <KeluargaSection 
+          anggota={anggota} 
+          onAnggotaUpdate={() => {}}
+        />
+      </div>
+      
       <FinancialSummaryCards 
         totalSimpanan={totalSimpanan}
         totalPinjaman={totalPinjaman}
@@ -97,13 +105,6 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
           disableSelfPayment={true} // Disable self-payment option
         />
       )}
-      
-      <div className="mt-6">
-        <KeluargaSection 
-          anggota={anggota} 
-          onAnggotaUpdate={() => {}}
-        />
-      </div>
     </>
   );
 }
