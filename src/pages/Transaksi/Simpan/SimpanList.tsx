@@ -14,26 +14,20 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
-import { Plus, Search, MoreHorizontal, Eye, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Plus, Search } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getAllTransaksi } from "@/services/transaksiService";
 import { getAllAnggota } from "@/services/anggotaService";
 import { TableColumnToggle } from "@/components/ui/table-column-toggle";
 import { Transaksi } from "@/types";
+import { PinjamTableActions } from "@/components/transaksi/PinjamTableActions";
 
 export default function SimpanList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [transaksiList, setTransaksiList] = useState<Transaksi[]>([]);
   const [anggotaList, setAnggotaList] = useState([]);
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   // Column visibility state
@@ -46,13 +40,31 @@ export default function SimpanList() {
     { id: "status", label: "Status", isVisible: true },
   ]);
   
+  // Load transaction data
+  const loadTransaksi = () => {
+    try {
+      const loadedTransaksi = getAllTransaksi().filter(t => t.jenis === "Simpan");
+      setTransaksiList(loadedTransaksi);
+    } catch (error) {
+      console.error("Error loading transactions:", error);
+      toast({
+        title: "Terjadi kesalahan",
+        description: "Gagal memuat data transaksi simpanan",
+        variant: "destructive"
+      });
+    }
+  };
+  
   useEffect(() => {
     // Load data from services
-    const loadedTransaksi = getAllTransaksi().filter(t => t.jenis === "Simpan");
-    const loadedAnggota = getAllAnggota();
+    loadTransaksi();
     
-    setTransaksiList(loadedTransaksi);
-    setAnggotaList(loadedAnggota);
+    try {
+      const loadedAnggota = getAllAnggota();
+      setAnggotaList(loadedAnggota);
+    } catch (error) {
+      console.error("Error loading members:", error);
+    }
   }, []);
   
   const handleToggleColumn = (columnId: string) => {
@@ -153,27 +165,10 @@ export default function SimpanList() {
                         </TableCell>
                       )}
                       <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal size={16} />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem 
-                              onClick={() => navigate(`/transaksi/${transaksi.id}`)}
-                              className="flex items-center gap-2"
-                            >
-                              <Eye size={16} /> Lihat Detail
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => navigate(`/transaksi/${transaksi.id}/cetak`)}
-                              className="flex items-center gap-2"
-                            >
-                              <FileText size={16} /> Cetak Bukti
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <PinjamTableActions
+                          transaksi={transaksi}
+                          onTransaksiModified={loadTransaksi}
+                        />
                       </TableCell>
                     </TableRow>
                   ))

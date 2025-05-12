@@ -1,11 +1,13 @@
+
 import { Transaksi } from "../types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 import { initialTransaksi } from "./transaksi/initialData";
 import { getPengaturan } from "./pengaturanService";
 import { getAnggotaById } from "./anggotaService";
 import { calculateSHU as calculateSHUFromFinancialOperations } from "./transaksi/financialOperations";
-
-const TRANSAKSI_KEY = "koperasi_transaksi";
+import { TRANSAKSI_KEY } from "./transaksi/baseService";
+import { updateTransaksi } from "./transaksi/updateTransaksi";
+import { deleteTransaksi } from "./transaksi/deleteTransaksi";
 
 /**
  * Get all transactions from local storage
@@ -192,41 +194,6 @@ export function calculateSHU(anggotaId: string): number {
   return calculateSHUFromFinancialOperations(anggotaId);
 }
 
-/**
- * Update an existing transaksi
- */
-export function updateTransaksi(id: string, transaksi: Partial<Transaksi>): Transaksi | null {
-  const transaksiList = getAllTransaksi();
-  const index = transaksiList.findIndex(t => t.id === id);
-  
-  if (index === -1) return null;
-  
-  // If anggotaId is being updated, we need to update anggotaNama as well
-  if (transaksi.anggotaId) {
-    const anggota = getAnggotaById(transaksi.anggotaId);
-    if (!anggota) return null;
-    transaksi.anggotaNama = anggota.nama;
-  }
-  
-  transaksiList[index] = {
-    ...transaksiList[index],
-    ...transaksi,
-    updatedAt: new Date().toISOString(),
-  };
-  
-  saveToLocalStorage(TRANSAKSI_KEY, transaksiList);
-  return transaksiList[index];
-}
+// Export the modular functions for updating and deleting transactions
+export { updateTransaksi, deleteTransaksi };
 
-/**
- * Delete a transaksi by ID
- */
-export function deleteTransaksi(id: string): boolean {
-  const transaksiList = getAllTransaksi();
-  const filteredList = transaksiList.filter(transaksi => transaksi.id !== id);
-  
-  if (filteredList.length === transaksiList.length) return false;
-  
-  saveToLocalStorage(TRANSAKSI_KEY, filteredList);
-  return true;
-}

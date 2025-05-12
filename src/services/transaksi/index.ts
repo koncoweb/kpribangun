@@ -4,6 +4,8 @@ export * from './baseService';
 export * from './financialOperations';
 export * from './transaksiCore';
 export * from './utils';
+export * from './updateTransaksi';
+export * from './deleteTransaksi';
 
 // Explicitly re-export specific functions to avoid ambiguity
 export { generateTransaksiId } from './idGenerator';
@@ -26,3 +28,4 @@ export { calculateSHU } from './financialOperations';
 
 // Export category constants
 export * from './categories';
+
