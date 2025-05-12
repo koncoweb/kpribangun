@@ -6,15 +6,14 @@ import { AnggotaKeluarga, AnggotaDokumen } from "@/types";
 
 interface FormData {
   nama: string;
-  nip: string; // Changed from nik to nip
+  nip?: string; // Changed to optional
   alamat: string;
   noHp: string;
   jenisKelamin: "L" | "P";
   agama: string;
-  pekerjaan: string;
   foto: string;
   email: string;
-  unitKerja: string[]; // Added unitKerja field
+  unitKerja: string; // Changed from array to string
 }
 
 interface HandlerParams {
@@ -72,12 +71,6 @@ export const useAnggotaFormHandlers = ({
     setIsFormDirty(true);
   };
   
-  // Add handler for unitKerja multi-select
-  const handleUnitKerjaChange = (unitKerja: string[]) => {
-    setFormData(prev => ({ ...prev, unitKerja }));
-    setIsFormDirty(true);
-  };
-  
   const handleImageChange = (imageDataUrl: string) => {
     setPreviewImage(imageDataUrl);
     setFormData(prev => ({ ...prev, foto: imageDataUrl }));
@@ -108,7 +101,7 @@ export const useAnggotaFormHandlers = ({
     e.preventDefault();
     
     // Basic validation
-    if (!formData.nama || !formData.nip || !formData.alamat || !formData.noHp || !formData.agama || !formData.pekerjaan) {
+    if (!formData.nama || !formData.alamat || !formData.noHp || !formData.agama || !formData.unitKerja) {
       toast({
         title: "Data tidak lengkap",
         description: "Harap lengkapi semua field yang diperlukan",
@@ -127,7 +120,6 @@ export const useAnggotaFormHandlers = ({
         status: 'active',
         tanggalBergabung: new Date().toISOString(),
         email: formData.email || `${formData.nama.replace(/\s+/g, '').toLowerCase()}@example.com`,
-        unitKerja: formData.unitKerja || [] // Ensure unitKerja is included
       };
       
       if (isEditMode && id) {
@@ -170,7 +162,6 @@ export const useAnggotaFormHandlers = ({
   return {
     handleChange,
     handleSelectChange,
-    handleUnitKerjaChange, // Added new handler
     handleImageChange,
     handleDokumenChange,
     handleKeluargaChange,

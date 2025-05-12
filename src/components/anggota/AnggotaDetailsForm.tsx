@@ -11,17 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 
 interface AnggotaFormData {
   nama: string;
-  nip: string; // Changed from nik to nip
+  nip?: string; // Changed to optional
   alamat: string;
   noHp: string;
   jenisKelamin: "L" | "P";
   agama: string;
-  pekerjaan: string;
-  unitKerja?: string[]; // Added unit kerja field
+  unitKerja: string; // Changed from array to string
 }
 
 interface AnggotaDetailsFormProps {
@@ -30,7 +28,6 @@ interface AnggotaDetailsFormProps {
   isEditMode: boolean;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   onSelectChange: (name: string, value: string) => void;
-  onUnitKerjaChange?: (units: string[]) => void; // Added new handler
 }
 
 // Available unit kerja options
@@ -46,18 +43,7 @@ export function AnggotaDetailsForm({
   isEditMode,
   onInputChange,
   onSelectChange,
-  onUnitKerjaChange,
 }: AnggotaDetailsFormProps) {
-  const handleUnitKerjaChange = (unit: string, isChecked: boolean) => {
-    if (!onUnitKerjaChange || !formData.unitKerja) return;
-    
-    const updatedUnits = isChecked 
-      ? [...formData.unitKerja, unit]
-      : formData.unitKerja.filter(u => u !== unit);
-      
-    onUnitKerjaChange(updatedUnits);
-  };
-  
   return (
     <Card className="lg:col-span-2">
       <CardContent className="p-6">
@@ -72,13 +58,12 @@ export function AnggotaDetailsForm({
               />
             </div>
             <div>
-              <Label htmlFor="nip" className="required">NIP</Label>
+              <Label htmlFor="nip">NIP</Label>
               <Input 
                 id="nip" 
-                placeholder="Masukkan NIP" 
-                value={formData.nip} 
-                onChange={onInputChange} 
-                required 
+                placeholder="Masukkan NIP (opsional)" 
+                value={formData.nip || ''} 
+                onChange={onInputChange}
               />
             </div>
           </div>
@@ -160,46 +145,21 @@ export function AnggotaDetailsForm({
             </div>
             
             <div>
-              <Label htmlFor="pekerjaan" className="required">Pekerjaan</Label>
+              <Label htmlFor="unitKerja" className="required">Unit Kerja</Label>
               <Select 
-                value={formData.pekerjaan} 
-                onValueChange={(value) => onSelectChange("pekerjaan", value)} 
+                value={formData.unitKerja} 
+                onValueChange={(value) => onSelectChange("unitKerja", value)} 
                 required
               >
-                <SelectTrigger id="pekerjaan">
-                  <SelectValue placeholder="Pilih pekerjaan" />
+                <SelectTrigger id="unitKerja">
+                  <SelectValue placeholder="Pilih unit kerja" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PNS">PNS</SelectItem>
-                  <SelectItem value="Pedagang">Pedagang</SelectItem>
-                  <SelectItem value="Petani">Petani</SelectItem>
-                  <SelectItem value="Wiraswasta">Wiraswasta</SelectItem>
-                  <SelectItem value="Buruh">Buruh</SelectItem>
-                  <SelectItem value="Guru">Guru</SelectItem>
-                  <SelectItem value="Dosen">Dosen</SelectItem>
-                  <SelectItem value="Polisi">Polisi</SelectItem>
-                  <SelectItem value="TNI">TNI</SelectItem>
+                  {unitKerjaOptions.map((unit) => (
+                    <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
-            </div>
-          </div>
-          
-          {/* New Unit Kerja field with multi-select checkboxes */}
-          <div>
-            <Label className="mb-2 block">Unit Kerja</Label>
-            <div className="space-y-2">
-              {unitKerjaOptions.map((unit) => (
-                <div key={unit} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`unit-${unit}`}
-                    checked={formData.unitKerja?.includes(unit)}
-                    onCheckedChange={(checked) => 
-                      handleUnitKerjaChange(unit, checked === true)
-                    }
-                  />
-                  <Label htmlFor={`unit-${unit}`} className="font-normal">{unit}</Label>
-                </div>
-              ))}
             </div>
           </div>
         </div>

@@ -3,14 +3,13 @@
 export interface Anggota {
   id: string;
   nama: string;
-  nip: string; // Changed from nik to nip
+  nip?: string; // Changed from required to optional
   alamat: string;
   noHp: string;
   jenisKelamin: "L" | "P";
   agama: string;
-  pekerjaan: string;
   status: string;
-  unitKerja: string[]; // Added unit kerja as string array
+  unitKerja: string; // Changed from array to single string for single select
   tanggalBergabung?: string;
   foto?: string;
   email: string;

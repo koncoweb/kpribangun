@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Pencil, Trash, User, Phone, Briefcase, CreditCard } from "lucide-react";
+import { Eye, Pencil, Trash, User, Phone, CreditCard, Building } from "lucide-react";
 import { Anggota } from "@/types";
 import { Button } from "@/components/ui/button";
 import { 
@@ -84,7 +84,7 @@ export function AnggotaGridView({
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">NIP</p>
-                    <p className="text-sm font-medium truncate">{item.nip}</p>
+                    <p className="text-sm font-medium truncate">{item.nip || "-"}</p>
                   </div>
                 </div>
                 
@@ -107,10 +107,10 @@ export function AnggotaGridView({
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                  <Building className="h-4 w-4 text-muted-foreground" />
                   <div>
-                    <p className="text-xs text-muted-foreground">Pekerjaan</p>
-                    <p className="text-sm font-medium truncate">{item.pekerjaan || "-"}</p>
+                    <p className="text-xs text-muted-foreground">Unit Kerja</p>
+                    <p className="text-sm font-medium truncate">{item.unitKerja || "-"}</p>
                   </div>
                 </div>
               </div>

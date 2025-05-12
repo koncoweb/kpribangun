@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -55,7 +56,7 @@ export default function AnggotaList() {
     { id: "nip", label: "NIP", isVisible: true },
     { id: "noHp", label: "No HP", isVisible: true },
     { id: "jenisKelamin", label: "Jenis Kelamin", isVisible: true },
-    { id: "pekerjaan", label: "Pekerjaan", isVisible: true },
+    { id: "unitKerja", label: "Unit Kerja", isVisible: true },
     { id: "simpanan", label: "Simpanan", isVisible: true },
     { id: "pinjaman", label: "Pinjaman", isVisible: true },
     { id: "shu", label: "SHU", isVisible: true },
@@ -132,7 +133,7 @@ export default function AnggotaList() {
   const filteredAnggota = anggotaList.filter(anggota => 
     anggota.nama.toLowerCase().includes(searchQuery.toLowerCase()) || 
     anggota.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    anggota.nip.includes(searchQuery)
+    (anggota.nip && anggota.nip.includes(searchQuery))
   );
 
   return (
@@ -208,10 +209,10 @@ export default function AnggotaList() {
                       <TableRow key={anggota.id}>
                         {columns[0].isVisible && <TableCell className="font-medium">{anggota.id}</TableCell>}
                         {columns[1].isVisible && <TableCell>{anggota.nama}</TableCell>}
-                        {columns[2].isVisible && <TableCell>{anggota.nip}</TableCell>}
+                        {columns[2].isVisible && <TableCell>{anggota.nip || "-"}</TableCell>}
                         {columns[3].isVisible && <TableCell>{anggota.noHp}</TableCell>}
                         {columns[4].isVisible && <TableCell>{anggota.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}</TableCell>}
-                        {columns[5].isVisible && <TableCell>{anggota.pekerjaan}</TableCell>}
+                        {columns[5].isVisible && <TableCell>{anggota.unitKerja}</TableCell>}
                         {columns[6].isVisible && <TableCell className="text-green-600">{getTotalSimpanan(anggota.id)}</TableCell>}
                         {columns[7].isVisible && <TableCell className="text-amber-600">{getTotalPinjaman(anggota.id)}</TableCell>}
                         {columns[8].isVisible && <TableCell className="text-purple-600">{getTotalSHU(anggota.id)}</TableCell>}

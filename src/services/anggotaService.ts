@@ -1,4 +1,3 @@
-
 import { Anggota } from "../types";
 import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
 
@@ -9,14 +8,13 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0001", 
     nama: "Budi Santoso", 
-    nip: "197201011998031001", // Changed to NIP format
+    nip: "197201011998031001", // NIP format but now optional
     alamat: "Jl. Merdeka No. 123, Jakarta",
     noHp: "081234567890",
     jenisKelamin: "L",
     agama: "Islam",
-    pekerjaan: "PNS",
     status: "active",
-    unitKerja: ["SDN Jatilor 01"], // Added unitKerja
+    unitKerja: "SDN Jatilor 01", // Changed from array to string
     tanggalBergabung: "2023-01-15",
     foto: null,
     email: "budi.santoso@example.com",
@@ -28,14 +26,13 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0002", 
     nama: "Dewi Lestari", 
-    nip: "198505122005042002", // Changed to NIP format
+    nip: "198505122005042002", // NIP format but now optional
     alamat: "Jl. Pahlawan No. 45, Bandung",
     noHp: "081234567891",
     jenisKelamin: "P",
     agama: "Kristen",
-    pekerjaan: "Guru",
     status: "active",
-    unitKerja: ["SDN Bringin", "SDN Klampok 01"], // Added multiple unitKerja
+    unitKerja: "SDN Bringin", // Changed from array to string
     tanggalBergabung: "2023-02-20",
     foto: null,
     email: "dewi.lestari@example.com",
@@ -47,14 +44,13 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0003", 
     nama: "Ahmad Hidayat", 
-    nip: "198107182008011003", // Changed to NIP format
+    nip: "198107182008011003", // NIP format but now optional
     alamat: "Jl. Sudirman No. 78, Surabaya",
     noHp: "081234567892",
     jenisKelamin: "L",
     agama: "Islam",
-    pekerjaan: "Wiraswasta",
     status: "active",
-    unitKerja: ["SDN Jatilor 01", "SDN Bringin"], // Added multiple unitKerja
+    unitKerja: "SDN Jatilor 01", // Changed from array to string
     tanggalBergabung: "2023-03-10",
     foto: null,
     email: "ahmad.hidayat@example.com",
@@ -66,14 +62,13 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0004", 
     nama: "Sri Wahyuni", 
-    nip: "199206152015032004", // Changed to NIP format
+    nip: "199206152015032004", // NIP format but now optional
     alamat: "Jl. Gatot Subroto No. 55, Medan",
     noHp: "081234567893",
     jenisKelamin: "P",
     agama: "Hindu",
-    pekerjaan: "Dosen",
     status: "active",
-    unitKerja: ["SDN Klampok 01"], // Added unitKerja
+    unitKerja: "SDN Klampok 01", // Changed from array to string
     tanggalBergabung: "2023-04-05",
     foto: null,
     email: "sri.wahyuni@example.com",
@@ -85,14 +80,12 @@ const initialAnggota: Anggota[] = [
   { 
     id: "AG0005", 
     nama: "Agus Setiawan", 
-    nip: "198903042010011008", // Changed to NIP format
     alamat: "Jl. Ahmad Yani No. 12, Semarang",
     noHp: "081234567894",
     jenisKelamin: "L",
     agama: "Katolik",
-    pekerjaan: "Pedagang",
     status: "active",
-    unitKerja: [], // Empty unitKerja
+    unitKerja: "SDN Bringin", // Changed from array to string
     tanggalBergabung: "2023-05-15",
     foto: null,
     email: "agus.setiawan@example.com",
