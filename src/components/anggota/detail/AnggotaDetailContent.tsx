@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from "react";
 import { Anggota } from "@/types";
 import { 
   getTransaksiByAnggotaId, 
@@ -16,7 +17,7 @@ import { TransactionSection } from "./TransactionSection";
 import { KeluargaSection } from "./KeluargaSection";
 import { AngsuranList } from "./AngsuranList";
 import { FinancialSummaryCards } from "./FinancialSummaryCards";
-import { PengajuanPinjamanButton } from "./PengajuanPinjamanButton"; // Import the new component
+import { PengajuanPinjamanButton } from "./pinjaman-form"; // Updated import path
 
 interface AnggotaDetailContentProps {
   anggota: Anggota;
