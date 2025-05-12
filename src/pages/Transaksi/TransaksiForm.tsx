@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft } from "lucide-react";
 import { getAllAnggota } from "@/services/anggotaService";
 import { SimpananForm } from "@/components/transaksi/SimpananForm";
-import { PinjamanForm } from "@/components/transaksi/PinjamanForm";
+import { PinjamanForm } from "@/components/transaksi/pinjaman-form"; // Updated import path
 
 export default function TransaksiForm() {
   const [transaksiType, setTransaksiType] = useState<string>("simpan");
