@@ -39,6 +39,7 @@ import { calculateTotalSimpanan, calculateTotalPinjaman, calculateSHU } from "@/
 import { Anggota } from "@/types";
 import { TableColumnToggle } from "@/components/ui/table-column-toggle";
 import { AnggotaGridView } from "@/components/anggota/AnggotaGridView";
+import { useAsync } from "@/hooks/useAsync";
 
 export default function AnggotaList() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,18 +64,33 @@ export default function AnggotaList() {
     { id: "petugas", label: "Petugas", isVisible: true },
   ]);
   
+  // Load anggota data with useAsync hook
+  const { data, loading, error } = useAsync(
+    getAllAnggota,
+    [] as Anggota[],
+    []
+  );
+
   useEffect(() => {
-    // Load anggota from local storage
-    const loadedAnggota = getAllAnggota();
-    setAnggotaList(loadedAnggota);
-  }, []);
+    if (data) {
+      setAnggotaList(data);
+    }
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Gagal memuat data anggota",
+        variant: "destructive",
+      });
+    }
+  }, [data, error, toast]);
   
   const handleDeleteClick = (id: string) => {
     setAnggotaToDelete(id);
     setIsConfirmOpen(true);
   };
   
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (anggotaToDelete) {
       const success = deleteAnggota(anggotaToDelete);
       
@@ -85,7 +101,8 @@ export default function AnggotaList() {
         });
         
         // Refresh the list
-        setAnggotaList(getAllAnggota());
+        const freshData = await getAllAnggota();
+        setAnggotaList(freshData);
       } else {
         toast({
           title: "Gagal menghapus anggota",
@@ -186,7 +203,11 @@ export default function AnggotaList() {
             </div>
           </div>
           
-          {viewMode === "table" ? (
+          {loading ? (
+            <div className="py-8 text-center">
+              <p>Memuat data anggota...</p>
+            </div>
+          ) : viewMode === "table" ? (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>

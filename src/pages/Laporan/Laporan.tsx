@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { DateRange } from "react-day-picker";
 import Layout from "@/components/layout/Layout";
@@ -22,6 +21,7 @@ import { Transaksi, Pengajuan, Anggota } from "@/types";
 import { FinancialStatsCards } from "@/components/laporan/FinancialStatsCards";
 import { DateRangeFilter } from "@/components/laporan/DateRangeFilter";
 import { LaporanTabs } from "@/components/laporan/LaporanTabs";
+import { useAsync } from "@/hooks/useAsync";
 
 // Define chart data interface
 interface ChartDataItem {
@@ -67,7 +67,7 @@ export default function Laporan() {
   });
 
   // Chart data
-  const [chartData, setChartData] = useState<LaporanChartData>({
+  const [chartData, setChartData] = useState<any>({
     simpanan: [],
     pinjaman: [],
     angsuran: [],
@@ -82,6 +82,7 @@ export default function Laporan() {
   const [overdueLoans, setOverdueLoans] = useState<any[]>([]);
   const [upcomingDueLoans, setUpcomingDueLoans] = useState<any[]>([]);
   const [totalPenalty, setTotalPenalty] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
   
   // Filter state
   const [filterDateStart, setFilterDateStart] = useState<Date>(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -89,79 +90,86 @@ export default function Laporan() {
   
   // Load data on component mount
   useEffect(() => {
-    const loadData = () => {
-      // Load basic entities
-      const anggota = getAnggotaList();
-      const transaksi = getAllTransaksi();
-      const pengajuan = getPengajuanList();
-      
-      // Fix: Pass "ALL" as parameter to getOverdueLoans and getUpcomingDueLoans
-      const overdue = getOverdueLoans("ALL");
-      const upcoming = getUpcomingDueLoans("ALL", 30);
-      
-      setAnggotaList(anggota);
-      setTransaksiList(transaksi);
-      setPengajuanList(pengajuan);
-      setOverdueLoans(overdue);
-      setUpcomingDueLoans(upcoming);
-      
-      // Calculate totals
-      const totalSimpanan = getTotalAllSimpanan();
-      const totalPinjaman = getTotalAllPinjaman();
-      const totalAngsuran = getTotalAllAngsuran();
-      const totalPenaltyAmount = overdue.reduce((sum, loan) => {
-        const penalty = calculatePenalty(loan.transaksi.jumlah, loan.daysOverdue);
-        return sum + penalty;
-      }, 0);
-      
-      setTotalPenalty(totalPenaltyAmount);
-      
-      setStats({
-        totalAnggota: anggota.length,
-        totalSimpanan,
-        totalPinjaman,
-        totalAngsuran,
-        totalPengajuan: pengajuan.length,
-        totalTunggakan: overdue.length,
-        totalJatuhTempo: upcoming.length
-      });
-      
-      // Prepare chart data (using dummy data for now, would be replaced with real data)
-      const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-      const simpananData = months.map((name, index) => ({
-        name,
-        simpanan: 15000000 + (index * 2500000)
-      }));
-      
-      const pinjamanData = months.map((name, index) => ({
-        name,
-        pinjaman: 10000000 + (index * 2000000)
-      }));
-      
-      const angsuranData = months.map((name, index) => ({
-        name,
-        angsuran: 5000000 + (index * 1000000)
-      }));
-      
-      const pengajuanData = [
-        { name: "Simpan", value: pengajuan.filter(p => p.jenis === "Simpan" && p.status === "Menunggu").length },
-        { name: "Pinjam", value: pengajuan.filter(p => p.jenis === "Pinjam" && p.status === "Menunggu").length },
-        { name: "Disetujui", value: pengajuan.filter(p => p.status === "Disetujui").length },
-        { name: "Ditolak", value: pengajuan.filter(p => p.status === "Ditolak").length }
-      ];
-      
-      const anggotaGrowthData = months.map((name, index) => ({
-        name,
-        anggota: 50 + (index * 10)
-      }));
-      
-      setChartData({
-        simpanan: simpananData,
-        pinjaman: pinjamanData,
-        angsuran: angsuranData,
-        pengajuan: pengajuanData,
-        anggota: anggotaGrowthData
-      });
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        // Load basic entities
+        const anggota = await getAnggotaList();
+        const transaksi = await getAllTransaksi();
+        const pengajuan = await getPengajuanList();
+        
+        // Fix: Pass "ALL" as parameter to getOverdueLoans and getUpcomingDueLoans
+        const overdue = getOverdueLoans("ALL");
+        const upcoming = getUpcomingDueLoans("ALL", 30);
+        
+        setAnggotaList(anggota);
+        setTransaksiList(transaksi);
+        setPengajuanList(pengajuan);
+        setOverdueLoans(overdue);
+        setUpcomingDueLoans(upcoming);
+        
+        // Calculate totals
+        const totalSimpanan = getTotalAllSimpanan();
+        const totalPinjaman = getTotalAllPinjaman();
+        const totalAngsuran = getTotalAllAngsuran();
+        const totalPenaltyAmount = overdue.reduce((sum, loan) => {
+          const penalty = calculatePenalty(loan.transaksi.jumlah, loan.daysOverdue);
+          return sum + penalty;
+        }, 0);
+        
+        setTotalPenalty(totalPenaltyAmount);
+        
+        setStats({
+          totalAnggota: anggota.length,
+          totalSimpanan,
+          totalPinjaman,
+          totalAngsuran,
+          totalPengajuan: pengajuan.length,
+          totalTunggakan: overdue.length,
+          totalJatuhTempo: upcoming.length
+        });
+        
+        // Prepare chart data (using dummy data for now, would be replaced with real data)
+        const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const simpananData = months.map((name, index) => ({
+          name,
+          simpanan: 15000000 + (index * 2500000)
+        }));
+        
+        const pinjamanData = months.map((name, index) => ({
+          name,
+          pinjaman: 10000000 + (index * 2000000)
+        }));
+        
+        const angsuranData = months.map((name, index) => ({
+          name,
+          angsuran: 5000000 + (index * 1000000)
+        }));
+        
+        const pengajuanData = [
+          { name: "Simpan", value: pengajuan.filter(p => p.jenis === "Simpan" && p.status === "Menunggu").length },
+          { name: "Pinjam", value: pengajuan.filter(p => p.jenis === "Pinjam" && p.status === "Menunggu").length },
+          { name: "Disetujui", value: pengajuan.filter(p => p.status === "Disetujui").length },
+          { name: "Ditolak", value: pengajuan.filter(p => p.status === "Ditolak").length }
+        ];
+        
+        const anggotaGrowthData = months.map((name, index) => ({
+          name,
+          anggota: 50 + (index * 10)
+        }));
+        
+        setChartData({
+          simpanan: simpananData,
+          pinjaman: pinjamanData,
+          angsuran: angsuranData,
+          pengajuan: pengajuanData,
+          anggota: anggotaGrowthData
+        });
+      } catch (error) {
+        console.error("Error loading data:", error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     loadData();
@@ -189,30 +197,38 @@ export default function Laporan() {
       <div className="flex flex-col space-y-6">
         <h1 className="text-3xl font-bold">Laporan Koperasi</h1>
         
-        {/* Stats Overview */}
-        <FinancialStatsCards stats={stats} />
-        
-        {/* Date Range Filter */}
-        <DateRangeFilter 
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          onApplyFilter={handleApplyFilter}
-        />
-        
-        {/* Tabs */}
-        <LaporanTabs 
-          anggotaList={anggotaList}
-          transaksiList={transaksiList}
-          pengajuanList={pengajuanList}
-          chartData={chartData}
-          stats={stats}
-          chartColors={CHART_COLORS}
-          pieColors={pieColors}
-          filterDateStart={filterDateStart}
-          filterDateEnd={filterDateEnd}
-          overdueLoans={overdueLoans}
-          upcomingDueLoans={upcomingDueLoans}
-        />
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <p>Memuat data laporan...</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats Overview */}
+            <FinancialStatsCards stats={stats} />
+            
+            {/* Date Range Filter */}
+            <DateRangeFilter 
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              onApplyFilter={handleApplyFilter}
+            />
+            
+            {/* Tabs */}
+            <LaporanTabs 
+              anggotaList={anggotaList}
+              transaksiList={transaksiList}
+              pengajuanList={pengajuanList}
+              chartData={chartData}
+              stats={stats}
+              chartColors={CHART_COLORS}
+              pieColors={pieColors}
+              filterDateStart={filterDateStart}
+              filterDateEnd={filterDateEnd}
+              overdueLoans={overdueLoans}
+              upcomingDueLoans={upcomingDueLoans}
+            />
+          </>
+        )}
       </div>
     </Layout>
   );

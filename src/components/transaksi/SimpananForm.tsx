@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -85,7 +84,7 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
         ? parseInt(formValues.jumlah) 
         : -parseInt(formValues.jumlah); // Negative for withdrawal
       
-      const transaksi = await createTransaksi({
+      const transaksiData = {
         tanggal: formValues.tanggal,
         anggotaId: anggota.id,
         anggotaNama: anggota.nama,
@@ -94,9 +93,11 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
         keterangan: formValues.keterangan || 
           (formValues.jenis === "masuk" ? "Setor simpanan" : "Tarik simpanan"),
         status: "Sukses"
-      });
+      };
       
-      if (transaksi) {
+      const transaksi = await createTransaksi(transaksiData);
+      
+      if (transaksi && transaksi.id) {
         toast({
           title: "Transaksi Berhasil",
           description: `Transaksi simpanan telah berhasil disimpan`,
@@ -104,6 +105,8 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
         
         // Navigate to the created transaction
         navigate(`/transaksi/${transaksi.id}`);
+      } else {
+        throw new Error("Gagal membuat transaksi");
       }
     } catch (error) {
       console.error("Error creating simpanan:", error);

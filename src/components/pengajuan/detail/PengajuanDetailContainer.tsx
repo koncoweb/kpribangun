@@ -21,26 +21,42 @@ export default function PengajuanDetailContainer() {
   const [newStatus, setNewStatus] = useState<"Menunggu" | "Disetujui" | "Ditolak" | "">("");
 
   useEffect(() => {
-    if (id) {
-      const pengajuanData = getPengajuanById(id);
-      if (pengajuanData) {
-        setPengajuan(pengajuanData);
-        
-        // Load anggota data
-        const anggotaData = getAnggotaById(pengajuanData.anggotaId);
-        if (anggotaData) {
-          setAnggota(anggotaData);
+    const loadData = async () => {
+      if (id) {
+        try {
+          const pengajuanData = getPengajuanById(id);
+          if (pengajuanData) {
+            setPengajuan(pengajuanData);
+            
+            // Load anggota data
+            if (pengajuanData.anggotaId) {
+              const anggotaData = await getAnggotaById(pengajuanData.anggotaId);
+              if (anggotaData) {
+                setAnggota(anggotaData);
+              }
+            }
+          } else {
+            toast({
+              title: "Data tidak ditemukan",
+              description: `Pengajuan dengan ID ${id} tidak ditemukan`,
+              variant: "destructive",
+            });
+            navigate("/transaksi/pengajuan");
+          }
+        } catch (error) {
+          console.error("Error loading pengajuan data:", error);
+          toast({
+            title: "Error",
+            description: "Terjadi kesalahan saat memuat data pengajuan",
+            variant: "destructive",
+          });
+        } finally {
+          setLoading(false);
         }
-      } else {
-        toast({
-          title: "Data tidak ditemukan",
-          description: `Pengajuan dengan ID ${id} tidak ditemukan`,
-          variant: "destructive",
-        });
-        navigate("/transaksi/pengajuan");
       }
-    }
-    setLoading(false);
+    };
+    
+    loadData();
   }, [id, navigate, toast]);
 
   const handleDelete = () => {

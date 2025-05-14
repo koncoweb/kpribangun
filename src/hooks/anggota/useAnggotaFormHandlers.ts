@@ -97,7 +97,7 @@ export const useAnggotaFormHandlers = ({
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -139,11 +139,15 @@ export const useAnggotaFormHandlers = ({
         // Create new anggota
         const newAnggota = createAnggota(anggotaData);
         
-        toast({
-          title: "Anggota berhasil ditambahkan",
-          description: `Anggota baru dengan ID ${newAnggota.id} telah berhasil disimpan`,
-        });
-        navigate(`/anggota/${newAnggota.id}`);
+        if (newAnggota) {
+          toast({
+            title: "Anggota berhasil ditambahkan",
+            description: `Anggota baru dengan ID ${newAnggota.id} telah berhasil disimpan`,
+          });
+          navigate(`/anggota/${newAnggota.id}`);
+        } else {
+          throw new Error("Gagal membuat anggota baru");
+        }
       }
       
       // Reset form dirty state after successful submit

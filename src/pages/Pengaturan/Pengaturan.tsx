@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/layout/Layout";
 import { 
   Tabs,
@@ -21,7 +21,34 @@ import { DendaSettings } from "@/components/pengaturan/DendaSettings";
 import { UserManagementSettings } from "@/components/pengaturan/UserManagementSettings";
 
 export default function Pengaturan() {
-  const [settings, setSettings] = useState<PengaturanType>(getPengaturan());
+  const [settings, setSettings] = useState<PengaturanType | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setLoading(true);
+        const data = await getPengaturan();
+        setSettings(data);
+      } catch (error) {
+        console.error("Error loading settings:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadSettings();
+  }, []);
+  
+  if (loading || !settings) {
+    return (
+      <Layout pageTitle="Pengaturan">
+        <div className="flex items-center justify-center h-[50vh]">
+          <p>Memuat pengaturan...</p>
+        </div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout pageTitle="Pengaturan">

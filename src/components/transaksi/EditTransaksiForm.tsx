@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -31,6 +30,7 @@ export function EditTransaksiForm({
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const [formData, setFormData] = useState({
     tanggal: transaksi.tanggal,
@@ -43,13 +43,25 @@ export function EditTransaksiForm({
   
   // Load anggota data
   useEffect(() => {
-    const loadAnggota = async () => {
-      const data = getAllAnggota();
-      setAnggotaList(data);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await getAllAnggota();
+        setAnggotaList(data);
+      } catch (error) {
+        console.error("Error loading anggota:", error);
+        toast({
+          title: "Error",
+          description: "Gagal memuat data anggota",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
     };
     
-    loadAnggota();
-  }, []);
+    loadData();
+  }, [toast]);
   
   // Get categories based on transaction type
   const getCategories = () => {
@@ -146,6 +158,10 @@ export function EditTransaksiForm({
     
     return true;
   };
+  
+  if (loading) {
+    return <div className="p-4 text-center">Loading data...</div>;
+  }
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
