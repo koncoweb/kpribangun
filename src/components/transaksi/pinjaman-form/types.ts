@@ -1,31 +1,33 @@
 
-import { Anggota } from "@/types";
+import { Anggota, Transaksi } from "@/types";
 
+// Form props
 export interface PinjamanFormProps {
-  anggota?: Anggota;
-  anggotaList?: Anggota[];
+  anggotaList: Anggota[];
 }
 
-export interface PinjamanParameters {
-  sukuBunga: number;
-  biayaAdmin: number;
-  biayaProvisi: number;
-  asuransi: number;
-}
-
-export interface PinjamanHasil {
-  jumlahDiterima: number;
-  totalBiaya: number;
+// Calculation utilities
+export interface LoanCalculationResult {
   angsuranPerBulan: number;
-  totalPembayaran: number;
+  totalBunga: number;
+  totalBayar: number;
 }
 
-export interface PinjamanFormState {
-  tanggal: string;
-  anggotaId: string;
-  kategori: string;
-  jumlahPinjaman: number;
-  tenor: number;
-  keterangan: string;
-  isDisbursing: boolean;
+// Calculate loan payments based on principal, interest, and term
+export function calculateAngsuran(
+  pokok: number,
+  bungaPersenPerBulan: number,
+  tenorBulan: number
+): LoanCalculationResult {
+  // Simple flat interest calculation
+  const bungaPerBulan = pokok * (bungaPersenPerBulan / 100);
+  const totalBunga = bungaPerBulan * tenorBulan;
+  const totalBayar = pokok + totalBunga;
+  const angsuranPerBulan = totalBayar / tenorBulan;
+  
+  return {
+    angsuranPerBulan: Math.ceil(angsuranPerBulan),
+    totalBunga,
+    totalBayar
+  };
 }
