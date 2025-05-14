@@ -13,7 +13,7 @@ import {
   getSimpananCategories, 
   getPinjamanCategories,
 } from "@/services/transaksi/categories";
-import { getPengaturan } from "@/services/pengaturanService";
+import { getPengaturan } from "@/adapters/serviceAdapters";
 import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 
 interface PengajuanFieldsProps {
@@ -35,8 +35,25 @@ export function PengajuanFields({
 }: PengajuanFieldsProps) {
   const simpananCategories = getSimpananCategories();
   const pinjamanCategories = getPinjamanCategories();
-  const pengaturan = getPengaturan();
+  const [pengaturan, setPengaturan] = useState<any>(null);
   const [formattedJumlah, setFormattedJumlah] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  // Load pengaturan data
+  useEffect(() => {
+    const loadPengaturan = async () => {
+      try {
+        const data = await getPengaturan();
+        setPengaturan(data);
+      } catch (error) {
+        console.error("Error loading pengaturan:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadPengaturan();
+  }, []);
 
   // Initialize formatted amount when component loads or jumlah changes from outside
   useEffect(() => {
@@ -83,12 +100,18 @@ export function PengajuanFields({
 
   // Helper function to display interest rate for pinjaman categories
   const getInterestRateForCategory = (category: string): string => {
+    if (!pengaturan) return "0%";
+    
     if (pengaturan.sukuBunga.pinjamanByCategory && 
         category in pengaturan.sukuBunga.pinjamanByCategory) {
       return `${pengaturan.sukuBunga.pinjamanByCategory[category]}%`;
     }
     return `${pengaturan.sukuBunga.pinjaman}%`;
   };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>
@@ -128,14 +151,14 @@ export function PengajuanFields({
               ) : (
                 pinjamanCategories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {cat} - Bunga {getInterestRateForCategory(cat)} per bulan
+                    {cat} - Bunga {pengaturan && getInterestRateForCategory(cat)} per bulan
                   </SelectItem>
                 ))
               )}
             </SelectContent>
           </Select>
           
-          {jenis === "Pinjam" && kategori && (
+          {jenis === "Pinjam" && kategori && pengaturan && (
             <p className="text-muted-foreground text-xs mt-1">
               Suku bunga untuk pinjaman {kategori}: {getInterestRateForCategory(kategori)} per bulan
             </p>

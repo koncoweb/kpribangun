@@ -17,8 +17,8 @@ export function formatDate(dateString: string): string {
 /**
  * Calculate angsuran details for a specific loan
  */
-export function calculateAngsuran(pinjamanId: string): AngsuranDetailItem[] {
-  const pinjaman = getTransaksiById(pinjamanId);
+export async function calculateAngsuran(pinjamanId: string): Promise<AngsuranDetailItem[]> {
+  const pinjaman = await getTransaksiById(pinjamanId);
   if (!pinjaman) return [];
 
   const angsuranDetails: AngsuranDetailItem[] = [];
@@ -41,7 +41,7 @@ export function calculateAngsuran(pinjamanId: string): AngsuranDetailItem[] {
   }
 
   // Get all angsuran transactions for this pinjaman
-  const allTransaksi = getAllTransaksi();
+  const allTransaksi = await getAllTransaksi();
   const angsuranTransaksi = allTransaksi.filter(
     (t) => 
       t.jenis === "Angsuran" && 

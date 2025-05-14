@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -30,7 +30,24 @@ export function PinjamanFormFields({
   setFormattedJumlah
 }: PinjamanFormFieldsProps) {
   const pinjamanCategories = getPinjamanCategories();
-  const pengaturan = getPengaturan();
+  const [pengaturan, setPengaturan] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  
+  // Load pengaturan data
+  useEffect(() => {
+    const loadPengaturan = async () => {
+      try {
+        const data = await getPengaturan();
+        setPengaturan(data);
+      } catch (error) {
+        console.error("Error loading pengaturan:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadPengaturan();
+  }, []);
   
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -66,6 +83,8 @@ export function PinjamanFormFields({
 
   // Helper function to display interest rate for pinjaman categories
   const getInterestRateForCategory = (category: string): number => {
+    if (!pengaturan) return 0;
+    
     if (pengaturan.sukuBunga.pinjamanByCategory && 
         category in pengaturan.sukuBunga.pinjamanByCategory) {
       return pengaturan.sukuBunga.pinjamanByCategory[category];
@@ -73,7 +92,11 @@ export function PinjamanFormFields({
     return pengaturan.sukuBunga.pinjaman;
   };
 
-  const currentInterestRate = getInterestRateForCategory(formData.kategori);
+  const currentInterestRate = pengaturan ? getInterestRateForCategory(formData.kategori) : 0;
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <>
@@ -127,11 +150,12 @@ export function PinjamanFormFields({
         />
       </div>
       
-      {formData.jumlah && formData.kategori && (
+      {formData.jumlah && formData.kategori && pengaturan && (
         <PinjamanFormSummary 
           kategori={formData.kategori} 
           jumlah={formData.jumlah} 
           bunga={currentInterestRate}
+          pengaturan={pengaturan}
         />
       )}
     </>

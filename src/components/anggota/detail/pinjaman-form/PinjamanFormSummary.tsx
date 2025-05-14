@@ -1,11 +1,9 @@
 
 import { useEffect, useState } from "react";
-import { getPengaturan } from "@/services/pengaturanService";
 import { formatCurrency } from "@/utils/formatters";
 import { PinjamanFormSummaryProps } from "./types";
 
-export function PinjamanFormSummary({ kategori, jumlah, bunga }: PinjamanFormSummaryProps) {
-  const pengaturan = getPengaturan();
+export function PinjamanFormSummary({ kategori, jumlah, bunga, pengaturan }: PinjamanFormSummaryProps) {
   const tenorDefault = pengaturan?.tenor?.tenorOptions?.[1] || 12; // Default to 12 if not available
   const [calculatedValues, setCalculatedValues] = useState({
     angsuran: 0,

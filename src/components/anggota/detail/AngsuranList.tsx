@@ -61,7 +61,7 @@ export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: 
           setSimpananBalance(simpanan);
           
           // Calculate angsuran details
-          const details = calculateAngsuran(selectedPinjaman);
+          const details = await calculateAngsuran(selectedPinjaman);
           setAngsuranDetails(details);
         }
       } catch (error) {
@@ -88,22 +88,19 @@ export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: 
     setIsPaymentDialogOpen(true);
   };
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = async () => {
     // Re-render component with the latest data
-    const loadLoanData = async () => {
-      if (selectedPinjaman) {
-        const loan = await getTransaksiById(selectedPinjaman);
-        setSelectedLoan(loan || null);
-        
-        if (loan) {
-          setRemainingAmount(getRemainingLoanAmount(selectedPinjaman));
-          setSimpananBalance(calculateTotalSimpanan(loan.anggotaId));
-          setAngsuranDetails(calculateAngsuran(selectedPinjaman));
-        }
+    if (selectedPinjaman) {
+      const loan = await getTransaksiById(selectedPinjaman);
+      setSelectedLoan(loan || null);
+      
+      if (loan) {
+        setRemainingAmount(getRemainingLoanAmount(selectedPinjaman));
+        setSimpananBalance(calculateTotalSimpanan(loan.anggotaId));
+        const details = await calculateAngsuran(selectedPinjaman);
+        setAngsuranDetails(details);
       }
-    };
-    
-    loadLoanData();
+    }
   };
 
   if (pinjamanTransaksi.length === 0) {

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +40,7 @@ export function PaymentDialog({
     setIsProcessing(true);
 
     try {
-      const pinjaman = getTransaksiById(selectedPinjaman);
+      const pinjaman = await getTransaksiById(selectedPinjaman);
       if (!pinjaman) throw new Error("Pinjaman tidak ditemukan");
 
       // Check if balance is sufficient
@@ -57,7 +58,7 @@ export function PaymentDialog({
       // Create angsuran transaction
       const keteranganPinjaman = `Angsuran ke-${currentAngsuran.nomorAngsuran} untuk pinjaman #${selectedPinjaman}`;
       
-      const angsuranTransaksi = createTransaksi({
+      const angsuranTransaksi = await createTransaksi({
         tanggal: new Date().toISOString().split('T')[0],
         anggotaId: pinjaman.anggotaId,
         jenis: "Angsuran",
@@ -67,7 +68,7 @@ export function PaymentDialog({
       });
 
       // Create simpanan withdraw transaction
-      const simpananTransaksi = createTransaksi({
+      const simpananTransaksi = await createTransaksi({
         tanggal: new Date().toISOString().split('T')[0],
         anggotaId: pinjaman.anggotaId,
         jenis: "Simpan",
