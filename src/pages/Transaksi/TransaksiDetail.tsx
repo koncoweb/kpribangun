@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { getTransaksiById, getRemainingLoanAmount } from "@/services/transaksi";
-import { getAnggotaById } from "@/services/anggotaService";
+import { getTransaksiById } from "@/adapters/serviceAdapters";
+import { getAnggotaById } from "@/adapters/serviceAdapters";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatCurrency } from "@/utils/formatters";
@@ -29,26 +29,40 @@ export default function TransaksiDetail() {
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      const transaksiData = getTransaksiById(id);
-      if (transaksiData) {
-        setTransaksi(transaksiData);
+    const loadData = async () => {
+      try {
+        if (!id) return;
         
-        // Load anggota data
-        const anggotaData = getAnggotaById(transaksiData.anggotaId);
-        if (anggotaData) {
-          setAnggota(anggotaData);
+        const transaksiData = await getTransaksiById(id);
+        if (transaksiData) {
+          setTransaksi(transaksiData);
+          
+          // Load anggota data
+          const anggotaData = await getAnggotaById(transaksiData.anggotaId);
+          if (anggotaData) {
+            setAnggota(anggotaData);
+          }
+        } else {
+          toast({
+            title: "Data tidak ditemukan",
+            description: `Transaksi dengan ID ${id} tidak ditemukan`,
+            variant: "destructive",
+          });
+          navigate("/transaksi");
         }
-      } else {
+      } catch (error) {
+        console.error("Error loading transaction detail:", error);
         toast({
-          title: "Data tidak ditemukan",
-          description: `Transaksi dengan ID ${id} tidak ditemukan`,
+          title: "Error",
+          description: "Terjadi kesalahan saat memuat data",
           variant: "destructive",
         });
-        navigate("/transaksi");
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+    
+    loadData();
   }, [id, navigate, toast]);
 
   const handlePrintReceipt = () => {

@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { getTransaksiById, getAllTransaksi } from "@/services/transaksi";
-import { getAnggotaById } from "@/services/anggotaService";
+import { getTransaksiById, getAllTransaksi } from "@/adapters/serviceAdapters";
+import { getAnggotaById } from "@/adapters/serviceAdapters";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
 import { ReceiptDialog } from "@/components/transaksi/receipt/ReceiptDialog";
@@ -34,13 +34,25 @@ export default function AngsuranDetail() {
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      const transaksiData = getTransaksiById(id);
-      if (transaksiData && transaksiData.jenis === "Angsuran") {
+    const fetchData = async () => {
+      try {
+        if (!id) return;
+        
+        const transaksiData = await getTransaksiById(id);
+        if (!transaksiData || transaksiData.jenis !== "Angsuran") {
+          toast({
+            title: "Data tidak ditemukan",
+            description: `Angsuran dengan ID ${id} tidak ditemukan`,
+            variant: "destructive",
+          });
+          navigate("/transaksi/angsuran");
+          return;
+        }
+        
         setTransaksi(transaksiData);
         
         // Load anggota data
-        const anggotaData = getAnggotaById(transaksiData.anggotaId);
+        const anggotaData = await getAnggotaById(transaksiData.anggotaId);
         if (anggotaData) {
           setAnggota(anggotaData);
         }
@@ -51,7 +63,7 @@ export default function AngsuranDetail() {
         
         if (pinjamanMatch && pinjamanMatch[1]) {
           const pinjamanId = pinjamanMatch[1];
-          const pinjaman = getTransaksiById(pinjamanId);
+          const pinjaman = await getTransaksiById(pinjamanId);
           
           if (pinjaman) {
             setRelatedPinjaman(pinjaman);
@@ -63,12 +75,12 @@ export default function AngsuranDetail() {
             }
             
             // Calculate tenor and total angsuran
-            const allTransaksi = getAllTransaksi();
+            const allTransaksi = await getAllTransaksi();
             const angsuranTransaksi = allTransaksi.filter(
               t => t.jenis === "Angsuran" && 
-                   t.status === "Sukses" && 
-                   t.anggotaId === transaksiData.anggotaId &&
-                   t.keterangan?.includes(pinjamanId)
+                  t.status === "Sukses" && 
+                  t.anggotaId === transaksiData.anggotaId &&
+                  t.keterangan?.includes(pinjamanId)
             );
             
             const totalAngsuran = angsuranTransaksi.reduce((total, t) => total + t.jumlah, 0);
@@ -91,16 +103,19 @@ export default function AngsuranDetail() {
             });
           }
         }
-      } else {
+      } catch (error) {
+        console.error("Error loading angsuran detail:", error);
         toast({
-          title: "Data tidak ditemukan",
-          description: `Angsuran dengan ID ${id} tidak ditemukan`,
+          title: "Error",
+          description: "Terjadi kesalahan saat memuat data",
           variant: "destructive",
         });
-        navigate("/transaksi/angsuran");
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    fetchData();
   }, [id, navigate, toast]);
 
   const handlePrintReceipt = () => {

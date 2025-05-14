@@ -15,7 +15,7 @@ export const getAnggotaById = async (id: string): Promise<Anggota | undefined> =
     if (USE_SUPABASE) {
       return await anggotaService.getAnggotaById(id);
     }
-    return anggotaService.getAnggotaById(id);
+    return anggotaService.getAnggotaById(id) as Anggota;
   } catch (error) {
     console.error("Error fetching anggota by ID:", error);
     return undefined;
@@ -27,7 +27,7 @@ export const getAnggotaList = async (): Promise<Anggota[]> => {
     if (USE_SUPABASE) {
       return await anggotaService.getAllAnggota();
     }
-    return anggotaService.getAllAnggota();
+    return anggotaService.getAllAnggota() as Anggota[];
   } catch (error) {
     console.error("Error fetching anggota list:", error);
     return [];
@@ -42,7 +42,7 @@ export const getTransaksiByAnggotaId = async (anggotaId: string): Promise<Transa
     if (USE_SUPABASE) {
       return await transaksiService.getTransaksiByAnggotaId(anggotaId);
     }
-    return transaksiService.getTransaksiByAnggotaId(anggotaId);
+    return transaksiService.getTransaksiByAnggotaId(anggotaId) as Transaksi[];
   } catch (error) {
     console.error("Error fetching transaksi by anggota ID:", error);
     return [];
@@ -54,7 +54,7 @@ export const getTransaksiById = async (id: string): Promise<Transaksi | undefine
     if (USE_SUPABASE) {
       return await transaksiService.getTransaksiById(id);
     }
-    return transaksiService.getTransaksiById(id);
+    return transaksiService.getTransaksiById(id) as Transaksi;
   } catch (error) {
     console.error("Error fetching transaksi by ID:", error);
     return undefined;
@@ -66,7 +66,7 @@ export const getAllTransaksi = async (): Promise<Transaksi[]> => {
     if (USE_SUPABASE) {
       return await transaksiService.getAllTransaksi();
     }
-    return transaksiService.getAllTransaksi();
+    return transaksiService.getAllTransaksi() as Transaksi[];
   } catch (error) {
     console.error("Error fetching all transaksi:", error);
     return [];
@@ -78,7 +78,7 @@ export const createTransaksi = async (data: Partial<Transaksi>): Promise<Transak
     if (USE_SUPABASE) {
       return await transaksiService.createTransaksi(data);
     }
-    return transaksiService.createTransaksi(data as any);
+    return transaksiService.createTransaksi(data as any) as Transaksi;
   } catch (error) {
     console.error("Error creating transaksi:", error);
     return null;
@@ -100,10 +100,10 @@ export const getPengaturan = async (): Promise<Pengaturan> => {
     if (USE_SUPABASE) {
       return await pengaturanService.getPengaturan();
     }
-    return pengaturanService.getPengaturan();
+    return pengaturanService.getPengaturan() as Pengaturan;
   } catch (error) {
     console.error("Error fetching pengaturan:", error);
-    return pengaturanService.getPengaturan(); // Fallback to default
+    return pengaturanService.getPengaturan() as Pengaturan; // Fallback to default
   }
 };
 
@@ -113,7 +113,7 @@ export const getPengajuanById = async (id: string): Promise<Pengajuan | undefine
     if (USE_SUPABASE) {
       return await pengajuanService.getPengajuanById(id);
     }
-    return pengajuanService.getPengajuanById(id);
+    return pengajuanService.getPengajuanById(id) as Pengajuan;
   } catch (error) {
     console.error("Error fetching pengajuan by ID:", error);
     return undefined;
@@ -125,7 +125,7 @@ export const getPengajuanList = async (): Promise<Pengajuan[]> => {
     if (USE_SUPABASE) {
       return await pengajuanService.getPengajuanList();
     }
-    return pengajuanService.getPengajuanList();
+    return pengajuanService.getPengajuanList() as Pengajuan[];
   } catch (error) {
     console.error("Error fetching pengajuan list:", error);
     return [];

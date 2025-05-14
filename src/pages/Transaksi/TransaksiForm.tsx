@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,13 @@ import { ArrowLeft } from "lucide-react";
 import { getAnggotaList } from "@/adapters/serviceAdapters";
 import { SimpananForm } from "@/components/transaksi/SimpananForm";
 import { PinjamanForm } from "@/components/transaksi/pinjaman-form"; // Updated import path
-import { useAsync } from "@/hooks/use-async";
+import { useAsync } from "@/hooks/useAsync";
 
 export default function TransaksiForm() {
   const [transaksiType, setTransaksiType] = useState<string>("simpan");
   
-  const { data: anggotaList, loading } = useAsync(
-    async () => await getAnggotaList(),
+  const { data: anggotaList = [], loading } = useAsync(
+    () => getAnggotaList(),
     [],
     []
   );

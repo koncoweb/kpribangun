@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Anggota, AnggotaDokumen, AnggotaKeluarga } from "../types";
 
@@ -30,17 +31,22 @@ function mapDbToAnggota(dbObject: any): Anggota {
  * Get all anggota from Supabase
  */
 export async function getAllAnggota(): Promise<Anggota[]> {
-  const { data, error } = await supabase
-    .from("anggota")
-    .select("*")
-    .order("nama");
-  
-  if (error) {
-    console.error("Error fetching anggota:", error);
-    throw error;
+  try {
+    const { data, error } = await supabase
+      .from("anggota")
+      .select("*")
+      .order("nama");
+    
+    if (error) {
+      console.error("Error fetching anggota:", error);
+      throw error;
+    }
+    
+    return data.map(mapDbToAnggota);
+  } catch (error) {
+    console.error("Error in getAllAnggota:", error);
+    return [];
   }
-  
-  return data.map(mapDbToAnggota);
 }
 
 // Alias function for getAllAnggota to fix the import issue
@@ -52,21 +58,26 @@ export async function getAnggotaList(): Promise<Anggota[]> {
  * Get anggota by ID
  */
 export async function getAnggotaById(id: string): Promise<Anggota | undefined> {
-  const { data, error } = await supabase
-    .from("anggota")
-    .select("*")
-    .eq("id", id)
-    .single();
-  
-  if (error) {
-    if (error.code === "PGRST116") { // Record not found
-      return undefined;
+  try {
+    const { data, error } = await supabase
+      .from("anggota")
+      .select("*")
+      .eq("id", id)
+      .single();
+    
+    if (error) {
+      if (error.code === "PGRST116") { // Record not found
+        return undefined;
+      }
+      console.error("Error fetching anggota:", error);
+      throw error;
     }
-    console.error("Error fetching anggota:", error);
-    throw error;
+    
+    return mapDbToAnggota(data);
+  } catch (error) {
+    console.error("Error in getAnggotaById:", error);
+    return undefined;
   }
-  
-  return mapDbToAnggota(data);
 }
 
 /**
@@ -92,52 +103,92 @@ export async function generateAnggotaId(): Promise<string> {
  * Create a new anggota
  */
 export async function createAnggota(anggota: Omit<Anggota, "id" | "createdAt" | "updatedAt">): Promise<Anggota> {
-  const id = await generateAnggotaId();
-  const now = new Date().toISOString();
-  
-  const newAnggota = {
-    ...anggota,
-    id,
-    created_at: now,
-    updated_at: now,
-  };
-  
-  const { data, error } = await supabase
-    .from("anggota")
-    .insert([newAnggota])
-    .select()
-    .single();
-  
-  if (error) {
-    console.error("Error creating anggota:", error);
+  try {
+    const id = await generateAnggotaId();
+    const now = new Date().toISOString();
+    
+    // Map Anggota to database structure
+    const dbAnggota = {
+      id,
+      nama: anggota.nama,
+      nip: anggota.nip,
+      alamat: anggota.alamat,
+      nohp: anggota.noHp,
+      jeniskelamin: anggota.jenisKelamin,
+      agama: anggota.agama,
+      status: anggota.status,
+      unitkerja: anggota.unitKerja,
+      pekerjaan: anggota.pekerjaan,
+      tanggalbergabung: anggota.tanggalBergabung,
+      foto: anggota.foto,
+      email: anggota.email,
+      dokumen: anggota.dokumen,
+      keluarga: anggota.keluarga,
+      created_at: now,
+      updated_at: now
+    };
+    
+    const { data, error } = await supabase
+      .from("anggota")
+      .insert([dbAnggota])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error creating anggota:", error);
+      throw error;
+    }
+    
+    return mapDbToAnggota(data);
+  } catch (error) {
+    console.error("Error in createAnggota:", error);
     throw error;
   }
-  
-  return data as Anggota;
 }
 
 /**
  * Update an existing anggota
  */
 export async function updateAnggota(id: string, anggota: Partial<Anggota>): Promise<Anggota | null> {
-  const now = new Date().toISOString();
-  
-  const { data, error } = await supabase
-    .from("anggota")
-    .update({
-      ...anggota,
-      updated_at: now,
-    })
-    .eq("id", id)
-    .select()
-    .single();
-  
-  if (error) {
-    console.error("Error updating anggota:", error);
-    throw error;
+  try {
+    const now = new Date().toISOString();
+    
+    // Map Anggota to database structure
+    const dbAnggota = {
+      nama: anggota.nama,
+      nip: anggota.nip,
+      alamat: anggota.alamat,
+      nohp: anggota.noHp,
+      jeniskelamin: anggota.jenisKelamin,
+      agama: anggota.agama,
+      status: anggota.status,
+      unitkerja: anggota.unitKerja,
+      pekerjaan: anggota.pekerjaan,
+      tanggalbergabung: anggota.tanggalBergabung,
+      foto: anggota.foto,
+      email: anggota.email,
+      dokumen: anggota.dokumen,
+      keluarga: anggota.keluarga,
+      updated_at: now
+    };
+    
+    const { data, error } = await supabase
+      .from("anggota")
+      .update(dbAnggota)
+      .eq("id", id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error("Error updating anggota:", error);
+      throw error;
+    }
+    
+    return mapDbToAnggota(data);
+  } catch (error) {
+    console.error("Error in updateAnggota:", error);
+    return null;
   }
-  
-  return data as Anggota;
 }
 
 /**

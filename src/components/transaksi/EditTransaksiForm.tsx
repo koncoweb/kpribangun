@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,9 @@ import {
 } from "@/components/ui/select";
 import { Transaksi, Anggota } from "@/types";
 import { updateTransaksi } from "@/services/transaksi/updateTransaksi";
-import { getAllAnggota } from "@/services/anggotaService";
+import { getAllAnggota } from "@/adapters/serviceAdapters";
 import { getSimpananCategories, getPinjamanCategories } from "@/services/transaksi/categories";
+import { useAsync } from "@/hooks/useAsync";
 
 interface EditTransaksiFormProps {
   transaksi: Transaksi;
@@ -29,8 +31,12 @@ export function EditTransaksiForm({
 }: EditTransaksiFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  const { data: anggotaList = [], loading } = useAsync(
+    () => getAllAnggota(),
+    [],
+    []
+  );
   
   const [formData, setFormData] = useState({
     tanggal: transaksi.tanggal,
@@ -40,28 +46,6 @@ export function EditTransaksiForm({
     keterangan: transaksi.keterangan || "",
     status: transaksi.status
   });
-  
-  // Load anggota data
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        const data = await getAllAnggota();
-        setAnggotaList(data);
-      } catch (error) {
-        console.error("Error loading anggota:", error);
-        toast({
-          title: "Error",
-          description: "Gagal memuat data anggota",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadData();
-  }, [toast]);
   
   // Get categories based on transaction type
   const getCategories = () => {

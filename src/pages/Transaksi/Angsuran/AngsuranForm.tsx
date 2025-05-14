@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -17,7 +16,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { getAllAnggota } from "@/services/anggotaService";
+import { useAsync } from "@/hooks/useAsync";
 import { Anggota, Transaksi } from "@/types";
 import { FormActions } from "@/components/anggota/FormActions";
 import { 
@@ -25,17 +24,15 @@ import {
   calculateTotalSimpanan,
   createTransaksi, 
   getAllTransaksi, 
-  getTransaksiById 
-} from "@/services/transaksi";
+  getTransaksiById,
+  getAllAnggota
+} from "@/adapters/serviceAdapters";
 
 export default function AngsuranForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
-  const [pinjamanList, setPinjamanList] = useState<Transaksi[]>([]);
   
   // Get pinjamanId from location state if available
   const initialPinjamanId = location.state?.pinjamanId || "";
@@ -61,97 +58,123 @@ export default function AngsuranForm() {
     simpananBalance: 0
   });
   
+  // Use the useAsync hook to load anggota and transaksi data
+  const { data: anggotaList = [], loading: loadingAnggota } = useAsync(
+    () => getAllAnggota(),
+    [],
+    []
+  );
+  
+  const { data: allTransaksi = [], loading: loadingTransaksi } = useAsync(
+    () => getAllTransaksi(),
+    [],
+    []
+  );
+  
+  const [pinjamanList, setPinjamanList] = useState<Transaksi[]>([]);
+  
   useEffect(() => {
-    // Load anggota list
-    const loadedAnggota = getAllAnggota();
-    setAnggotaList(loadedAnggota);
-    
-    // Load all transaksi for pinjaman options
-    const allTransaksi = getAllTransaksi();
-    const pinjamanTransaksi = allTransaksi.filter(t => t.jenis === "Pinjam" && t.status === "Sukses");
-    setPinjamanList(pinjamanTransaksi);
-    
     // If pinjamanId is provided from state, load the pinjaman details
-    if (initialPinjamanId) {
-      const pinjaman = getTransaksiById(initialPinjamanId);
-      if (pinjaman) {
-        setFormData(prev => ({
-          ...prev,
-          anggotaId: pinjaman.anggotaId,
-        }));
-        setSelectedAnggotaId(pinjaman.anggotaId);
-        loadPinjamanInfo(pinjaman.anggotaId, initialPinjamanId);
+    const loadInitialPinjaman = async () => {
+      if (initialPinjamanId) {
+        const pinjaman = await getTransaksiById(initialPinjamanId);
+        if (pinjaman) {
+          setFormData(prev => ({
+            ...prev,
+            anggotaId: pinjaman.anggotaId,
+          }));
+          setSelectedAnggotaId(pinjaman.anggotaId);
+          await loadPinjamanInfo(pinjaman.anggotaId, initialPinjamanId);
+        }
       }
+    };
+    
+    // Initial load
+    if (allTransaksi.length > 0 && !loadingTransaksi) {
+      // Initialize pinjamanList
+      const pinjamanTransaksi = allTransaksi.filter(t => t.jenis === "Pinjam" && t.status === "Sukses");
+      setPinjamanList(pinjamanTransaksi);
+      
+      // Load initial pinjaman if provided
+      loadInitialPinjaman();
     }
-  }, [initialPinjamanId]);
+  }, [initialPinjamanId, allTransaksi, loadingTransaksi]);
   
   // Load pinjaman info when anggota changes
-  const loadPinjamanInfo = (anggotaId: string, selectedPinjamanId?: string) => {
-    const totalPinjaman = calculateTotalPinjaman(anggotaId);
-    const simpananBalance = calculateTotalSimpanan(anggotaId);
-    const allTransaksi = getAllTransaksi();
-    
-    // Filter pinjaman list to only show this anggota's pinjaman
-    const anggotaPinjaman = allTransaksi.filter(
-      p => p.anggotaId === anggotaId && p.jenis === "Pinjam" && p.status === "Sukses"
-    );
-    setPinjamanList(anggotaPinjaman);
-    
-    // If there's a selected pinjaman or only one pinjaman, get its details
-    const pinjamanToLoad = selectedPinjamanId || (anggotaPinjaman.length === 1 ? anggotaPinjaman[0].id : null);
-    
-    if (pinjamanToLoad) {
-      const pinjaman = getTransaksiById(pinjamanToLoad);
-      if (pinjaman) {
-        // Calculate total angsuran already paid for this pinjaman
-        const angsuranTransaksi = allTransaksi.filter(
-          t => t.jenis === "Angsuran" && 
-               t.status === "Sukses" && 
-               t.anggotaId === anggotaId && 
-               t.keterangan?.includes(pinjamanToLoad)
-        );
-        
-        const totalAngsuran = angsuranTransaksi.reduce((total, t) => total + t.jumlah, 0);
-        const sisaPinjaman = Math.max(0, pinjaman.jumlah - totalAngsuran);
-        
-        // Try to parse tenor and angsuran per bulan from keterangan
-        let tenor = 12; // Default tenor
-        let angsuranPerBulan = Math.ceil(pinjaman.jumlah / tenor);
-        
-        if (pinjaman.keterangan) {
-          const tenorMatch = pinjaman.keterangan.match(/Tenor: (\d+) bulan/);
-          const angsuranMatch = pinjaman.keterangan.match(/Angsuran per bulan: Rp ([0-9,.]+)/);
+  const loadPinjamanInfo = async (anggotaId: string, selectedPinjamanId?: string) => {
+    try {
+      const totalPinjaman = calculateTotalPinjaman(anggotaId);
+      const simpananBalance = calculateTotalSimpanan(anggotaId);
+      
+      // Filter pinjaman list to only show this anggota's pinjaman
+      const anggotaPinjaman = allTransaksi.filter(
+        p => p.anggotaId === anggotaId && p.jenis === "Pinjam" && p.status === "Sukses"
+      );
+      setPinjamanList(anggotaPinjaman);
+      
+      // If there's a selected pinjaman or only one pinjaman, get its details
+      const pinjamanToLoad = selectedPinjamanId || (anggotaPinjaman.length === 1 ? anggotaPinjaman[0].id : null);
+      
+      if (pinjamanToLoad) {
+        const pinjaman = await getTransaksiById(pinjamanToLoad);
+        if (pinjaman) {
+          // Calculate total angsuran already paid for this pinjaman
+          const angsuranTransaksi = allTransaksi.filter(
+            t => t.jenis === "Angsuran" && 
+                t.status === "Sukses" && 
+                t.anggotaId === anggotaId && 
+                t.keterangan?.includes(pinjamanToLoad)
+          );
           
-          if (tenorMatch && tenorMatch[1]) {
-            tenor = parseInt(tenorMatch[1]);
+          const totalAngsuran = angsuranTransaksi.reduce((total, t) => total + t.jumlah, 0);
+          const sisaPinjaman = Math.max(0, pinjaman.jumlah - totalAngsuran);
+          
+          // Try to parse tenor and angsuran per bulan from keterangan
+          let tenor = 12; // Default tenor
+          let angsuranPerBulan = Math.ceil(pinjaman.jumlah / tenor);
+          
+          if (pinjaman.keterangan) {
+            const tenorMatch = pinjaman.keterangan.match(/Tenor: (\d+) bulan/);
+            const angsuranMatch = pinjaman.keterangan.match(/Angsuran per bulan: Rp ([0-9,.]+)/);
+            
+            if (tenorMatch && tenorMatch[1]) {
+              tenor = parseInt(tenorMatch[1]);
+            }
+            
+            if (angsuranMatch && angsuranMatch[1]) {
+              angsuranPerBulan = parseInt(angsuranMatch[1].replace(/[,.]/g, ""));
+            }
           }
           
-          if (angsuranMatch && angsuranMatch[1]) {
-            angsuranPerBulan = parseInt(angsuranMatch[1].replace(/[,.]/g, ""));
-          }
+          // Calculate which angsuran number this would be
+          const angsuranKe = angsuranTransaksi.length + 1;
+          
+          setPinjamanInfo({
+            total: pinjaman.jumlah,
+            terbayar: totalAngsuran,
+            sisaPinjaman,
+            angsuranPerBulan,
+            angsuranKe,
+            tenor,
+            simpananBalance
+          });
+          
+          // Update formData with suggested angsuran amount
+          setFormData(prev => ({ 
+            ...prev, 
+            pinjamanId: pinjamanToLoad,
+            jumlah: Math.min(angsuranPerBulan, sisaPinjaman), // Don't exceed remaining loan amount
+            angsuranKe
+          }));
         }
-        
-        // Calculate which angsuran number this would be
-        const angsuranKe = angsuranTransaksi.length + 1;
-        
-        setPinjamanInfo({
-          total: pinjaman.jumlah,
-          terbayar: totalAngsuran,
-          sisaPinjaman,
-          angsuranPerBulan,
-          angsuranKe,
-          tenor,
-          simpananBalance
-        });
-        
-        // Update formData with suggested angsuran amount
-        setFormData(prev => ({ 
-          ...prev, 
-          pinjamanId: pinjamanToLoad,
-          jumlah: Math.min(angsuranPerBulan, sisaPinjaman), // Don't exceed remaining loan amount
-          angsuranKe
-        }));
       }
+    } catch (error) {
+      console.error("Error loading pinjaman info:", error);
+      toast({
+        title: "Error",
+        description: "Gagal memuat informasi pinjaman",
+        variant: "destructive",
+      });
     }
   };
   
@@ -241,7 +264,7 @@ export default function AngsuranForm() {
     return true;
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) return;
@@ -250,11 +273,13 @@ export default function AngsuranForm() {
     
     try {
       // Get pinjaman details for reference
-      const pinjaman = getTransaksiById(formData.pinjamanId);
+      const pinjaman = await getTransaksiById(formData.pinjamanId);
+      if (!pinjaman) throw new Error("Pinjaman tidak ditemukan");
+      
       const keteranganPinjaman = `Angsuran ke-${pinjamanInfo.angsuranKe} untuk pinjaman #${formData.pinjamanId}`;
       
       // Create angsuran transaksi
-      const newTransaksi = createTransaksi({
+      const newTransaksi = await createTransaksi({
         tanggal: formData.tanggal,
         anggotaId: formData.anggotaId,
         jenis: "Angsuran",
@@ -267,7 +292,7 @@ export default function AngsuranForm() {
       
       // If using simpanan for payment, create a withdraw transaction
       if (formData.useSimnpanan) {
-        const simpananTransaksi = createTransaksi({
+        const simpananTransaksi = await createTransaksi({
           tanggal: formData.tanggal,
           anggotaId: formData.anggotaId,
           jenis: "Simpan",
@@ -367,155 +392,163 @@ export default function AngsuranForm() {
                 </Select>
               </div>
               
-              {selectedAnggotaId && pinjamanInfo.sisaPinjaman > 0 && (
-                <div className="bg-amber-50 p-4 rounded-md">
-                  <p className="font-semibold mb-2">Informasi Pinjaman</p>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-2 text-sm">
-                    <div>
-                      <p className="text-muted-foreground">Total Pinjaman:</p>
-                      <p className="font-medium">{formatCurrency(pinjamanInfo.total)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Total Terbayar:</p>
-                      <p className="font-medium">{formatCurrency(pinjamanInfo.terbayar)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Sisa Pinjaman:</p>
-                      <p className="font-medium">{formatCurrency(pinjamanInfo.sisaPinjaman)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Angsuran ke-:</p>
-                      <p className="font-medium">{pinjamanInfo.angsuranKe} dari {pinjamanInfo.tenor}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Saldo Simpanan:</p>
-                      <p className="font-medium">{formatCurrency(pinjamanInfo.simpananBalance)}</p>
-                    </div>
-                  </div>
+              {loadingAnggota || loadingTransaksi ? (
+                <div className="p-4 text-center">
+                  <p>Memuat data...</p>
                 </div>
-              )}
-              
-              {selectedAnggotaId && pinjamanInfo.sisaPinjaman <= 0 && (
-                <div className="bg-green-50 p-4 rounded-md">
-                  <p className="text-green-800">
-                    Anggota ini tidak memiliki pinjaman yang perlu dibayar.
-                  </p>
-                </div>
-              )}
-              
-              {selectedAnggotaId && pinjamanList.length > 0 && (
+              ) : (
                 <>
-                  <div>
-                    <Label htmlFor="pinjamanId" className="required">Pilih Pinjaman</Label>
-                    <Select 
-                      value={formData.pinjamanId}
-                      onValueChange={handleSelectPinjaman}
-                      required
-                      disabled={pinjamanList.length === 0}
-                    >
-                      <SelectTrigger id="pinjamanId">
-                        <SelectValue placeholder="Pilih pinjaman" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {pinjamanList.map((pinjaman) => (
-                          <SelectItem key={pinjaman.id} value={pinjaman.id}>
-                            {pinjaman.id} - {formatCurrency(pinjaman.jumlah)} ({new Date(pinjaman.tanggal).toLocaleDateString("id-ID")})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="angsuranKe">Angsuran Ke</Label>
-                      <Input 
-                        id="angsuranKe" 
-                        value={pinjamanInfo.angsuranKe}
-                        disabled
-                      />
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Angsuran ke-{pinjamanInfo.angsuranKe} dari {pinjamanInfo.tenor}
-                      </p>
+                  {selectedAnggotaId && pinjamanInfo.sisaPinjaman > 0 && (
+                    <div className="bg-amber-50 p-4 rounded-md">
+                      <p className="font-semibold mb-2">Informasi Pinjaman</p>
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-2 text-sm">
+                        <div>
+                          <p className="text-muted-foreground">Total Pinjaman:</p>
+                          <p className="font-medium">{formatCurrency(pinjamanInfo.total)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Total Terbayar:</p>
+                          <p className="font-medium">{formatCurrency(pinjamanInfo.terbayar)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Sisa Pinjaman:</p>
+                          <p className="font-medium">{formatCurrency(pinjamanInfo.sisaPinjaman)}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Angsuran ke-:</p>
+                          <p className="font-medium">{pinjamanInfo.angsuranKe} dari {pinjamanInfo.tenor}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground">Saldo Simpanan:</p>
+                          <p className="font-medium">{formatCurrency(pinjamanInfo.simpananBalance)}</p>
+                        </div>
+                      </div>
                     </div>
-                    
-                    <div>
-                      <Label htmlFor="jumlah" className="required">Jumlah Angsuran (Rp)</Label>
-                      <Input 
-                        id="jumlah" 
-                        placeholder="Contoh: 500000" 
-                        type="number" 
-                        min="0" 
-                        max={pinjamanInfo.sisaPinjaman}
-                        value={formData.jumlah || ""}
-                        onChange={handleInputChange}
-                        required 
-                      />
-                      {pinjamanInfo.angsuranPerBulan > 0 && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Angsuran yang disarankan: {formatCurrency(Math.min(pinjamanInfo.angsuranPerBulan, pinjamanInfo.sisaPinjaman))}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+                  )}
                   
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="useSimnpanan" 
-                      checked={formData.useSimnpanan}
-                      onCheckedChange={handleCheckboxChange}
-                      disabled={pinjamanInfo.simpananBalance < formData.jumlah}
-                    />
-                    <label
-                      htmlFor="useSimnpanan"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Bayar menggunakan dana simpanan
-                    </label>
-                  </div>
-                  
-                  {formData.useSimnpanan && (
-                    <div className="bg-blue-50 p-4 rounded-md">
-                      <p className="text-sm">
-                        Pembayaran akan menggunakan dana simpanan anggota sebesar {formatCurrency(formData.jumlah)}.
-                        Saldo simpanan setelah pembayaran: {formatCurrency(pinjamanInfo.simpananBalance - formData.jumlah)}
+                  {selectedAnggotaId && pinjamanInfo.sisaPinjaman <= 0 && (
+                    <div className="bg-green-50 p-4 rounded-md">
+                      <p className="text-green-800">
+                        Anggota ini tidak memiliki pinjaman yang perlu dibayar.
                       </p>
                     </div>
                   )}
                   
-                  <div>
-                    <Label htmlFor="keterangan">Keterangan</Label>
-                    <Textarea 
-                      id="keterangan" 
-                      placeholder="Masukkan keterangan (opsional)" 
-                      rows={3}
-                      value={formData.keterangan}
-                      onChange={handleInputChange}
-                    />
-                  </div>
+                  {selectedAnggotaId && pinjamanList.length > 0 && (
+                    <>
+                      <div>
+                        <Label htmlFor="pinjamanId" className="required">Pilih Pinjaman</Label>
+                        <Select 
+                          value={formData.pinjamanId}
+                          onValueChange={handleSelectPinjaman}
+                          required
+                          disabled={pinjamanList.length === 0}
+                        >
+                          <SelectTrigger id="pinjamanId">
+                            <SelectValue placeholder="Pilih pinjaman" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {pinjamanList.map((pinjaman) => (
+                              <SelectItem key={pinjaman.id} value={pinjaman.id}>
+                                {pinjaman.id} - {formatCurrency(pinjaman.jumlah)} ({new Date(pinjaman.tanggal).toLocaleDateString("id-ID")})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="angsuranKe">Angsuran Ke</Label>
+                          <Input 
+                            id="angsuranKe" 
+                            value={pinjamanInfo.angsuranKe}
+                            disabled
+                          />
+                          <p className="text-sm text-muted-foreground mt-1">
+                            Angsuran ke-{pinjamanInfo.angsuranKe} dari {pinjamanInfo.tenor}
+                          </p>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="jumlah" className="required">Jumlah Angsuran (Rp)</Label>
+                          <Input 
+                            id="jumlah" 
+                            placeholder="Contoh: 500000" 
+                            type="number" 
+                            min="0" 
+                            max={pinjamanInfo.sisaPinjaman}
+                            value={formData.jumlah || ""}
+                            onChange={handleInputChange}
+                            required 
+                          />
+                          {pinjamanInfo.angsuranPerBulan > 0 && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Angsuran yang disarankan: {formatCurrency(Math.min(pinjamanInfo.angsuranPerBulan, pinjamanInfo.sisaPinjaman))}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="useSimnpanan" 
+                          checked={formData.useSimnpanan}
+                          onCheckedChange={handleCheckboxChange}
+                          disabled={pinjamanInfo.simpananBalance < formData.jumlah}
+                        />
+                        <label
+                          htmlFor="useSimnpanan"
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Bayar menggunakan dana simpanan
+                        </label>
+                      </div>
+                      
+                      {formData.useSimnpanan && (
+                        <div className="bg-blue-50 p-4 rounded-md">
+                          <p className="text-sm">
+                            Pembayaran akan menggunakan dana simpanan anggota sebesar {formatCurrency(formData.jumlah)}.
+                            Saldo simpanan setelah pembayaran: {formatCurrency(pinjamanInfo.simpananBalance - formData.jumlah)}
+                          </p>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <Label htmlFor="keterangan">Keterangan</Label>
+                        <Textarea 
+                          id="keterangan" 
+                          placeholder="Masukkan keterangan (opsional)" 
+                          rows={3}
+                          value={formData.keterangan}
+                          onChange={handleInputChange}
+                        />
+                      </div>
+                      
+                      <FormActions 
+                        isSubmitting={isSubmitting} 
+                        isEditMode={false}
+                        cancelHref="/transaksi/angsuran"
+                      />
+                    </>
+                  )}
                   
-                  <FormActions 
-                    isSubmitting={isSubmitting} 
-                    isEditMode={false}
-                    cancelHref="/transaksi/angsuran"
-                  />
+                  {selectedAnggotaId && pinjamanList.length === 0 && (
+                    <div className="bg-yellow-50 p-4 rounded-md">
+                      <p className="text-yellow-800">
+                        Anggota ini tidak memiliki catatan pinjaman aktif. Silakan pilih anggota lain atau buat pinjaman terlebih dahulu.
+                      </p>
+                      <div className="mt-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => navigate("/transaksi/pinjam/tambah")}
+                        >
+                          Buat Pinjaman Baru
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </>
-              )}
-              
-              {selectedAnggotaId && pinjamanList.length === 0 && (
-                <div className="bg-yellow-50 p-4 rounded-md">
-                  <p className="text-yellow-800">
-                    Anggota ini tidak memiliki catatan pinjaman aktif. Silakan pilih anggota lain atau buat pinjaman terlebih dahulu.
-                  </p>
-                  <div className="mt-4">
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate("/transaksi/pinjam/tambah")}
-                    >
-                      Buat Pinjaman Baru
-                    </Button>
-                  </div>
-                </div>
               )}
             </div>
           </form>
