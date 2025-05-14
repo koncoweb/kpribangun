@@ -1,204 +1,146 @@
 
+import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
-import { ExtendedUser } from "@/types/auth";
-import { getUsers, getUserById } from "@/services/userManagementService";
-import { getFromLocalStorage, saveToLocalStorage } from "@/utils/localStorage";
-import { getAnggotaById } from "@/services/anggotaService";
-import { getRoleById } from "@/services/user-management/roleService";
+import { toast } from "@/components/ui/use-toast";
 
-const AUTH_STORAGE_KEY = "koperasi_auth";
+// Session storage key
+const AUTH_USER_KEY = "koperasi_auth_user";
 
-interface AuthState {
-  currentUser: ExtendedUser | null;
-  isAuthenticated: boolean;
+/**
+ * Login user with username and password
+ */
+export async function loginUser(username: string, password: string): Promise<User> {
+  try {
+    // First, fetch the user from our 'users' table using username
+    const { data: users, error: fetchError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("username", username)
+      .eq("aktif", true)
+      .single();
+    
+    if (fetchError || !users) {
+      console.error("Login error:", fetchError);
+      throw new Error("Username tidak ditemukan atau akun tidak aktif");
+    }
+    
+    // In a real application with Supabase auth, we would do something like this:
+    // const { data, error } = await supabase.auth.signInWithPassword({
+    //   email: users.email,
+    //   password: password
+    // });
+    
+    // For now, since we're not using Supabase Auth but just our users table,
+    // we'll simulate authentication by checking the password directly
+    // Note: In a production app, you would set up proper Supabase Auth
+    if (password !== "password123") { // Replace with proper password check
+      throw new Error("Password tidak valid");
+    }
+    
+    // Store user in session storage
+    const user: User = users;
+    sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    
+    // Update last login
+    const now = new Date().toISOString();
+    await supabase
+      .from("users")
+      .update({ lastLogin: now })
+      .eq("id", user.id);
+    
+    return user;
+  } catch (error: any) {
+    console.error("Login error:", error);
+    throw new Error(error.message || "Login failed");
+  }
 }
 
-// Get authentication state from local storage
-export const getAuthState = (): AuthState => {
-  const state = getFromLocalStorage(AUTH_STORAGE_KEY, {
-    currentUser: null,
-    isAuthenticated: false
-  });
-  console.log("Retrieved auth state:", state);
-  return state;
-};
-
-// Save authentication state to local storage
-export const saveAuthState = (authState: AuthState): void => {
-  saveToLocalStorage(AUTH_STORAGE_KEY, authState);
-  console.log("Auth state saved:", authState);
-};
-
-// Login function
-export const loginUser = async (username: string, password: string): Promise<ExtendedUser> => {
-  // In a real app, this would make an API call to validate credentials
-  console.log("Attempting login with:", { username, password });
-  
+/**
+ * Login with anggota ID
+ */
+export async function loginWithAnggotaId(anggotaId: string, password: string): Promise<User> {
   try {
-    // For demo, we'll check against our mock users
-    const users = getUsers();
-    console.log("Available users:", users);
+    // First, check if anggota exists and is associated with a user
+    const { data: users, error: fetchError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("anggotaId", anggotaId)
+      .eq("aktif", true)
+      .single();
     
-    const user = users.find(user => user.username === username);
-    
-    if (!user) {
-      console.error("User not found:", username);
-      throw new Error("User not found");
+    if (fetchError || !users) {
+      console.error("Login error:", fetchError);
+      throw new Error("ID Anggota tidak ditemukan atau akun tidak aktif");
     }
     
-    // For demo purposes, any password matching "password123" will work
-    // In production, you would compare password hashes
+    // Simple password check (should be replaced with proper auth)
     if (password !== "password123") {
-      console.error("Invalid password for user:", username);
-      throw new Error("Invalid password");
+      throw new Error("Password tidak valid");
     }
     
-    // Update last login time
-    user.lastLogin = new Date().toISOString();
+    // Store user in session storage
+    const user: User = users;
+    sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
     
-    // Get role information if available
-    const role = user.roleId ? getRoleById(user.roleId) : undefined;
-    console.log("User role:", role);
+    // Update last login
+    const now = new Date().toISOString();
+    await supabase
+      .from("users")
+      .update({ lastLogin: now })
+      .eq("id", user.id);
     
-    // Create extended user with role information
-    const extendedUser: ExtendedUser = {
-      ...user,
-      role: role ? {
-        id: role.id,
-        name: role.name,
-        permissions: role.permissions
-      } : undefined
-    };
-    
-    console.log("User authenticated successfully:", extendedUser);
-    
-    // Save the authenticated user
-    saveAuthState({
-      currentUser: extendedUser,
-      isAuthenticated: true
-    });
-    
-    return extendedUser;
-  } catch (error) {
+    return user;
+  } catch (error: any) {
     console.error("Login error:", error);
-    throw error;
+    throw new Error(error.message || "Login failed");
   }
-};
+}
 
-// Login function for anggota
-export const loginWithAnggotaId = async (anggotaId: string, password: string): Promise<ExtendedUser> => {
-  // In a real app, this would make an API call to validate credentials
-  console.log("Attempting anggota login with ID:", anggotaId);
+/**
+ * Logout user
+ */
+export function logoutUser(): void {
+  sessionStorage.removeItem(AUTH_USER_KEY);
+}
+
+/**
+ * Get current logged in user
+ */
+export function getCurrentUser(): User | null {
+  const userJson = sessionStorage.getItem(AUTH_USER_KEY);
+  if (!userJson) return null;
   
   try {
-    // Get anggota by ID
-    const anggota = getAnggotaById(anggotaId);
-    
-    if (!anggota) {
-      console.error("Anggota not found:", anggotaId);
-      throw new Error("ID Anggota tidak ditemukan");
-    }
-    
-    // For demo purposes, we're not doing real password verification
-    // In production, you would compare password hashes
-    // Simple verification (for demo)
-    if (password !== "password123" && password !== anggota.id) {
-      console.error("Invalid password for anggota:", anggotaId);
-      throw new Error("Password salah");
-    }
-    
-    // Create an auth user with anggota details
-    const authUser: ExtendedUser = {
-      id: `anggota-${anggota.id}`,
-      username: anggota.nama,
-      nama: anggota.nama,
-      email: anggota.email || "",
-      roleId: "anggota", // Special role for anggota
-      anggotaId: anggota.id,
-      aktif: true,
-      lastLogin: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      role: {
-        id: "anggota",
-        name: "Anggota",
-        permissions: ["view_own_data"]
-      }
-    };
-    
-    console.log("Anggota authenticated successfully:", authUser);
-    
-    // Save the authenticated anggota
-    saveAuthState({
-      currentUser: authUser,
-      isAuthenticated: true
-    });
-    
-    return authUser;
+    return JSON.parse(userJson) as User;
   } catch (error) {
-    // Re-throw the error to be handled by the calling component
-    console.error("Anggota login failed:", error);
-    throw error;
+    console.error("Error parsing user from session:", error);
+    return null;
   }
-};
+}
 
-// Update password function
-export const updatePassword = async (userId: string, currentPassword: string, newPassword: string): Promise<boolean> => {
-  // In a real app, this would make an API call to update password
-  // For demo, we'll just pretend it worked
+/**
+ * Check if user is authenticated
+ */
+export function isAuthenticated(): boolean {
+  return !!getCurrentUser();
+}
+
+/**
+ * Check user login status
+ */
+export function checkLoginStatus(): boolean {
+  const isLoggedIn = isAuthenticated();
   
-  // Validate current password (would be more complex in a real app)
-  // For anggota users
-  const currentUser = getCurrentUser();
-  if (currentUser?.anggotaId) {
-    // Handle anggota password change
-    if (currentPassword !== "password123" && currentPassword !== currentUser.anggotaId) {
-      throw new Error("Password lama tidak sesuai");
-    }
-  } else {
-    // Handle admin/staff password change
-    // For demo, any current password is accepted
-  }
-  
-  // In a real app, you would update the password in database
-  // For demo, we'll just return success
-  return true;
-};
-
-// Logout function
-export const logoutUser = (): void => {
-  console.log("Logging out user");
-  saveAuthState({
-    currentUser: null,
-    isAuthenticated: false
-  });
-};
-
-// Check if user is authenticated
-export const isAuthenticated = (): boolean => {
-  const authState = getAuthState();
-  return authState.isAuthenticated && !!authState.currentUser;
-};
-
-// Get the current user
-export const getCurrentUser = (): ExtendedUser | null => {
-  const authState = getAuthState();
-  return authState.currentUser;
-};
-
-// Check if user has permission
-export const hasPermission = (permissionId: string): boolean => {
-  const user = getCurrentUser();
-  if (!user) return false;
-  
-  // Check if user has the permission directly or through their role
-  if (user.permissions?.includes(permissionId)) {
-    return true;
+  // If not logged in and not on login page, redirect to login
+  if (!isLoggedIn && !window.location.pathname.includes("/login")) {
+    window.location.href = "/login";
+    toast({
+      title: "Session Expired",
+      description: "Your session has expired. Please log in again.",
+      variant: "destructive",
+    });
+    return false;
   }
   
-  if (user.role?.permissions?.includes(permissionId)) {
-    return true;
-  }
-  
-  return false;
-};
+  return isLoggedIn;
+}

@@ -28,6 +28,7 @@ import { PasswordInput } from "@/components/auth/anggota/PasswordInput";
 import { UsernameInput } from "./UsernameInput";
 import { LoginFooter } from "./LoginFooter";
 import { adminLoginFormSchema } from "./formSchema";
+import { migrateAllData } from "@/utils/migrateToSupabase";
 
 type FormValues = z.infer<typeof adminLoginFormSchema>;
 
@@ -51,6 +52,7 @@ export function LoginForm({
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
   
   // Initialize form with react-hook-form and zod validation
   const form = useForm<FormValues>({
@@ -100,6 +102,37 @@ export function LoginForm({
     
     // Auto-submit the form with demo credentials
     form.handleSubmit(onSubmit)();
+  };
+
+  // Function to handle data migration
+  const handleMigrateData = async () => {
+    setIsMigrating(true);
+    
+    try {
+      const result = await migrateAllData();
+      
+      if (result.success) {
+        toast({
+          title: "Data Migration Successful",
+          description: "All data has been successfully migrated to Supabase.",
+        });
+      } else {
+        toast({
+          title: "Migration Failed",
+          description: result.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error("Migration error:", error);
+      toast({
+        title: "Migration Failed",
+        description: error.message || "An error occurred during migration",
+        variant: "destructive",
+      });
+    } finally {
+      setIsMigrating(false);
+    }
   };
 
   return (
@@ -154,6 +187,16 @@ export function LoginForm({
                 disabled={isLoading}
               >
                 {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-10"
+                onClick={handleMigrateData}
+                disabled={isMigrating}
+              >
+                {isMigrating ? "Migrating Data..." : "Migrate Data to Supabase"}
               </Button>
             </form>
           </Form>

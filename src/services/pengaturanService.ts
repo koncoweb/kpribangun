@@ -1,9 +1,9 @@
 
 import { Pengaturan } from "../types";
-import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
-import { PinjamanCategory, defaultPinjamanInterestRates } from "./transaksi/categories";
+import { supabase } from "@/integrations/supabase/client";
+import { PinjamanCategory } from "./transaksi/categories";
 
-const PENGATURAN_KEY = "koperasi_pengaturan";
+const DEFAULT_SETTINGS_ID = "default_settings";
 
 // Default pengaturan initial data
 const initialPengaturan: Pengaturan = {
@@ -31,24 +31,85 @@ const initialPengaturan: Pengaturan = {
 };
 
 /**
- * Get pengaturan from local storage
+ * Get pengaturan from Supabase
  */
-export function getPengaturan(): Pengaturan {
-  return getFromLocalStorage<Pengaturan>(PENGATURAN_KEY, initialPengaturan);
+export async function getPengaturan(): Promise<Pengaturan> {
+  const { data, error } = await supabase
+    .from("pengaturan")
+    .select("*")
+    .eq("id", DEFAULT_SETTINGS_ID)
+    .single();
+  
+  if (error) {
+    console.error("Error fetching pengaturan:", error);
+    
+    // If settings don't exist, create default settings
+    if (error.code === "PGRST116") { // Record not found
+      return createDefaultSettings();
+    }
+    
+    throw error;
+  }
+  
+  // Transform the data to match our type structure
+  return {
+    sukuBunga: data.sukuBunga,
+    tenor: data.tenor,
+    denda: data.denda
+  } as Pengaturan;
 }
 
 /**
- * Save pengaturan to local storage
+ * Create default settings if they don't exist
  */
-export function savePengaturan(pengaturan: Pengaturan): void {
-  saveToLocalStorage(PENGATURAN_KEY, pengaturan);
+async function createDefaultSettings(): Promise<Pengaturan> {
+  const { data, error } = await supabase
+    .from("pengaturan")
+    .insert([{
+      id: DEFAULT_SETTINGS_ID,
+      sukuBunga: initialPengaturan.sukuBunga,
+      tenor: initialPengaturan.tenor,
+      denda: initialPengaturan.denda
+    }])
+    .select()
+    .single();
+  
+  if (error) {
+    console.error("Error creating default pengaturan:", error);
+    throw error;
+  }
+  
+  return {
+    sukuBunga: data.sukuBunga,
+    tenor: data.tenor,
+    denda: data.denda
+  } as Pengaturan;
+}
+
+/**
+ * Save pengaturan to Supabase
+ */
+export async function savePengaturan(pengaturan: Pengaturan): Promise<void> {
+  const { error } = await supabase
+    .from("pengaturan")
+    .update({
+      sukuBunga: pengaturan.sukuBunga,
+      tenor: pengaturan.tenor,
+      denda: pengaturan.denda
+    })
+    .eq("id", DEFAULT_SETTINGS_ID);
+  
+  if (error) {
+    console.error("Error saving pengaturan:", error);
+    throw error;
+  }
 }
 
 /**
  * Update specific pengaturan fields
  */
-export function updatePengaturan(updatedFields: Partial<Pengaturan>): Pengaturan {
-  const currentPengaturan = getPengaturan();
+export async function updatePengaturan(updatedFields: Partial<Pengaturan>): Promise<Pengaturan> {
+  const currentPengaturan = await getPengaturan();
   
   // Deep merge the current pengaturan with the updated fields
   const updatedPengaturan = {
@@ -68,14 +129,14 @@ export function updatePengaturan(updatedFields: Partial<Pengaturan>): Pengaturan
     }
   };
   
-  saveToLocalStorage(PENGATURAN_KEY, updatedPengaturan);
+  await savePengaturan(updatedPengaturan);
   return updatedPengaturan;
 }
 
 /**
  * Reset pengaturan to default values
  */
-export function resetPengaturan(): Pengaturan {
-  saveToLocalStorage(PENGATURAN_KEY, initialPengaturan);
+export async function resetPengaturan(): Promise<Pengaturan> {
+  await savePengaturan(initialPengaturan);
   return initialPengaturan;
 }

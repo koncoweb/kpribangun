@@ -1,46 +1,73 @@
 
 import { Transaksi } from "@/types";
-import { getFromLocalStorage, saveToLocalStorage } from "@/utils/localStorage";
-import { initialTransaksi } from "./initialData";
+import { supabase } from "@/integrations/supabase/client";
 import { generateTransaksiId } from "./idGenerator";
 
-const TRANSAKSI_KEY = "koperasi_transaksi";
-
 /**
- * Get all transaksi from local storage
+ * Get all transaksi from Supabase
  */
-export function getAllTransaksi(): Transaksi[] {
-  return getFromLocalStorage<Transaksi[]>(TRANSAKSI_KEY, initialTransaksi);
+export async function getAllTransaksi(): Promise<Transaksi[]> {
+  const { data, error } = await supabase
+    .from("transaksi")
+    .select("*")
+    .order("tanggal", { ascending: false });
+  
+  if (error) {
+    console.error("Error fetching transaksi:", error);
+    throw error;
+  }
+  
+  return data as Transaksi[];
 }
 
 /**
  * Get transaksi by anggota ID
  */
-export function getTransaksiByAnggotaId(anggotaId: string): Transaksi[] {
-  const transaksiList = getAllTransaksi();
-  return transaksiList.filter(
-    (transaksi) => transaksi.anggotaId === anggotaId
-  );
+export async function getTransaksiByAnggotaId(anggotaId: string): Promise<Transaksi[]> {
+  const { data, error } = await supabase
+    .from("transaksi")
+    .select("*")
+    .eq("anggotaId", anggotaId)
+    .order("tanggal", { ascending: false });
+  
+  if (error) {
+    console.error("Error fetching transaksi by anggota ID:", error);
+    throw error;
+  }
+  
+  return data as Transaksi[];
 }
 
 /**
  * Get transaksi by ID
  */
-export function getTransaksiById(id: string): Transaksi | undefined {
-  const transaksiList = getAllTransaksi();
-  return transaksiList.find((transaksi) => transaksi.id === id);
+export async function getTransaksiById(id: string): Promise<Transaksi | undefined> {
+  const { data, error } = await supabase
+    .from("transaksi")
+    .select("*")
+    .eq("id", id)
+    .single();
+  
+  if (error) {
+    if (error.code === "PGRST116") { // Record not found
+      return undefined;
+    }
+    console.error("Error fetching transaksi by ID:", error);
+    throw error;
+  }
+  
+  return data as Transaksi;
 }
 
 /**
  * Create a new transaksi
  */
-export function createTransaksi(data: Partial<Transaksi>): Transaksi | null {
+export async function createTransaksi(data: Partial<Transaksi>): Promise<Transaksi | null> {
   try {
-    const transaksiList = getAllTransaksi();
-    const newId = generateTransaksiId();
+    const newId = await generateTransaksiId();
     const now = new Date().toISOString();
     
-    const newTransaksi: Transaksi = {
+    const newTransaksi = {
       id: newId,
       tanggal: data.tanggal || new Date().toISOString().split('T')[0],
       anggotaId: data.anggotaId || "",
@@ -50,14 +77,22 @@ export function createTransaksi(data: Partial<Transaksi>): Transaksi | null {
       jumlah: data.jumlah || 0,
       keterangan: data.keterangan || "",
       status: data.status || "Sukses",
-      createdAt: now,
-      updatedAt: now,
+      created_at: now,
+      updated_at: now,
     };
     
-    transaksiList.push(newTransaksi);
-    saveToLocalStorage(TRANSAKSI_KEY, transaksiList);
+    const { data: result, error } = await supabase
+      .from("transaksi")
+      .insert([newTransaksi])
+      .select()
+      .single();
     
-    return newTransaksi;
+    if (error) {
+      console.error("Error creating transaksi:", error);
+      throw error;
+    }
+    
+    return result as Transaksi;
   } catch (error) {
     console.error("Error creating transaksi:", error);
     return null;

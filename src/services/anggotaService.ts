@@ -1,181 +1,134 @@
+
+import { supabase } from "@/integrations/supabase/client";
 import { Anggota } from "../types";
-import { getFromLocalStorage, saveToLocalStorage } from "../utils/localStorage";
-
-const ANGGOTA_KEY = "koperasi_anggota";
-
-// Initial sample data
-const initialAnggota: Anggota[] = [
-  { 
-    id: "AG0001", 
-    nama: "Budi Santoso", 
-    nip: "197201011998031001", // NIP format but now optional
-    alamat: "Jl. Merdeka No. 123, Jakarta",
-    noHp: "081234567890",
-    jenisKelamin: "L",
-    agama: "Islam",
-    status: "active",
-    unitKerja: "SDN Jatilor 01", // Changed from array to string
-    tanggalBergabung: "2023-01-15",
-    foto: null,
-    email: "budi.santoso@example.com",
-    dokumen: [],
-    keluarga: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  { 
-    id: "AG0002", 
-    nama: "Dewi Lestari", 
-    nip: "198505122005042002", // NIP format but now optional
-    alamat: "Jl. Pahlawan No. 45, Bandung",
-    noHp: "081234567891",
-    jenisKelamin: "P",
-    agama: "Kristen",
-    status: "active",
-    unitKerja: "SDN Bringin", // Changed from array to string
-    tanggalBergabung: "2023-02-20",
-    foto: null,
-    email: "dewi.lestari@example.com",
-    dokumen: [],
-    keluarga: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  { 
-    id: "AG0003", 
-    nama: "Ahmad Hidayat", 
-    nip: "198107182008011003", // NIP format but now optional
-    alamat: "Jl. Sudirman No. 78, Surabaya",
-    noHp: "081234567892",
-    jenisKelamin: "L",
-    agama: "Islam",
-    status: "active",
-    unitKerja: "SDN Jatilor 01", // Changed from array to string
-    tanggalBergabung: "2023-03-10",
-    foto: null,
-    email: "ahmad.hidayat@example.com",
-    dokumen: [],
-    keluarga: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  { 
-    id: "AG0004", 
-    nama: "Sri Wahyuni", 
-    nip: "199206152015032004", // NIP format but now optional
-    alamat: "Jl. Gatot Subroto No. 55, Medan",
-    noHp: "081234567893",
-    jenisKelamin: "P",
-    agama: "Hindu",
-    status: "active",
-    unitKerja: "SDN Klampok 01", // Changed from array to string
-    tanggalBergabung: "2023-04-05",
-    foto: null,
-    email: "sri.wahyuni@example.com",
-    dokumen: [],
-    keluarga: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  { 
-    id: "AG0005", 
-    nama: "Agus Setiawan", 
-    alamat: "Jl. Ahmad Yani No. 12, Semarang",
-    noHp: "081234567894",
-    jenisKelamin: "L",
-    agama: "Katolik",
-    status: "active",
-    unitKerja: "SDN Bringin", // Changed from array to string
-    tanggalBergabung: "2023-05-15",
-    foto: null,
-    email: "agus.setiawan@example.com",
-    dokumen: [],
-    keluarga: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
 
 /**
- * Get all anggota from local storage
+ * Get all anggota from Supabase
  */
-export function getAllAnggota(): Anggota[] {
-  return getFromLocalStorage<Anggota[]>(ANGGOTA_KEY, initialAnggota);
+export async function getAllAnggota(): Promise<Anggota[]> {
+  const { data, error } = await supabase
+    .from("anggota")
+    .select("*")
+    .order("nama");
+  
+  if (error) {
+    console.error("Error fetching anggota:", error);
+    throw error;
+  }
+  
+  return data as Anggota[];
 }
 
 // Alias function for getAllAnggota to fix the import issue
-export function getAnggotaList(): Anggota[] {
+export async function getAnggotaList(): Promise<Anggota[]> {
   return getAllAnggota();
 }
 
 /**
  * Get anggota by ID
  */
-export function getAnggotaById(id: string): Anggota | undefined {
-  const anggotaList = getAllAnggota();
-  return anggotaList.find(anggota => anggota.id === id);
+export async function getAnggotaById(id: string): Promise<Anggota | undefined> {
+  const { data, error } = await supabase
+    .from("anggota")
+    .select("*")
+    .eq("id", id)
+    .single();
+  
+  if (error) {
+    if (error.code === "PGRST116") { // Record not found
+      return undefined;
+    }
+    console.error("Error fetching anggota:", error);
+    throw error;
+  }
+  
+  return data as Anggota;
 }
 
 /**
  * Generate a new anggota ID
  */
-export function generateAnggotaId(): string {
-  const anggotaList = getAllAnggota();
-  const lastId = anggotaList.length > 0 
-    ? parseInt(anggotaList[anggotaList.length - 1].id.replace("AG", "")) 
-    : 0;
-  const newId = `AG${String(lastId + 1).padStart(4, "0")}`;
-  return newId;
+export async function generateAnggotaId(): Promise<string> {
+  const { data, error } = await supabase
+    .from("anggota")
+    .select("id")
+    .order("id", { ascending: false })
+    .limit(1);
+  
+  if (error) {
+    console.error("Error generating anggota ID:", error);
+    throw error;
+  }
+  
+  const lastId = data && data.length > 0 ? parseInt(data[0].id.replace("AG", "")) : 0;
+  return `AG${String(lastId + 1).padStart(4, "0")}`;
 }
 
 /**
  * Create a new anggota
  */
-export function createAnggota(anggota: Omit<Anggota, "id" | "createdAt" | "updatedAt">): Anggota {
-  const anggotaList = getAllAnggota();
+export async function createAnggota(anggota: Omit<Anggota, "id" | "createdAt" | "updatedAt">): Promise<Anggota> {
+  const id = await generateAnggotaId();
   const now = new Date().toISOString();
   
-  const newAnggota: Anggota = {
+  const newAnggota = {
     ...anggota,
-    id: generateAnggotaId(),
-    createdAt: now,
-    updatedAt: now,
+    id,
+    created_at: now,
+    updated_at: now,
   };
   
-  anggotaList.push(newAnggota);
-  saveToLocalStorage(ANGGOTA_KEY, anggotaList);
+  const { data, error } = await supabase
+    .from("anggota")
+    .insert([newAnggota])
+    .select()
+    .single();
   
-  return newAnggota;
+  if (error) {
+    console.error("Error creating anggota:", error);
+    throw error;
+  }
+  
+  return data as Anggota;
 }
 
 /**
  * Update an existing anggota
  */
-export function updateAnggota(id: string, anggota: Partial<Anggota>): Anggota | null {
-  const anggotaList = getAllAnggota();
-  const index = anggotaList.findIndex(a => a.id === id);
+export async function updateAnggota(id: string, anggota: Partial<Anggota>): Promise<Anggota | null> {
+  const now = new Date().toISOString();
   
-  if (index === -1) return null;
+  const { data, error } = await supabase
+    .from("anggota")
+    .update({
+      ...anggota,
+      updated_at: now,
+    })
+    .eq("id", id)
+    .select()
+    .single();
   
-  anggotaList[index] = {
-    ...anggotaList[index],
-    ...anggota,
-    updatedAt: new Date().toISOString(),
-  };
+  if (error) {
+    console.error("Error updating anggota:", error);
+    throw error;
+  }
   
-  saveToLocalStorage(ANGGOTA_KEY, anggotaList);
-  return anggotaList[index];
+  return data as Anggota;
 }
 
 /**
  * Delete an anggota by ID
  */
-export function deleteAnggota(id: string): boolean {
-  const anggotaList = getAllAnggota();
-  const filteredList = anggotaList.filter(anggota => anggota.id !== id);
+export async function deleteAnggota(id: string): Promise<boolean> {
+  const { error } = await supabase
+    .from("anggota")
+    .delete()
+    .eq("id", id);
   
-  if (filteredList.length === anggotaList.length) return false;
+  if (error) {
+    console.error("Error deleting anggota:", error);
+    throw error;
+  }
   
-  saveToLocalStorage(ANGGOTA_KEY, filteredList);
   return true;
 }
