@@ -61,10 +61,10 @@ export function PaymentDialog({
       const angsuranTransaksi = await createTransaksi({
         tanggal: new Date().toISOString().split('T')[0],
         anggotaId: pinjaman.anggotaId,
-        jenis: "Angsuran",
         jumlah: currentAngsuran.nominal,
         keterangan: `${keteranganPinjaman} (Dibayar dari simpanan)`,
-        status: "Sukses"
+        status: "Sukses",
+        jenis: "Angsuran"
       });
 
       // Create simpanan withdraw transaction

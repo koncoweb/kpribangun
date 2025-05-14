@@ -2,118 +2,114 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
+import { createTransaksi } from "@/adapters/serviceAdapters";
 import { Anggota } from "@/types";
-import { createTransaksi } from "@/services/transaksi";
-import { getSimpananCategories, SimpananCategory } from "@/services/transaksi/categories";
+import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 
 interface SimpananFormProps {
-  anggotaList: Anggota[];
+  anggota: Anggota;
 }
 
-export function SimpananForm({ anggotaList }: SimpananFormProps) {
+export function SimpananForm({ anggota }: SimpananFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const simpananCategories = getSimpananCategories();
   
-  const [formData, setFormData] = useState({
-    tanggal: new Date().toISOString().split('T')[0],
-    anggotaId: "",
-    jumlah: 0,
-    kategori: SimpananCategory.WAJIB, // Default to WAJIB
+  // Form state
+  const [formValues, setFormValues] = useState({
+    tanggal: format(new Date(), "yyyy-MM-dd"),
+    jumlah: "",
+    jenis: "masuk", // "masuk" or "keluar"
     keterangan: ""
   });
   
+  // Formatted amount for display
+  const [formattedJumlah, setFormattedJumlah] = useState("");
+  
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [id]: id === "jumlah" ? Number(value) : value
+    const { name, value } = e.target;
+    setFormValues(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleJumlahChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Remove any non-numeric characters
+    const numericValue = inputValue.replace(/[^\d]/g, '');
+    
+    if (!numericValue) {
+      setFormattedJumlah('');
+      setFormValues(prev => ({ ...prev, jumlah: '' }));
+      return;
+    }
+    
+    // Format with thousand separators
+    const formatted = formatNumberInput(numericValue);
+    setFormattedJumlah(formatted);
+    
+    // Store the cleaned numeric value in state
+    setFormValues(prev => ({ 
+      ...prev, 
+      jumlah: String(cleanNumberInput(formatted))
     }));
   };
   
   const handleSelectChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormValues(prev => ({ ...prev, [name]: value }));
   };
   
-  const validateForm = () => {
-    if (!formData.tanggal) {
-      toast({
-        title: "Tanggal wajib diisi",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (!formData.anggotaId) {
-      toast({
-        title: "Anggota wajib dipilih",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (!formData.jumlah || formData.jumlah <= 0) {
-      toast({
-        title: "Jumlah harus lebih dari 0",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    if (!formData.kategori) {
-      toast({
-        title: "Kategori simpanan wajib dipilih",
-        variant: "destructive",
-      });
-      return false;
-    }
-    
-    return true;
-  };
-  
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    if (!formValues.jumlah || parseInt(formValues.jumlah) <= 0) {
+      toast({
+        title: "Jumlah tidak valid",
+        description: "Masukkan jumlah simpanan yang valid",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsSubmitting(true);
     
     try {
-      const newTransaksi = createTransaksi({
-        tanggal: formData.tanggal,
-        anggotaId: formData.anggotaId,
+      // Prepare transaction data
+      const jumlah = formValues.jenis === "masuk" 
+        ? parseInt(formValues.jumlah) 
+        : -parseInt(formValues.jumlah); // Negative for withdrawal
+      
+      const transaksi = await createTransaksi({
+        tanggal: formValues.tanggal,
+        anggotaId: anggota.id,
+        anggotaNama: anggota.nama,
         jenis: "Simpan",
-        kategori: formData.kategori,
-        jumlah: formData.jumlah,
-        keterangan: formData.keterangan,
+        jumlah,
+        keterangan: formValues.keterangan || 
+          (formValues.jenis === "masuk" ? "Setor simpanan" : "Tarik simpanan"),
         status: "Sukses"
       });
       
-      if (newTransaksi) {
+      if (transaksi) {
         toast({
-          title: "Simpanan berhasil disimpan",
-          description: `Simpanan dengan ID ${newTransaksi.id} telah berhasil disimpan`,
+          title: "Transaksi Berhasil",
+          description: `Transaksi simpanan telah berhasil disimpan`,
         });
-        navigate("/transaksi/simpan");
-      } else {
-        throw new Error("Gagal menyimpan simpanan");
+        
+        // Navigate to the created transaction
+        navigate(`/transaksi/${transaksi.id}`);
       }
     } catch (error) {
+      console.error("Error creating simpanan:", error);
       toast({
-        title: "Terjadi kesalahan",
-        description: "Gagal menyimpan simpanan. Silakan coba lagi.",
+        title: "Gagal Menyimpan Transaksi",
+        description: error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan transaksi",
         variant: "destructive",
       });
     } finally {
@@ -123,104 +119,112 @@ export function SimpananForm({ anggotaList }: SimpananFormProps) {
   
   return (
     <form onSubmit={handleSubmit}>
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="tanggal" className="required">Tanggal</Label>
-            <Input 
-              id="tanggal" 
-              type="date"
-              value={formData.tanggal}
-              onChange={handleInputChange}
-              required 
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="idTransaksi">ID Transaksi</Label>
-            <Input id="idTransaksi" placeholder="ID akan digenerate otomatis" disabled />
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Form Simpanan</CardTitle>
+              <CardDescription>
+                Masukkan informasi simpanan untuk anggota {anggota.nama}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid w-full items-center gap-2">
+                <Label htmlFor="jenis">Jenis Transaksi</Label>
+                <Select
+                  value={formValues.jenis}
+                  onValueChange={(value) => handleSelectChange("jenis", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih jenis transaksi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="masuk">Setor (Masuk)</SelectItem>
+                    <SelectItem value="keluar">Tarik (Keluar)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid w-full items-center gap-2">
+                <Label htmlFor="tanggal">Tanggal</Label>
+                <Input
+                  id="tanggal"
+                  name="tanggal"
+                  type="date"
+                  value={formValues.tanggal}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              
+              <div className="grid w-full items-center gap-2">
+                <Label htmlFor="jumlah">Jumlah (Rp)</Label>
+                <Input
+                  id="jumlah"
+                  name="jumlah"
+                  placeholder="Contoh: 1.000.000"
+                  value={formattedJumlah}
+                  onChange={handleJumlahChange}
+                  required
+                />
+              </div>
+              
+              <div className="grid w-full items-center gap-2">
+                <Label htmlFor="keterangan">Keterangan (Opsional)</Label>
+                <Textarea
+                  id="keterangan"
+                  name="keterangan"
+                  placeholder="Keterangan tambahan"
+                  value={formValues.keterangan}
+                  onChange={handleInputChange}
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
         </div>
         
         <div>
-          <Label htmlFor="anggotaId" className="required">Anggota</Label>
-          <Select 
-            value={formData.anggotaId}
-            onValueChange={(value) => handleSelectChange("anggotaId", value)}
-            required
-          >
-            <SelectTrigger id="anggotaId">
-              <SelectValue placeholder="Pilih anggota" />
-            </SelectTrigger>
-            <SelectContent>
-              {anggotaList.map((anggota) => (
-                <SelectItem key={anggota.id} value={anggota.id}>
-                  {anggota.nama} ({anggota.id})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label htmlFor="kategori" className="required">Kategori Simpanan</Label>
-          <Select 
-            value={formData.kategori}
-            onValueChange={(value) => handleSelectChange("kategori", value)}
-            required
-          >
-            <SelectTrigger id="kategori">
-              <SelectValue placeholder="Pilih kategori simpanan" />
-            </SelectTrigger>
-            <SelectContent>
-              {simpananCategories.map((category) => (
-                <SelectItem key={category} value={category}>
-                  Simpanan {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div>
-          <Label htmlFor="jumlah" className="required">Jumlah (Rp)</Label>
-          <Input 
-            id="jumlah" 
-            placeholder="Contoh: 500000" 
-            type="number" 
-            min="0" 
-            value={formData.jumlah || ""}
-            onChange={handleInputChange}
-            required 
-          />
-          <p className="text-muted-foreground text-xs mt-1">
-            Masukkan jumlah tanpa titik atau koma. Contoh: 500000 untuk Rp 500,000
-          </p>
-        </div>
-        
-        <div>
-          <Label htmlFor="keterangan">Keterangan</Label>
-          <Textarea 
-            id="keterangan" 
-            placeholder="Masukkan keterangan (opsional)" 
-            rows={3}
-            value={formData.keterangan}
-            onChange={handleInputChange}
-          />
-        </div>
-        
-        <div className="flex justify-end space-x-2 pt-4">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => navigate("/transaksi/simpan")}
-            disabled={isSubmitting}
-          >
-            Batalkan
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Menyimpan..." : "Simpan"}
-          </Button>
+          <Card>
+            <CardHeader>
+              <CardTitle>Informasi Anggota</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Nama</p>
+                <p className="font-medium">{anggota.nama}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">ID Anggota</p>
+                <p className="font-medium">{anggota.id}</p>
+              </div>
+              {anggota.noHp && (
+                <div>
+                  <p className="text-sm text-muted-foreground">No. Telepon</p>
+                  <p className="font-medium">{anggota.noHp}</p>
+                </div>
+              )}
+              
+              <div className="pt-4 flex flex-col gap-2">
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Memproses..." : "Simpan Transaksi"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => navigate(-1)}
+                  disabled={isSubmitting}
+                >
+                  Batal
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </form>

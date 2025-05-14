@@ -1,15 +1,22 @@
 
-import { Pengaturan } from "@/types";
-
 export interface PinjamanFormData {
-  kategori: string;
   jumlah: string;
   keterangan: string;
+  kategori: string;
+}
+
+export interface PinjamanFormProps {
+  anggotaId: string;
+  anggotaNama: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: PinjamanFormData) => void;
+  isSubmitting: boolean;
 }
 
 export interface PinjamanFormSummaryProps {
   kategori: string;
   jumlah: string;
   bunga: number;
-  pengaturan: Pengaturan;
+  pengaturan: any;
 }

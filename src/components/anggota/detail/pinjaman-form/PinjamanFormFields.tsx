@@ -15,6 +15,7 @@ import { getPengaturan } from "@/adapters/serviceAdapters";
 import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 import { PinjamanFormSummary } from "./PinjamanFormSummary";
 import { PinjamanFormData } from "./types";
+import { useAsync } from "@/hooks/useAsync";
 
 interface PinjamanFormFieldsProps {
   formData: PinjamanFormData;
@@ -30,24 +31,7 @@ export function PinjamanFormFields({
   setFormattedJumlah
 }: PinjamanFormFieldsProps) {
   const pinjamanCategories = getPinjamanCategories();
-  const [pengaturan, setPengaturan] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  
-  // Load pengaturan data
-  useEffect(() => {
-    const loadPengaturan = async () => {
-      try {
-        const data = await getPengaturan();
-        setPengaturan(data);
-      } catch (error) {
-        console.error("Error loading pengaturan:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    loadPengaturan();
-  }, []);
+  const { data: pengaturan, loading } = useAsync(() => getPengaturan(), null, []);
   
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { name, value } = e.target;

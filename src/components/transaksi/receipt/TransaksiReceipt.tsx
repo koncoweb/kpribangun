@@ -1,11 +1,12 @@
 
-import React, { forwardRef } from "react";
+import React, { forwardRef, useState, useEffect } from "react";
 import { formatRupiah, formatDateTime } from "@/lib/utils";
-import { getAnggotaById } from "@/services/anggotaService";
+import { getAnggotaById } from "@/adapters/serviceAdapters";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FileText } from "lucide-react";
-import { Transaksi } from "@/types";
+import { Transaksi, Anggota } from "@/types";
+import { useAsync } from "@/hooks/useAsync";
 
 interface TransaksiReceiptProps {
   transaksi: Transaksi;
@@ -14,7 +15,11 @@ interface TransaksiReceiptProps {
 
 export const TransaksiReceipt = forwardRef<HTMLDivElement, TransaksiReceiptProps>(
   ({ transaksi, remainingAmount }, ref) => {
-    const anggota = getAnggotaById(transaksi.anggotaId);
+    const { data: anggota } = useAsync<Anggota | undefined>(
+      () => getAnggotaById(transaksi.anggotaId),
+      undefined,
+      [transaksi.anggotaId]
+    );
     
     // Helper to get transaction type in Indonesian
     const getJenisTransaksi = (jenis: string) => {

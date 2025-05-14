@@ -30,8 +30,8 @@ export function AuthGuard({ children, requiredPermission }: AuthGuardProps) {
   // If permission is required, check if user has it
   if (requiredPermission && currentUser) {
     // Check if user has required permission via role
-    const userRole = currentUser.role || 
-                     (currentUser.roleId ? getRoleById(currentUser.roleId) : undefined);
+    const userRoleId = currentUser.roleId;
+    const userRole = userRoleId ? getRoleById(userRoleId) : undefined;
                      
     if (!userRole || !userRole.permissions?.includes(requiredPermission)) {
       console.log("User doesn't have required permission:", requiredPermission);
