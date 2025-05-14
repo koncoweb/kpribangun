@@ -8,8 +8,8 @@ import {
   getOverdueLoans,
   getUpcomingDueLoans,
   calculatePenalty,
-  calculateSHU // Import the new SHU calculation function
-} from "@/services/transaksi";
+  calculateSHU
+} from "@/adapters/serviceAdapters";
 
 import { AnggotaDetailHeader } from "./AnggotaDetailHeader";
 import { MainInfoSection } from "./MainInfoSection";

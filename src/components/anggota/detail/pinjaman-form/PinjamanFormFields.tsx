@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getPinjamanCategories } from "@/services/transaksi/categories";
-import { getPengaturan } from "@/services/pengaturanService";
+import { getPengaturan } from "@/adapters/serviceAdapters";
 import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 import { PinjamanFormSummary } from "./PinjamanFormSummary";
 import { PinjamanFormData } from "./types";

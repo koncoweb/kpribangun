@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +11,7 @@ import {
 import { Wallet } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { AngsuranDetail } from "./types";
-import { getTransaksiById, createTransaksi } from "@/services/transaksi";
+import { getTransaksiById, createTransaksi } from "@/adapters/serviceAdapters";
 
 interface PaymentDialogProps {
   isOpen: boolean;

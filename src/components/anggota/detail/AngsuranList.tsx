@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +6,7 @@ import {
   getTransaksiById, 
   calculateTotalSimpanan, 
   getRemainingLoanAmount 
-} from "@/services/transaksi";
+} from "@/adapters/serviceAdapters";
 
 import { AngsuranListProps } from "./angsuran/types";
 import { calculateAngsuran } from "./angsuran/utils";
