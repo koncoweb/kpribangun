@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -13,10 +14,11 @@ import { Anggota } from "@/types";
 import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 
 interface SimpananFormProps {
-  anggota: Anggota;
+  anggota?: Anggota;
+  anggotaList?: Anggota[];
 }
 
-export function SimpananForm({ anggota }: SimpananFormProps) {
+export function SimpananForm({ anggota, anggotaList = [] }: SimpananFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,7 +28,8 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
     tanggal: format(new Date(), "yyyy-MM-dd"),
     jumlah: "",
     jenis: "masuk", // "masuk" or "keluar"
-    keterangan: ""
+    keterangan: "",
+    anggotaId: anggota?.id || ""
   });
   
   // Formatted amount for display
@@ -76,6 +79,15 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
       return;
     }
     
+    if (!formValues.anggotaId && !anggota) {
+      toast({
+        title: "Anggota tidak dipilih",
+        description: "Pilih anggota terlebih dahulu",
+        variant: "destructive", 
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -84,15 +96,22 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
         ? parseInt(formValues.jumlah) 
         : -parseInt(formValues.jumlah); // Negative for withdrawal
       
+      const selectedAnggotaId = formValues.anggotaId || anggota?.id || "";
+      const selectedAnggota = anggota || anggotaList.find(a => a.id === selectedAnggotaId);
+      
+      if (!selectedAnggota) {
+        throw new Error("Anggota tidak ditemukan");
+      }
+      
       const transaksiData = {
         tanggal: formValues.tanggal,
-        anggotaId: anggota.id,
-        anggotaNama: anggota.nama,
-        jenis: "Simpan",
+        anggotaId: selectedAnggota.id,
+        anggotaNama: selectedAnggota.nama,
+        jenis: "Simpan" as "Simpan" | "Pinjam" | "Angsuran",
         jumlah,
         keterangan: formValues.keterangan || 
           (formValues.jenis === "masuk" ? "Setor simpanan" : "Tarik simpanan"),
-        status: "Sukses"
+        status: "Sukses" as "Sukses" | "Pending" | "Gagal"
       };
       
       const transaksi = await createTransaksi(transaksiData);
@@ -128,10 +147,31 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
             <CardHeader>
               <CardTitle>Form Simpanan</CardTitle>
               <CardDescription>
-                Masukkan informasi simpanan untuk anggota {anggota.nama}
+                {anggota ? `Masukkan informasi simpanan untuk anggota ${anggota.nama}` : "Masukkan informasi simpanan"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {!anggota && anggotaList.length > 0 && (
+                <div className="grid w-full items-center gap-2">
+                  <Label htmlFor="anggotaId">Anggota</Label>
+                  <Select
+                    value={formValues.anggotaId}
+                    onValueChange={(value) => handleSelectChange("anggotaId", value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih anggota" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {anggotaList.map((anggota) => (
+                        <SelectItem key={anggota.id} value={anggota.id}>
+                          {anggota.nama}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
               <div className="grid w-full items-center gap-2">
                 <Label htmlFor="jenis">Jenis Transaksi</Label>
                 <Select
@@ -193,19 +233,46 @@ export function SimpananForm({ anggota }: SimpananFormProps) {
               <CardTitle>Informasi Anggota</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Nama</p>
-                <p className="font-medium">{anggota.nama}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">ID Anggota</p>
-                <p className="font-medium">{anggota.id}</p>
-              </div>
-              {anggota.noHp && (
-                <div>
-                  <p className="text-sm text-muted-foreground">No. Telepon</p>
-                  <p className="font-medium">{anggota.noHp}</p>
-                </div>
+              {anggota ? (
+                <>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nama</p>
+                    <p className="font-medium">{anggota.nama}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">ID Anggota</p>
+                    <p className="font-medium">{anggota.id}</p>
+                  </div>
+                  {anggota.noHp && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">No. Telepon</p>
+                      <p className="font-medium">{anggota.noHp}</p>
+                    </div>
+                  )}
+                </>
+              ) : formValues.anggotaId ? (
+                <>
+                  {anggotaList.find(a => a.id === formValues.anggotaId) && (
+                    <>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Nama</p>
+                        <p className="font-medium">{anggotaList.find(a => a.id === formValues.anggotaId)?.nama}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">ID Anggota</p>
+                        <p className="font-medium">{formValues.anggotaId}</p>
+                      </div>
+                      {anggotaList.find(a => a.id === formValues.anggotaId)?.noHp && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">No. Telepon</p>
+                          <p className="font-medium">{anggotaList.find(a => a.id === formValues.anggotaId)?.noHp}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </>
+              ) : (
+                <p className="text-muted-foreground">Pilih anggota terlebih dahulu</p>
               )}
               
               <div className="pt-4 flex flex-col gap-2">

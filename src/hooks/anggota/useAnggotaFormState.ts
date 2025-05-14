@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { getAnggotaById } from "@/services/anggotaService";
+import { getAnggotaById } from "@/adapters/serviceAdapters";
 import { AnggotaKeluarga, AnggotaDokumen } from "@/types";
+import { useAsync } from "@/hooks/useAsync";
 
 export const useAnggotaFormState = () => {
   const { id } = useParams();
@@ -11,7 +12,6 @@ export const useAnggotaFormState = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isFormDirty, setIsFormDirty] = useState(false);
-  const [loading, setLoading] = useState(false);
   
   // Form state with properly typed jenisKelamin and added email field
   const [formData, setFormData] = useState({
@@ -32,60 +32,58 @@ export const useAnggotaFormState = () => {
   const [initialKeluargaCount, setInitialKeluargaCount] = useState(0);
   
   const isEditMode = !!id;
+  
+  const loadAnggota = async () => {
+    if (!isEditMode) return null;
+    return await getAnggotaById(id!);
+  };
+  
+  const { data: anggota, loading, error } = useAsync(loadAnggota, null, [id, isEditMode]);
 
   // Load data if in edit mode
   useEffect(() => {
-    if (isEditMode) {
-      const loadData = async () => {
-        try {
-          setLoading(true);
-          const anggota = await getAnggotaById(id);
-          
-          if (anggota) {
-            setFormData({
-              nama: anggota.nama,
-              nip: anggota.nip || "", 
-              alamat: anggota.alamat,
-              noHp: anggota.noHp,
-              jenisKelamin: anggota.jenisKelamin,
-              agama: anggota.agama,
-              foto: anggota.foto || "",
-              email: anggota.email || "",
-              unitKerja: anggota.unitKerja || "" // Changed from array to string
-            });
-            
-            if (anggota.foto) {
-              setPreviewImage(anggota.foto);
-            }
-            
-            if (anggota.dokumen) {
-              setDokumen(anggota.dokumen);
-              setInitialDokumenCount(anggota.dokumen.length);
-            }
-            
-            if (anggota.keluarga) {
-              setKeluarga(anggota.keluarga);
-              setInitialKeluargaCount(anggota.keluarga.length);
-            }
-          }
-        } catch (error) {
-          console.error("Error loading anggota data:", error);
-          toast({
-            title: "Error",
-            description: "Terjadi kesalahan saat memuat data anggota",
-            variant: "destructive",
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
+    if (anggota) {
+      setFormData({
+        nama: anggota.nama,
+        nip: anggota.nip || "", 
+        alamat: anggota.alamat,
+        noHp: anggota.noHp,
+        jenisKelamin: anggota.jenisKelamin,
+        agama: anggota.agama,
+        foto: anggota.foto || "",
+        email: anggota.email || "",
+        unitKerja: anggota.unitKerja || "" // Changed from array to string
+      });
       
-      loadData();
+      if (anggota.foto) {
+        setPreviewImage(anggota.foto);
+      }
+      
+      if (anggota.dokumen) {
+        setDokumen(anggota.dokumen);
+        setInitialDokumenCount(anggota.dokumen.length);
+      }
+      
+      if (anggota.keluarga) {
+        setKeluarga(anggota.keluarga);
+        setInitialKeluargaCount(anggota.keluarga.length);
+      }
     }
     
     // Reset form dirty state after initial load
     setIsFormDirty(false);
-  }, [id, isEditMode, toast]);
+  }, [anggota]);
+  
+  // Handle error in loading anggota
+  useEffect(() => {
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Terjadi kesalahan saat memuat data anggota",
+        variant: "destructive",
+      });
+    }
+  }, [error, toast]);
   
   // Track changes to mark form as dirty
   useEffect(() => {

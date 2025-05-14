@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -11,44 +12,42 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { getTransaksiById } from "@/services/transaksiService";
-import { getAnggotaById } from "@/services/anggotaService";
+import { getTransaksiById, getAnggotaById } from "@/adapters/serviceAdapters";
 import { Anggota, Transaksi } from "@/types";
 import { Separator } from "@/components/ui/separator";
 import { formatDate, formatCurrency } from "@/utils/formatters";
 import { ReceiptDialog } from "@/components/transaksi/receipt/ReceiptDialog";
+import { useAsync } from "@/hooks/use-async";
 
 export default function SimpanDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [transaksi, setTransaksi] = useState<Transaksi | null>(null);
-  const [anggota, setAnggota] = useState<Anggota | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
+  const { data: transaksi, loading: loadingTransaksi, error: transaksiError } = useAsync(
+    async () => id ? await getTransaksiById(id) : undefined,
+    null,
+    [id]
+  );
+
+  const { data: anggota, loading: loadingAnggota } = useAsync(
+    async () => transaksi ? await getAnggotaById(transaksi.anggotaId) : undefined,
+    null,
+    [transaksi]
+  );
+
+  // Handle errors
   useEffect(() => {
-    if (id) {
-      const transaksiData = getTransaksiById(id);
-      if (transaksiData && transaksiData.jenis === "Simpan") {
-        setTransaksi(transaksiData);
-        
-        // Load anggota data
-        const anggotaData = getAnggotaById(transaksiData.anggotaId);
-        if (anggotaData) {
-          setAnggota(anggotaData);
-        }
-      } else {
-        toast({
-          title: "Data tidak ditemukan",
-          description: `Simpanan dengan ID ${id} tidak ditemukan`,
-          variant: "destructive",
-        });
-        navigate("/transaksi/simpan");
-      }
+    if (transaksiError) {
+      toast({
+        title: "Data tidak ditemukan",
+        description: `Simpanan dengan ID ${id} tidak ditemukan`,
+        variant: "destructive",
+      });
+      navigate("/transaksi/simpan");
     }
-    setLoading(false);
-  }, [id, navigate, toast]);
+  }, [transaksiError, id, navigate, toast]);
 
   const handlePrintReceipt = () => {
     navigate(`/transaksi/${id}/cetak`);
@@ -57,6 +56,8 @@ export default function SimpanDetail() {
   const handleShowReceipt = () => {
     setIsReceiptOpen(true);
   };
+
+  const loading = loadingTransaksi || loadingAnggota;
 
   if (loading) {
     return (
@@ -68,7 +69,7 @@ export default function SimpanDetail() {
     );
   }
 
-  if (!transaksi) {
+  if (!transaksi || transaksi.jenis !== "Simpan") {
     return (
       <Layout pageTitle="Detail Simpanan">
         <div className="flex justify-center items-center h-[50vh]">

@@ -78,7 +78,7 @@ export const createTransaksi = async (data: Partial<Transaksi>): Promise<Transak
     if (USE_SUPABASE) {
       return await transaksiService.createTransaksi(data);
     }
-    return transaksiService.createTransaksi(data);
+    return transaksiService.createTransaksi(data as any);
   } catch (error) {
     console.error("Error creating transaksi:", error);
     return null;

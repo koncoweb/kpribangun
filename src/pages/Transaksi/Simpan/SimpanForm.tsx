@@ -1,21 +1,20 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
-import { getAllAnggota } from "@/services/anggotaService";
+import { getAnggotaList } from "@/adapters/serviceAdapters";
 import { SimpananForm } from "@/components/transaksi/SimpananForm";
+import { useAsync } from "@/hooks/use-async";
 
 export default function SimpleSimpanForm() {
-  const [anggotaList, setAnggotaList] = useState([]);
-  
-  useEffect(() => {
-    // Load anggota from local storage
-    const loadedAnggota = getAllAnggota();
-    setAnggotaList(loadedAnggota);
-  }, []);
+  const { data: anggotaList, loading } = useAsync(
+    async () => await getAnggotaList(),
+    [],
+    []
+  );
 
   return (
     <Layout pageTitle="Transaksi Simpanan">
@@ -30,7 +29,13 @@ export default function SimpleSimpanForm() {
       
       <Card>
         <CardContent className="p-6">
-          <SimpananForm anggotaList={anggotaList} />
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <p>Memuat data...</p>
+            </div>
+          ) : (
+            <SimpananForm anggotaList={anggotaList} />
+          )}
         </CardContent>
       </Card>
     </Layout>

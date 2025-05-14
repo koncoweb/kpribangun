@@ -1,6 +1,30 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { Anggota } from "../types";
+import { Anggota, AnggotaDokumen, AnggotaKeluarga } from "../types";
+
+/**
+ * Map database object to Anggota type
+ */
+function mapDbToAnggota(dbObject: any): Anggota {
+  return {
+    id: dbObject.id,
+    nama: dbObject.nama,
+    nip: dbObject.nip || "",
+    alamat: dbObject.alamat || "",
+    noHp: dbObject.nohp || "",
+    jenisKelamin: (dbObject.jeniskelamin || "L") as "L" | "P",
+    agama: dbObject.agama || "",
+    status: dbObject.status || "active",
+    unitKerja: dbObject.unitkerja || "",
+    pekerjaan: dbObject.pekerjaan || "",
+    tanggalBergabung: dbObject.tanggalbergabung || "",
+    foto: dbObject.foto || "",
+    email: dbObject.email || "",
+    dokumen: (dbObject.dokumen || []) as AnggotaDokumen[],
+    keluarga: (dbObject.keluarga || []) as AnggotaKeluarga[],
+    createdAt: dbObject.created_at || new Date().toISOString(),
+    updatedAt: dbObject.updated_at || new Date().toISOString()
+  };
+}
 
 /**
  * Get all anggota from Supabase
@@ -16,7 +40,7 @@ export async function getAllAnggota(): Promise<Anggota[]> {
     throw error;
   }
   
-  return data as Anggota[];
+  return data.map(mapDbToAnggota);
 }
 
 // Alias function for getAllAnggota to fix the import issue
@@ -42,7 +66,7 @@ export async function getAnggotaById(id: string): Promise<Anggota | undefined> {
     throw error;
   }
   
-  return data as Anggota;
+  return mapDbToAnggota(data);
 }
 
 /**

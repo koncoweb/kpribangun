@@ -124,7 +124,7 @@ export const useAnggotaFormHandlers = ({
       
       if (isEditMode && id) {
         // Update existing anggota
-        const updatedAnggota = updateAnggota(id, anggotaData);
+        const updatedAnggota = await updateAnggota(id, anggotaData);
         
         if (updatedAnggota) {
           toast({
@@ -137,7 +137,7 @@ export const useAnggotaFormHandlers = ({
         }
       } else {
         // Create new anggota
-        const newAnggota = createAnggota(anggotaData);
+        const newAnggota = await createAnggota(anggotaData);
         
         if (newAnggota) {
           toast({
