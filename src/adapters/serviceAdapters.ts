@@ -10,52 +10,49 @@ import * as pengaturanService from "@/services/pengaturanService";
 export const USE_SUPABASE = false;
 
 // Anggota Service Adapters
-export const getAnggotaById = (id: string): Anggota | undefined => {
+export const getAnggotaById = async (id: string): Promise<Anggota | undefined> => {
   if (USE_SUPABASE) {
-    // For now we return a synchronous result with the same data shape
-    // In a fully migrated app we would handle this properly with async/await
-    return anggotaService.getAnggotaById(id) as unknown as Anggota;
+    return anggotaService.getAnggotaById(id);
   }
-  return anggotaService.getAnggotaById(id);
+  return Promise.resolve(anggotaService.getAnggotaById(id));
 };
 
-export const getAnggotaList = (): Anggota[] => {
+export const getAnggotaList = async (): Promise<Anggota[]> => {
   if (USE_SUPABASE) {
-    // Same approach for the list
-    return anggotaService.getAllAnggota() as unknown as Anggota[];
+    return anggotaService.getAllAnggota();
   }
-  return anggotaService.getAllAnggota();
+  return Promise.resolve(anggotaService.getAllAnggota());
 };
 
 export const getAllAnggota = getAnggotaList;
 
 // Transaksi Service Adapters
-export const getTransaksiByAnggotaId = (anggotaId: string): Transaksi[] => {
+export const getTransaksiByAnggotaId = async (anggotaId: string): Promise<Transaksi[]> => {
   if (USE_SUPABASE) {
-    return transaksiService.getTransaksiByAnggotaId(anggotaId) as unknown as Transaksi[];
+    return transaksiService.getTransaksiByAnggotaId(anggotaId);
   }
-  return transaksiService.getTransaksiByAnggotaId(anggotaId);
+  return Promise.resolve(transaksiService.getTransaksiByAnggotaId(anggotaId));
 };
 
-export const getTransaksiById = (id: string): Transaksi | undefined => {
+export const getTransaksiById = async (id: string): Promise<Transaksi | undefined> => {
   if (USE_SUPABASE) {
-    return transaksiService.getTransaksiById(id) as unknown as Transaksi;
+    return transaksiService.getTransaksiById(id);
   }
-  return transaksiService.getTransaksiById(id);
+  return Promise.resolve(transaksiService.getTransaksiById(id));
 };
 
-export const getAllTransaksi = (): Transaksi[] => {
+export const getAllTransaksi = async (): Promise<Transaksi[]> => {
   if (USE_SUPABASE) {
-    return transaksiService.getAllTransaksi() as unknown as Transaksi[];
+    return transaksiService.getAllTransaksi();
   }
-  return transaksiService.getAllTransaksi();
+  return Promise.resolve(transaksiService.getAllTransaksi());
 };
 
-export const createTransaksi = (data: Partial<Transaksi>): Transaksi | null => {
+export const createTransaksi = async (data: Partial<Transaksi>): Promise<Transaksi | null> => {
   if (USE_SUPABASE) {
-    return transaksiService.createTransaksi(data) as unknown as Transaksi;
+    return transaksiService.createTransaksi(data);
   }
-  return transaksiService.createTransaksi(data);
+  return Promise.resolve(transaksiService.createTransaksi(data));
 };
 
 // Re-export other transaksi functions that are commonly used
@@ -68,24 +65,24 @@ export const calculateSHU = transaksiService.calculateSHU;
 export const getRemainingLoanAmount = transaksiService.getRemainingLoanAmount;
 
 // Pengaturan Service Adapters
-export const getPengaturan = (): Pengaturan => {
+export const getPengaturan = async (): Promise<Pengaturan> => {
   if (USE_SUPABASE) {
-    return pengaturanService.getPengaturan() as unknown as Pengaturan;
+    return pengaturanService.getPengaturan();
   }
-  return pengaturanService.getPengaturan();
+  return Promise.resolve(pengaturanService.getPengaturan());
 };
 
 // Pengajuan Service Adapters
-export const getPengajuanById = (id: string): Pengajuan | undefined => {
+export const getPengajuanById = async (id: string): Promise<Pengajuan | undefined> => {
   if (USE_SUPABASE) {
-    return pengajuanService.getPengajuanById(id) as unknown as Pengajuan;
+    return pengajuanService.getPengajuanById(id);
   }
-  return pengajuanService.getPengajuanById(id);
+  return Promise.resolve(pengajuanService.getPengajuanById(id));
 };
 
-export const getPengajuanList = (): Pengajuan[] => {
+export const getPengajuanList = async (): Promise<Pengajuan[]> => {
   if (USE_SUPABASE) {
-    return pengajuanService.getPengajuanList() as unknown as Pengajuan[];
+    return pengajuanService.getPengajuanList();
   }
-  return pengajuanService.getPengajuanList();
+  return Promise.resolve(pengajuanService.getPengajuanList());
 };

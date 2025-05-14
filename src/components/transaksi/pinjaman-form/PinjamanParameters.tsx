@@ -1,83 +1,87 @@
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getPengaturan } from "@/services/pengaturanService";
+import { Input } from "@/components/ui/input";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { formatCurrency } from "@/utils/formatters";
+import { PinjamanCategory } from "@/services/transaksi/categories";
+import { Pengaturan } from "@/types";
 
 interface PinjamanParametersProps {
   tenor: number;
   bunga: number;
   kategori: string;
   angsuran: number;
+  pengaturan?: Pengaturan;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSelectChange: (name: string, value: string | number) => void;
 }
 
-export function PinjamanParameters({ 
-  tenor, 
-  bunga, 
-  kategori, 
-  angsuran, 
-  handleInputChange, 
-  handleSelectChange 
+export function PinjamanParameters({
+  tenor,
+  bunga,
+  kategori,
+  angsuran,
+  pengaturan,
+  handleInputChange,
+  handleSelectChange
 }: PinjamanParametersProps) {
-  const pengaturan = getPengaturan();
-  const tenorOptions = pengaturan?.tenor?.tenorOptions || [3, 6, 12, 24, 36];
-  const sukuBungaByCategory = pengaturan?.sukuBunga?.pinjamanByCategory || {};
-  const defaultBunga = pengaturan?.sukuBunga?.pinjaman || 1.5;
+  // Get tenor options from settings or use defaults
+  const tenorOptions = pengaturan?.tenor?.tenorOptions || [3, 6, 12, 18, 24, 36];
+  const categoryBungaMap = pengaturan?.sukuBunga?.pinjamanByCategory || {
+    [PinjamanCategory.REGULER]: 1.5,
+    [PinjamanCategory.SERTIFIKASI]: 1.0,
+    [PinjamanCategory.MUSIMAN]: 2.0
+  };
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <Label htmlFor="tenor" className="required">Tenor (Bulan)</Label>
-        <Select 
+        <Label htmlFor="tenor" className="required">Tenor (bulan)</Label>
+        <Select
           value={String(tenor)}
-          onValueChange={(value) => handleSelectChange("tenor", parseInt(value))}
-          required
+          onValueChange={(value) => handleSelectChange("tenor", parseInt(value, 10))}
         >
-          <SelectTrigger id="tenor">
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="Pilih tenor" />
           </SelectTrigger>
           <SelectContent>
             {tenorOptions.map((option) => (
               <SelectItem key={option} value={String(option)}>
-                {option} Bulan
+                {option} bulan
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
-      
       <div>
         <Label htmlFor="bunga" className="required">Suku Bunga (%)</Label>
-        <Input 
-          id="bunga" 
-          type="number" 
-          min="0" 
-          step="0.01"
+        <Input
+          id="bunga"
+          type="number"
+          step="0.1"
           value={bunga}
           onChange={handleInputChange}
-          required 
+          className="w-full"
+          min="0"
+          max="100"
         />
-        <p className="text-muted-foreground text-xs mt-1">
-          Bunga default untuk {kategori}: {sukuBungaByCategory[kategori] || defaultBunga}%
+        <p className="text-xs text-muted-foreground mt-1">
+          {kategori && `Bunga default untuk ${kategori}: ${categoryBungaMap[kategori]}%`}
         </p>
       </div>
-      
-      <div>
-        <Label htmlFor="angsuran">Angsuran per Bulan</Label>
-        <Input 
-          id="angsuran" 
-          value={formatCurrency(angsuran)}
-          disabled
-        />
+      <div className="md:col-span-2">
+        <Label htmlFor="angsuran" className="required">Angsuran per bulan</Label>
+        <div className="relative">
+          <Input
+            id="angsuran"
+            value={angsuran}
+            readOnly
+            className="w-full bg-muted"
+          />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            {formatCurrency(angsuran)}
+          </div>
+        </div>
       </div>
     </div>
   );

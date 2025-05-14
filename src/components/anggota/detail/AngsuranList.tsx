@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,6 +15,7 @@ import { LoanSelector } from "./angsuran/LoanSelector";
 import { LoanSummary } from "./angsuran/LoanSummary";
 import { AngsuranTable } from "./angsuran/AngsuranTable";
 import { PaymentDialog } from "./angsuran/PaymentDialog";
+import { Transaksi } from "@/types";
 
 export interface ExtendedAngsuranListProps extends AngsuranListProps {
   disableSelfPayment?: boolean;
@@ -27,6 +29,55 @@ export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: 
   );
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [currentAngsuran, setCurrentAngsuran] = useState<any>(null);
+  
+  // State for loan data
+  const [selectedLoan, setSelectedLoan] = useState<Transaksi | null>(null);
+  const [remainingAmount, setRemainingAmount] = useState<number>(0);
+  const [simpananBalance, setSimpananBalance] = useState<number>(0);
+  const [angsuranDetails, setAngsuranDetails] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Load loan data when selectedPinjaman changes
+  useEffect(() => {
+    const loadLoanData = async () => {
+      if (!selectedPinjaman) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        // Get the selected loan
+        const loan = await getTransaksiById(selectedPinjaman);
+        setSelectedLoan(loan || null);
+
+        // Calculate remaining amount
+        if (loan) {
+          const remaining = getRemainingLoanAmount(selectedPinjaman);
+          setRemainingAmount(remaining);
+
+          // Calculate simpanan balance for payment option
+          const simpanan = calculateTotalSimpanan(loan.anggotaId);
+          setSimpananBalance(simpanan);
+          
+          // Calculate angsuran details
+          const details = calculateAngsuran(selectedPinjaman);
+          setAngsuranDetails(details);
+        }
+      } catch (error) {
+        console.error("Error loading loan data:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load loan data",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLoanData();
+  }, [selectedPinjaman, toast]);
 
   const handleBayarAngsuran = (pinjamanId: string) => {
     navigate("/transaksi/angsuran/tambah", { state: { pinjamanId } });
@@ -39,7 +90,20 @@ export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: 
 
   const handlePaymentComplete = () => {
     // Re-render component with the latest data
-    setSelectedPinjaman(selectedPinjaman); // This will force a re-render
+    const loadLoanData = async () => {
+      if (selectedPinjaman) {
+        const loan = await getTransaksiById(selectedPinjaman);
+        setSelectedLoan(loan || null);
+        
+        if (loan) {
+          setRemainingAmount(getRemainingLoanAmount(selectedPinjaman));
+          setSimpananBalance(calculateTotalSimpanan(loan.anggotaId));
+          setAngsuranDetails(calculateAngsuran(selectedPinjaman));
+        }
+      }
+    };
+    
+    loadLoanData();
   };
 
   if (pinjamanTransaksi.length === 0) {
@@ -55,17 +119,18 @@ export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: 
     );
   }
 
-  const angsuranDetails = selectedPinjaman 
-    ? calculateAngsuran(selectedPinjaman) 
-    : [];
-  
-  const selectedLoan = getTransaksiById(selectedPinjaman);
-  const remainingAmount = selectedPinjaman 
-    ? getRemainingLoanAmount(selectedPinjaman) 
-    : 0;
-  
-  // Calculate simpanan balance for payment option
-  const simpananBalance = selectedLoan ? calculateTotalSimpanan(selectedLoan.anggotaId) : 0;
+  if (loading) {
+    return (
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Riwayat Angsuran</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">Loading...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mt-6">

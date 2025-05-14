@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Anggota } from "@/types";
+import { Anggota, Transaksi } from "@/types";
 import { 
   getTransaksiByAnggotaId, 
   calculateTotalSimpanan, 
@@ -17,44 +17,91 @@ import { TransactionSection } from "./TransactionSection";
 import { KeluargaSection } from "./KeluargaSection";
 import { AngsuranList } from "./AngsuranList";
 import { FinancialSummaryCards } from "./FinancialSummaryCards";
-import { PengajuanPinjamanButton } from "./pinjaman-form"; // Updated import path
+import { PengajuanPinjamanButton } from "./pinjaman-form"; 
+import { useAsync } from "@/hooks/useAsync";
 
 interface AnggotaDetailContentProps {
   anggota: Anggota;
 }
 
 export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
-  // Get transaction data and calculate financial information
+  // Get transaction data 
   const id = anggota.id;
-  const transaksi = getTransaksiByAnggotaId(id);
-  const simpananTransaksi = transaksi.filter(t => t.jenis === "Simpan");
-  const pinjamanTransaksi = transaksi.filter(t => t.jenis === "Pinjam");
-  const angsuranTransaksi = transaksi.filter(t => t.jenis === "Angsuran");
-  const totalSimpanan = calculateTotalSimpanan(id);
-  const totalPinjaman = calculateTotalPinjaman(id);
+  const [transaksi, setTransaksi] = useState<Transaksi[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Calculate SHU for this member
-  const totalSHU = calculateSHU(id);
-  
-  // Pass member id as string to these functions
-  const jatuhTempo = getUpcomingDueLoans(id, 30);
-  const rawTunggakan = getOverdueLoans(id);
-  
-  // Filter data specific to this member and add penalty information
-  const filteredJatuhTempo = jatuhTempo.filter(item => item.transaksi.anggotaId === id);
-  const filteredTunggakan = rawTunggakan
-    .filter(item => item.transaksi.anggotaId === id)
-    .map(item => ({
-      ...item,
-      penalty: calculatePenalty(item.transaksi.jumlah, item.daysOverdue)
-    }));
-  
+  // Financial data states
+  const [financialData, setFinancialData] = useState({
+    simpananTransaksi: [] as Transaksi[],
+    pinjamanTransaksi: [] as Transaksi[],
+    angsuranTransaksi: [] as Transaksi[],
+    totalSimpanan: 0,
+    totalPinjaman: 0,
+    totalSHU: 0,
+    jatuhTempo: [] as any[],
+    tunggakan: [] as any[]
+  });
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Load transaction data
+        const transaksiData = await getTransaksiByAnggotaId(id);
+        setTransaksi(transaksiData);
+        
+        // Calculate financial information
+        const simpananTransaksi = transaksiData.filter(t => t.jenis === "Simpan");
+        const pinjamanTransaksi = transaksiData.filter(t => t.jenis === "Pinjam");
+        const angsuranTransaksi = transaksiData.filter(t => t.jenis === "Angsuran");
+        
+        const totalSimpanan = calculateTotalSimpanan(id);
+        const totalPinjaman = calculateTotalPinjaman(id);
+        const totalSHU = calculateSHU(id);
+        
+        // Get due dates and overdue information
+        const jatuhTempo = getUpcomingDueLoans(id, 30);
+        const rawTunggakan = getOverdueLoans(id);
+        
+        // Filter and process loan data
+        const filteredJatuhTempo = jatuhTempo.filter(item => item.transaksi.anggotaId === id);
+        const filteredTunggakan = rawTunggakan
+          .filter(item => item.transaksi.anggotaId === id)
+          .map(item => ({
+            ...item,
+            penalty: calculatePenalty(item.transaksi.jumlah, item.daysOverdue)
+          }));
+        
+        // Set all financial data at once
+        setFinancialData({
+          simpananTransaksi,
+          pinjamanTransaksi,
+          angsuranTransaksi,
+          totalSimpanan,
+          totalPinjaman,
+          totalSHU,
+          jatuhTempo: filteredJatuhTempo,
+          tunggakan: filteredTunggakan
+        });
+      } catch (error) {
+        console.error("Error loading anggota data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+  }, [id]);
+
   // Calculate additional financial metrics
-  const totalAngsuran = angsuranTransaksi.reduce((sum, item) => sum + item.jumlah, 0);
-  const totalTunggakan = filteredTunggakan.reduce((sum, item) => sum + item.penalty, 0);
+  const totalAngsuran = financialData.angsuranTransaksi.reduce((sum, item) => sum + item.jumlah, 0);
+  const totalTunggakan = financialData.tunggakan.reduce((sum, item) => sum + item.penalty, 0);
   
   const keluargaCount = anggota?.keluarga?.length || 0;
   const dokumenCount = anggota?.dokumen?.length || 0;
+
+  if (isLoading) {
+    return <div>Loading data...</div>;
+  }
 
   return (
     <>
@@ -71,7 +118,6 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
       
       <MainInfoSection anggota={anggota} />
       
-      {/* Moved KeluargaSection up, before FinancialSummaryCards */}
       <div className="mt-6 mb-6">
         <KeluargaSection 
           anggota={anggota} 
@@ -80,29 +126,29 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
       </div>
       
       <FinancialSummaryCards 
-        totalSimpanan={totalSimpanan}
-        totalPinjaman={totalPinjaman}
+        totalSimpanan={financialData.totalSimpanan}
+        totalPinjaman={financialData.totalPinjaman}
         totalAngsuran={totalAngsuran}
         totalTunggakan={totalTunggakan}
-        totalSHU={totalSHU} // Added SHU to the financial summary
+        totalSHU={financialData.totalSHU}
       />
       
       <div className="mt-6">
         <TransactionSection 
           transaksi={transaksi} 
-          simpananTransaksi={simpananTransaksi}
-          pinjamanTransaksi={pinjamanTransaksi}
-          angsuranTransaksi={angsuranTransaksi}
-          jatuhTempo={filteredJatuhTempo}
-          tunggakan={filteredTunggakan}
+          simpananTransaksi={financialData.simpananTransaksi}
+          pinjamanTransaksi={financialData.pinjamanTransaksi}
+          angsuranTransaksi={financialData.angsuranTransaksi}
+          jatuhTempo={financialData.jatuhTempo}
+          tunggakan={financialData.tunggakan}
           anggotaId={anggota.id}
         />
       </div>
       
-      {pinjamanTransaksi.length > 0 && (
+      {financialData.pinjamanTransaksi.length > 0 && (
         <AngsuranList 
-          pinjamanTransaksi={pinjamanTransaksi} 
-          disableSelfPayment={true} // Disable self-payment option
+          pinjamanTransaksi={financialData.pinjamanTransaksi} 
+          disableSelfPayment={true}
         />
       )}
     </>
