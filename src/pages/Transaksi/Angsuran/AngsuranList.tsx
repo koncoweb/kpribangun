@@ -1,183 +1,149 @@
-
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getAnggotaList, getAllTransaksi } from "@/adapters/serviceAdapters";
+import { Anggota, Transaksi } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
-import { getAllTransaksi } from "@/services/transaksiService";
-import { getAllAnggota } from "@/services/anggotaService";
-import { TableColumnToggle } from "@/components/ui/table-column-toggle";
-import { Transaksi } from "@/types";
-import { PinjamTableActions } from "@/components/transaksi/PinjamTableActions";
 
 export default function AngsuranList() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [transaksiList, setTransaksiList] = useState<Transaksi[]>([]);
-  const [anggotaList, setAnggotaList] = useState([]);
   const { toast } = useToast();
-
-  // Column visibility state
-  const [columns, setColumns] = useState([
-    { id: "id", label: "ID Transaksi", isVisible: true },
-    { id: "tanggal", label: "Tanggal", isVisible: true },
-    { id: "anggota", label: "Anggota", isVisible: true },
-    { id: "jumlah", label: "Jumlah", isVisible: true },
-    { id: "keterangan", label: "Keterangan", isVisible: true },
-    { id: "status", label: "Status", isVisible: true },
-  ]);
-  
-  // Load transaction data
-  const loadTransaksi = () => {
-    try {
-      const loadedTransaksi = getAllTransaksi().filter(t => t.jenis === "Angsuran");
-      setTransaksiList(loadedTransaksi);
-    } catch (error) {
-      console.error("Error loading transactions:", error);
-      toast({
-        title: "Terjadi kesalahan",
-        description: "Gagal memuat data transaksi angsuran",
-        variant: "destructive"
-      });
-    }
-  };
+  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [transaksiList, setTransaksiList] = useState<Transaksi[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("all");
   
   useEffect(() => {
-    // Load data from services
-    loadTransaksi();
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load anggota and transaksi data in parallel
+        const [anggotaData, transaksiData] = await Promise.all([
+          getAnggotaList(),
+          getAllTransaksi()
+        ]);
+        
+        setAnggotaList(anggotaData);
+        setTransaksiList(transaksiData);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Terjadi kesalahan saat memuat data",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    try {
-      const loadedAnggota = getAllAnggota();
-      setAnggotaList(loadedAnggota);
-    } catch (error) {
-      console.error("Error loading members:", error);
+    loadData();
+  }, [toast]);
+  
+  // Filter angsuran transactions
+  const angsuranList = transaksiList.filter(t => t.jenis === "Angsuran");
+  
+  // Group by anggota
+  const angsuranByAnggota = angsuranList.reduce((acc, curr) => {
+    if (!acc[curr.anggotaId]) {
+      acc[curr.anggotaId] = [];
     }
-  }, []);
+    acc[curr.anggotaId].push(curr);
+    return acc;
+  }, {} as Record<string, Transaksi[]>);
   
-  const handleToggleColumn = (columnId: string) => {
-    setColumns(prevColumns =>
-      prevColumns.map(column => 
-        column.id === columnId 
-        ? { ...column, isVisible: !column.isVisible } 
-        : column
-      )
-    );
-  };
+  // Get unique anggota IDs with angsuran
+  const anggotaWithAngsuran = Object.keys(angsuranByAnggota);
   
-  // Format date function
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
-  };
-  
-  // Filter transaksi based on search query
-  const filteredTransaksi = transaksiList.filter(transaksi => {
-    return transaksi.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           (transaksi.anggotaNama || "").toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  // Filter by active tab
+  const filteredAngsuran = activeTab === "all" 
+    ? angsuranList 
+    : angsuranByAnggota[activeTab] || [];
   
   return (
     <Layout pageTitle="Daftar Angsuran">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="page-title">Transaksi Angsuran</h1>
-        <Button asChild className="gap-2">
-          <Link to="/transaksi/angsuran/tambah">
-            <Plus size={16} /> Tambah Angsuran
-          </Link>
-        </Button>
+        <h1 className="page-title">Daftar Angsuran</h1>
+        <Link to="/transaksi/angsuran/tambah">
+          <Button>Tambah Angsuran</Button>
+        </Link>
       </div>
       
-      <Card>
-        <CardContent className="p-0">
-          <div className="p-6 border-b flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <Input 
-                  placeholder="Cari berdasarkan ID atau nama anggota..." 
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <TableColumnToggle columns={columns} onToggleColumn={handleToggleColumn} />
-          </div>
-          
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {columns[0].isVisible && <TableHead>ID Transaksi</TableHead>}
-                  {columns[1].isVisible && <TableHead>Tanggal</TableHead>}
-                  {columns[2].isVisible && <TableHead>Anggota</TableHead>}
-                  {columns[3].isVisible && <TableHead>Jumlah</TableHead>}
-                  {columns[4].isVisible && <TableHead>Keterangan</TableHead>}
-                  {columns[5].isVisible && <TableHead>Status</TableHead>}
-                  <TableHead className="text-right">Opsi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransaksi.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.filter(c => c.isVisible).length + 1} className="text-center py-10">
-                      Tidak ada data angsuran yang ditemukan
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredTransaksi.map((transaksi) => (
-                    <TableRow key={transaksi.id}>
-                      {columns[0].isVisible && <TableCell className="font-medium">{transaksi.id}</TableCell>}
-                      {columns[1].isVisible && <TableCell>{formatDate(transaksi.tanggal)}</TableCell>}
-                      {columns[2].isVisible && <TableCell>{transaksi.anggotaNama}</TableCell>}
-                      {columns[3].isVisible && (
-                        <TableCell>
-                          Rp {transaksi.jumlah.toLocaleString("id-ID")}
-                        </TableCell>
-                      )}
-                      {columns[4].isVisible && <TableCell>{transaksi.keterangan || "-"}</TableCell>}
-                      {columns[5].isVisible && (
-                        <TableCell>
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                            transaksi.status === "Sukses" ? "bg-green-100 text-green-800" : 
-                            transaksi.status === "Pending" ? "bg-yellow-100 text-yellow-800" : 
-                            "bg-red-100 text-red-800"
-                          }`}>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <TabsList className="mb-4 overflow-x-auto flex-wrap">
+          <TabsTrigger value="all">Semua Angsuran</TabsTrigger>
+          {anggotaWithAngsuran.map(anggotaId => {
+            const anggota = anggotaList.find(a => a.id === anggotaId);
+            return (
+              <TabsTrigger key={anggotaId} value={anggotaId}>
+                {anggota?.nama || anggotaId}
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+        
+        <Card>
+          <CardContent className="p-6">
+            {loading ? (
+              <div className="text-center py-4">Memuat data...</div>
+            ) : filteredAngsuran.length === 0 ? (
+              <div className="text-center py-4">Tidak ada data angsuran</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2 px-4">Tanggal</th>
+                      <th className="text-left py-2 px-4">ID Transaksi</th>
+                      <th className="text-left py-2 px-4">Anggota</th>
+                      <th className="text-left py-2 px-4">Jumlah</th>
+                      <th className="text-left py-2 px-4">Status</th>
+                      <th className="text-left py-2 px-4">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAngsuran.map((transaksi) => (
+                      <tr key={transaksi.id} className="border-b hover:bg-gray-50">
+                        <td className="py-2 px-4">{new Date(transaksi.tanggal).toLocaleDateString()}</td>
+                        <td className="py-2 px-4">{transaksi.id}</td>
+                        <td className="py-2 px-4">{transaksi.anggotaNama}</td>
+                        <td className="py-2 px-4">
+                          {new Intl.NumberFormat("id-ID", {
+                            style: "currency",
+                            currency: "IDR",
+                          }).format(transaksi.jumlah)}
+                        </td>
+                        <td className="py-2 px-4">
+                          <span
+                            className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                              transaksi.status === "Sukses"
+                                ? "bg-green-100 text-green-800"
+                                : transaksi.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
                             {transaksi.status}
                           </span>
-                        </TableCell>
-                      )}
-                      <TableCell className="text-right">
-                        <PinjamTableActions
-                          transaksi={transaksi}
-                          onTransaksiModified={loadTransaksi}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+                        </td>
+                        <td className="py-2 px-4">
+                          <Link to={`/transaksi/${transaksi.id}`}>
+                            <Button variant="outline" size="sm">
+                              Detail
+                            </Button>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </Tabs>
     </Layout>
   );
 }

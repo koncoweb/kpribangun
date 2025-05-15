@@ -1,175 +1,106 @@
-
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
-import { Plus, Search } from "lucide-react";
+import { getAllTransaksi, getAnggotaList } from "@/adapters/serviceAdapters";
+import { Anggota, Transaksi } from "@/types";
 import { useToast } from "@/components/ui/use-toast";
-import { getAllTransaksi } from "@/services/transaksiService";
-import { getAllAnggota } from "@/services/anggotaService";
-import { TableColumnToggle } from "@/components/ui/table-column-toggle";
-import { Transaksi } from "@/types";
-import { formatDate } from "@/utils/formatters";
-import { PinjamTableActions } from "@/components/transaksi/PinjamTableActions";
 
 export default function PinjamList() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [transaksiList, setTransaksiList] = useState<Transaksi[]>([]);
-  const [anggotaList, setAnggotaList] = useState([]);
+  const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Column visibility state
-  const [columns, setColumns] = useState([
-    { id: "id", label: "ID Transaksi", isVisible: true },
-    { id: "tanggal", label: "Tanggal", isVisible: true },
-    { id: "anggota", label: "Anggota", isVisible: true },
-    { id: "jumlah", label: "Jumlah", isVisible: true },
-    { id: "keterangan", label: "Keterangan", isVisible: true },
-    { id: "status", label: "Status", isVisible: true },
-  ]);
-  
-  // Load transaction data
-  const loadTransaksi = () => {
-    try {
-      const loadedTransaksi = getAllTransaksi().filter(t => t.jenis === "Pinjam");
-      setTransaksiList(loadedTransaksi);
-    } catch (error) {
-      console.error("Error loading transactions:", error);
-      toast({
-        title: "Terjadi kesalahan",
-        description: "Gagal memuat data transaksi pinjaman",
-        variant: "destructive"
-      });
-    }
-  };
+  const [transaksiList, setTransaksiList] = useState<Transaksi[]>([]);
+  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Load data from services
-    loadTransaksi();
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load transaksi and anggota data in parallel
+        const [transaksiData, anggotaData] = await Promise.all([
+          getAllTransaksi(),
+          getAnggotaList()
+        ]);
+        
+        setTransaksiList(transaksiData);
+        setAnggotaList(anggotaData);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Terjadi kesalahan saat memuat data",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    try {
-      const loadedAnggota = getAllAnggota();
-      setAnggotaList(loadedAnggota);
-    } catch (error) {
-      console.error("Error loading members:", error);
-    }
-  }, []);
+    loadData();
+  }, [toast]);
   
-  const handleToggleColumn = (columnId: string) => {
-    setColumns(prevColumns =>
-      prevColumns.map(column => 
-        column.id === columnId 
-        ? { ...column, isVisible: !column.isVisible } 
-        : column
-      )
-    );
+  const handleEdit = (id: string) => {
+    navigate(`/transaksi/pinjam/${id}/edit`);
   };
   
-  // Filter transaksi based on search query
-  const filteredTransaksi = transaksiList.filter(transaksi => {
-    return transaksi.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           (transaksi.anggotaNama || "").toLowerCase().includes(searchQuery.toLowerCase());
-  });
+  const handleDelete = (id: string) => {
+    // Implement delete logic here
+    console.log(`Delete transaction with ID: ${id}`);
+  };
   
   return (
     <Layout pageTitle="Daftar Pinjaman">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="page-title">Transaksi Pinjaman</h1>
-        <Button asChild className="gap-2">
-          <Link to="/transaksi/pinjam/tambah">
-            <Plus size={16} /> Tambah Pinjaman
-          </Link>
-        </Button>
-      </div>
-      
-      <Card>
-        <CardContent className="p-0">
-          <div className="p-6 border-b flex flex-wrap gap-4 items-end">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <Input 
-                  placeholder="Cari berdasarkan ID atau nama anggota..." 
-                  className="pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            <TableColumnToggle columns={columns} onToggleColumn={handleToggleColumn} />
-          </div>
+      {loading ? (
+        <div className="flex justify-center py-8">
+          <p>Memuat data...</p>
+        </div>
+      ) : (
+        <div className="container mx-auto mt-8">
+          <h1 className="text-2xl font-bold mb-4">Daftar Pinjaman</h1>
           
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  {columns[0].isVisible && <TableHead>ID Transaksi</TableHead>}
-                  {columns[1].isVisible && <TableHead>Tanggal</TableHead>}
-                  {columns[2].isVisible && <TableHead>Anggota</TableHead>}
-                  {columns[3].isVisible && <TableHead>Jumlah</TableHead>}
-                  {columns[4].isVisible && <TableHead>Keterangan</TableHead>}
-                  {columns[5].isVisible && <TableHead>Status</TableHead>}
-                  <TableHead className="text-right">Opsi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTransaksi.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={columns.filter(c => c.isVisible).length + 1} className="text-center py-10">
-                      Tidak ada data pinjaman yang ditemukan
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredTransaksi.map((transaksi) => (
-                    <TableRow key={transaksi.id}>
-                      {columns[0].isVisible && <TableCell className="font-medium">{transaksi.id}</TableCell>}
-                      {columns[1].isVisible && <TableCell>{formatDate(transaksi.tanggal)}</TableCell>}
-                      {columns[2].isVisible && <TableCell>{transaksi.anggotaNama}</TableCell>}
-                      {columns[3].isVisible && (
-                        <TableCell>
-                          Rp {transaksi.jumlah.toLocaleString("id-ID")}
-                        </TableCell>
-                      )}
-                      {columns[4].isVisible && <TableCell>{transaksi.keterangan || "-"}</TableCell>}
-                      {columns[5].isVisible && (
-                        <TableCell>
-                          <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                            transaksi.status === "Sukses" ? "bg-green-100 text-green-800" : 
-                            transaksi.status === "Pending" ? "bg-yellow-100 text-yellow-800" : 
-                            "bg-red-100 text-red-800"
-                          }`}>
-                            {transaksi.status}
-                          </span>
-                        </TableCell>
-                      )}
-                      <TableCell className="text-right">
-                        <PinjamTableActions 
-                          transaksi={transaksi}
-                          onTransaksiModified={loadTransaksi}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+            <table className="min-w-full bg-white border border-gray-200">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="py-2 px-4 border-b">ID</th>
+                  <th className="py-2 px-4 border-b">Anggota</th>
+                  <th className="py-2 px-4 border-b">Tanggal</th>
+                  <th className="py-2 px-4 border-b">Jumlah</th>
+                  <th className="py-2 px-4 border-b">Keterangan</th>
+                  <th className="py-2 px-4 border-b">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {transaksiList.map((transaksi) => (
+                  <tr key={transaksi.id} className="hover:bg-gray-50">
+                    <td className="py-2 px-4 border-b">{transaksi.id}</td>
+                    <td className="py-2 px-4 border-b">
+                      {anggotaList.find(anggota => anggota.id === transaksi.anggotaId)?.nama || "Tidak diketahui"}
+                    </td>
+                    <td className="py-2 px-4 border-b">{transaksi.tanggal}</td>
+                    <td className="py-2 px-4 border-b">{transaksi.jumlah}</td>
+                    <td className="py-2 px-4 border-b">{transaksi.keterangan}</td>
+                    <td className="py-2 px-4 border-b">
+                      <button 
+                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+                        onClick={() => handleEdit(transaksi.id)}
+                      >
+                        Edit
+                      </button>
+                      <button 
+                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={() => handleDelete(transaksi.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </Layout>
   );
 }

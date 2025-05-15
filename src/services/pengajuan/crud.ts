@@ -43,56 +43,66 @@ export function generatePengajuanId(): string {
 /**
  * Create a new pengajuan
  */
-export function createPengajuan(
+export async function createPengajuan(
   pengajuan: Omit<PengajuanData, "id" | "anggotaNama" | "createdAt" | "updatedAt"> & { dokumen?: PersyaratanDokumen[] }
-): PengajuanData | null {
-  const anggota = getAnggotaById(pengajuan.anggotaId);
-  if (!anggota) return null;
-  
-  const pengajuanList = getPengajuanList();
-  const now = new Date().toISOString();
-  
-  const newPengajuan: PengajuanData = {
-    ...pengajuan,
-    id: generatePengajuanId(),
-    anggotaNama: anggota.nama,
-    createdAt: now,
-    updatedAt: now,
-  };
-  
-  pengajuanList.push(newPengajuan);
-  saveToLocalStorage(PENGAJUAN_KEY, pengajuanList);
-  
-  return newPengajuan;
+): Promise<PengajuanData | null> {
+  try {
+    const anggota = await getAnggotaById(pengajuan.anggotaId);
+    if (!anggota) return null;
+    
+    const pengajuanList = getPengajuanList();
+    const now = new Date().toISOString();
+    
+    const newPengajuan: PengajuanData = {
+      ...pengajuan,
+      id: generatePengajuanId(),
+      anggotaNama: anggota.nama,
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    pengajuanList.push(newPengajuan);
+    saveToLocalStorage(PENGAJUAN_KEY, pengajuanList);
+    
+    return newPengajuan;
+  } catch (error) {
+    console.error("Error creating pengajuan:", error);
+    return null;
+  }
 }
 
 /**
  * Update an existing pengajuan
  */
-export function updatePengajuan(
+export async function updatePengajuan(
   id: string, 
   pengajuan: Partial<PengajuanData & { dokumen?: PersyaratanDokumen[] }>
-): PengajuanData | null {
-  const pengajuanList = getPengajuanList();
-  const index = pengajuanList.findIndex(p => p.id === id);
-  
-  if (index === -1) return null;
-  
-  // If anggotaId is being updated, we need to update anggotaNama as well
-  if (pengajuan.anggotaId) {
-    const anggota = getAnggotaById(pengajuan.anggotaId);
-    if (!anggota) return null;
-    pengajuan.anggotaNama = anggota.nama;
+): Promise<PengajuanData | null> {
+  try {
+    const pengajuanList = getPengajuanList();
+    const index = pengajuanList.findIndex(p => p.id === id);
+    
+    if (index === -1) return null;
+    
+    // If anggotaId is being updated, we need to update anggotaNama as well
+    if (pengajuan.anggotaId) {
+      const anggota = await getAnggotaById(pengajuan.anggotaId);
+      if (!anggota) return null;
+      pengajuan.anggotaNama = anggota.nama;
+    }
+    
+    pengajuanList[index] = {
+      ...pengajuanList[index],
+      ...pengajuan,
+      updatedAt: new Date().toISOString(),
+    };
+    
+    saveToLocalStorage(PENGAJUAN_KEY, pengajuanList);
+    return pengajuanList[index];
+  } catch (error) {
+    console.error("Error updating pengajuan:", error);
+    return null;
   }
-  
-  pengajuanList[index] = {
-    ...pengajuanList[index],
-    ...pengajuan,
-    updatedAt: new Date().toISOString(),
-  };
-  
-  saveToLocalStorage(PENGAJUAN_KEY, pengajuanList);
-  return pengajuanList[index];
 }
 
 /**

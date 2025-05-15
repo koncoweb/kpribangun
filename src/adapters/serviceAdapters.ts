@@ -15,7 +15,7 @@ export const getAnggotaById = async (id: string): Promise<Anggota | undefined> =
     if (USE_SUPABASE) {
       return await anggotaService.getAnggotaById(id);
     }
-    return await Promise.resolve(anggotaService.getAnggotaById(id) as Anggota);
+    return await Promise.resolve(anggotaService.getAnggotaById(id));
   } catch (error) {
     console.error("Error fetching anggota by ID:", error);
     return undefined;
@@ -27,7 +27,7 @@ export const getAnggotaList = async (): Promise<Anggota[]> => {
     if (USE_SUPABASE) {
       return await anggotaService.getAllAnggota();
     }
-    return await Promise.resolve(anggotaService.getAllAnggota() as Anggota[]);
+    return await Promise.resolve(anggotaService.getAllAnggota());
   } catch (error) {
     console.error("Error fetching anggota list:", error);
     return [];
@@ -42,7 +42,7 @@ export const getTransaksiByAnggotaId = async (anggotaId: string): Promise<Transa
     if (USE_SUPABASE) {
       return await transaksiService.getTransaksiByAnggotaId(anggotaId);
     }
-    return await Promise.resolve(transaksiService.getTransaksiByAnggotaId(anggotaId) as Transaksi[]);
+    return await Promise.resolve(transaksiService.getTransaksiByAnggotaId(anggotaId));
   } catch (error) {
     console.error("Error fetching transaksi by anggota ID:", error);
     return [];
@@ -54,7 +54,7 @@ export const getTransaksiById = async (id: string): Promise<Transaksi | undefine
     if (USE_SUPABASE) {
       return await transaksiService.getTransaksiById(id);
     }
-    return await Promise.resolve(transaksiService.getTransaksiById(id) as Transaksi);
+    return await Promise.resolve(transaksiService.getTransaksiById(id));
   } catch (error) {
     console.error("Error fetching transaksi by ID:", error);
     return undefined;
@@ -66,7 +66,7 @@ export const getAllTransaksi = async (): Promise<Transaksi[]> => {
     if (USE_SUPABASE) {
       return await transaksiService.getAllTransaksi();
     }
-    return await Promise.resolve(transaksiService.getAllTransaksi() as Transaksi[]);
+    return await Promise.resolve(transaksiService.getAllTransaksi());
   } catch (error) {
     console.error("Error fetching all transaksi:", error);
     return [];
@@ -78,7 +78,7 @@ export const createTransaksi = async (data: Partial<Transaksi>): Promise<Transak
     if (USE_SUPABASE) {
       return await transaksiService.createTransaksi(data);
     }
-    return await Promise.resolve(transaksiService.createTransaksi(data as any) as Transaksi);
+    return await Promise.resolve(transaksiService.createTransaksi(data as any));
   } catch (error) {
     console.error("Error creating transaksi:", error);
     return null;
@@ -100,11 +100,12 @@ export const getPengaturan = async (): Promise<Pengaturan> => {
     if (USE_SUPABASE) {
       return await pengaturanService.getPengaturan();
     }
-    return await Promise.resolve(pengaturanService.getPengaturan() as Pengaturan);
+    // If not using Supabase, still treat as async for consistency
+    return await Promise.resolve(pengaturanService.getPengaturan());
   } catch (error) {
     console.error("Error fetching pengaturan:", error);
     // Return a default value or throw an error
-    return await Promise.resolve(pengaturanService.getPengaturan() as Pengaturan); // Fallback to default
+    return await pengaturanService.getPengaturan(); // Fallback to default
   }
 };
 
@@ -114,7 +115,7 @@ export const getPengajuanById = async (id: string): Promise<Pengajuan | undefine
     if (USE_SUPABASE) {
       return await pengajuanService.getPengajuanById(id);
     }
-    return await Promise.resolve(pengajuanService.getPengajuanById(id) as Pengajuan);
+    return await Promise.resolve(pengajuanService.getPengajuanById(id));
   } catch (error) {
     console.error("Error fetching pengajuan by ID:", error);
     return undefined;
@@ -126,7 +127,7 @@ export const getPengajuanList = async (): Promise<Pengajuan[]> => {
     if (USE_SUPABASE) {
       return await pengajuanService.getPengajuanList();
     }
-    return await Promise.resolve(pengajuanService.getPengajuanList() as Pengajuan[]);
+    return await Promise.resolve(pengajuanService.getPengajuanList());
   } catch (error) {
     console.error("Error fetching pengajuan list:", error);
     return [];

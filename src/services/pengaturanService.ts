@@ -53,7 +53,7 @@ export async function getPengaturan(): Promise<Pengaturan> {
   
   // Transform the data to match our type structure
   return {
-    sukuBunga: data.sukuBunga,
+    sukuBunga: data.sukubunga, // Map from sukubunga (DB) to sukuBunga (app)
     tenor: data.tenor,
     denda: data.denda
   } as Pengaturan;
@@ -67,7 +67,7 @@ async function createDefaultSettings(): Promise<Pengaturan> {
     .from("pengaturan")
     .insert([{
       id: DEFAULT_SETTINGS_ID,
-      sukuBunga: initialPengaturan.sukuBunga,
+      sukubunga: initialPengaturan.sukuBunga, // Map from sukuBunga (app) to sukubunga (DB)
       tenor: initialPengaturan.tenor,
       denda: initialPengaturan.denda
     }])
@@ -80,7 +80,7 @@ async function createDefaultSettings(): Promise<Pengaturan> {
   }
   
   return {
-    sukuBunga: data.sukuBunga,
+    sukuBunga: data.sukubunga, // Map from sukubunga (DB) to sukuBunga (app)
     tenor: data.tenor,
     denda: data.denda
   } as Pengaturan;
@@ -93,7 +93,7 @@ export async function savePengaturan(pengaturan: Pengaturan): Promise<void> {
   const { error } = await supabase
     .from("pengaturan")
     .update({
-      sukuBunga: pengaturan.sukuBunga,
+      sukubunga: pengaturan.sukuBunga, // Map from sukuBunga (app) to sukubunga (DB)
       tenor: pengaturan.tenor,
       denda: pengaturan.denda
     })

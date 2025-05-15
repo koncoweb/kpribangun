@@ -1,181 +1,99 @@
 
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { User, Key, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { PasswordInput } from './PasswordInput';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { formSchema } from './formSchema';
+import { loginWithAnggotaId } from '@/services/authService';
+import { useToast } from '@/components/ui/use-toast';
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { loginWithAnggotaId } from "@/services/authService";
-import { PasswordInput } from "@/components/auth/anggota/PasswordInput";
-import { anggotaFormSchema } from "@/components/auth/anggota/formSchema";
-
-type FormValues = z.infer<typeof anggotaFormSchema>;
+type FormData = z.infer<typeof formSchema>;
 
 export function AnggotaLoginForm() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
-  
-  // Initialize form with react-hook-form and zod validation
-  const form = useForm<FormValues>({
-    resolver: zodResolver(anggotaFormSchema),
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
-      anggotaId: "",
-      password: "",
+      anggotaId: '',
+      password: '',
     },
   });
 
-  async function onSubmit(values: FormValues) {
-    setIsLoading(true);
-    
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const onSubmit = async (data: FormData) => {
     try {
-      const user = await loginWithAnggotaId(values.anggotaId, values.password);
-      
+      setLoading(true);
+      await loginWithAnggotaId(data.anggotaId, data.password);
       toast({
-        title: "Login berhasil",
-        description: `Selamat datang, ${user.nama}`,
+        title: "Login Berhasil",
+        description: "Anda akan dialihkan ke halaman utama",
       });
-      
-      // Clear form after successful login
-      form.reset();
-      
-      // Redirect to anggota profile
-      navigate(`/anggota/${user.anggotaId}`);
+      navigate('/anggota');
     } catch (error: any) {
       toast({
-        title: "Login gagal",
-        description: error.message || "ID Anggota atau password salah",
+        title: "Login Gagal",
+        description: error.message || "Terjadi kesalahan saat login",
         variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }
-
-  // Function to handle demo login
-  const handleDemoLogin = () => {
-    form.setValue("anggotaId", "AG0001");
-    form.setValue("password", "password123");
-    
-    // Auto-submit the form with demo credentials
-    form.handleSubmit(onSubmit)();
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-xl border-0 overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-blue-500/10 z-0"></div>
-        <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-green-500 via-teal-500 to-blue-500"></div>
-        
-        <CardHeader className="space-y-1 text-center pb-2 relative z-10">
-          <CardTitle className="text-2xl font-bold tracking-tight">
-            KPRI BANGUN
-          </CardTitle>
-          <CardDescription>
-            Login Anggota
-          </CardDescription>
+    <div className="flex justify-center items-center min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Koperasi Simpan Pinjam</CardTitle>
+          <CardDescription>Login Anggota</CardDescription>
         </CardHeader>
-        
-        <CardContent className="relative z-10">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="anggotaId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground/80">ID Anggota</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
-                        <Input
-                          placeholder="Masukkan ID Anggota"
-                          className="pl-10 h-12 border-muted/30 bg-white/50 backdrop-blur-sm"
-                          {...field}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="anggotaId">ID Anggota</Label>
+              <Input
+                id="anggotaId"
+                placeholder="Masukkan ID Anggota"
+                {...register('anggotaId')}
+                disabled={loading}
               />
-              
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-foreground/80">Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput field={field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+              {errors.anggotaId?.message && (
+                <p className="text-sm text-red-500">{errors.anggotaId.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <PasswordInput
+                id="password"
+                placeholder="Masukkan password"
+                {...register('password')}
+                disabled={loading}
               />
-              
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 transition-all duration-300 shadow-md" 
-                disabled={isLoading}
-              >
-                {isLoading ? "Memproses..." : "Login"}
+              {errors.password?.message && (
+                <p className="text-sm text-red-500">{errors.password.message}</p>
+              )}
+            </div>
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? 'Memproses...' : 'Login'}
+            </Button>
+
+            <div className="text-center text-sm">
+              <Button variant="link" onClick={() => navigate('/login')} disabled={loading}>
+                Login sebagai Admin
               </Button>
-            </form>
-          </Form>
+            </div>
+          </form>
         </CardContent>
-        
-        <CardFooter className="flex flex-col gap-2 pt-0 relative z-10">
-          <div className="relative w-full my-2">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-muted/40"></span>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                Demo
-              </span>
-            </div>
-          </div>
-          
-          <Button 
-            variant="outline" 
-            onClick={handleDemoLogin}
-            className="w-full text-sm h-10 border-muted/30 bg-white/30 backdrop-blur-sm hover:bg-white/50"
-          >
-            <Shield className="mr-2 h-4 w-4" /> Demo Login Anggota
-          </Button>
-          
-          <div className="flex justify-center w-full mt-4">
-            <Link to="/login" className="text-sm text-blue-600 hover:underline">
-              Login sebagai Admin/Superadmin
-            </Link>
-          </div>
-          
-          <p className="text-xs text-center text-muted-foreground mt-4">
-            Sistem Koperasi Pegawai Republik Indonesia
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

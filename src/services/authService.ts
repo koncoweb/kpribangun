@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 import { toast } from "@/components/ui/use-toast";
@@ -44,7 +45,7 @@ export async function loginUser(username: string, password: string): Promise<Use
       email: userData.email || "",
       roleId: userData.roleid || "",
       anggotaId: userData.anggotaid || "",
-      nohp: userData.nohp || "",
+      noHp: userData.nohp || "",
       alamat: userData.alamat || "",
       aktif: userData.aktif || true,
       foto: userData.foto || "",
@@ -100,7 +101,7 @@ export async function loginWithAnggotaId(anggotaId: string, password: string): P
       email: userData.email || "",
       roleId: userData.roleid || "",
       anggotaId: userData.anggotaid || "",
-      nohp: userData.nohp || "",
+      noHp: userData.nohp || "",
       alamat: userData.alamat || "",
       aktif: userData.aktif || true,
       foto: userData.foto || "",

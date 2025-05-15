@@ -1,161 +1,87 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { getAllAnggota } from "@/services/anggotaService";
+import { getAnggotaList } from "@/adapters/serviceAdapters";
 import { Anggota } from "@/types";
-import { createPengajuan, getPengajuanById, updatePengajuan } from "@/services/pengajuanService";
-import { PengajuanFormContent } from "@/components/pengajuan/PengajuanFormContent";
-import { PersyaratanDokumen } from "@/components/pengajuan/DokumenPersyaratanUpload";
-import { getSimpananCategories } from "@/services/transaksi/categories";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft } from "lucide-react";
+import { Link } from "react-router-dom";
+import { PengajuanSimpananForm } from "@/components/pengajuan/PengajuanSimpananForm";
+import { PengajuanPinjamanForm } from "@/components/pengajuan/PengajuanPinjamanForm";
 
 export default function PengajuanForm() {
-  const { id } = useParams<{ id: string }>();
-  const isEditMode = Boolean(id);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
-  
-  // Get default category
-  const defaultSimpananCategory = getSimpananCategories()[0];
-  
-  // Initialize form data with default values
-  const [formData, setFormData] = useState<{
-    tanggal: string;
-    anggotaId: string;
-    jenis: "Simpan" | "Pinjam";
-    kategori: string;
-    jumlah: number;
-    keterangan: string;
-    status: "Menunggu" | "Disetujui" | "Ditolak";
-    dokumen?: PersyaratanDokumen[];
-  }>({
-    tanggal: new Date().toISOString().split('T')[0],
-    anggotaId: "",
-    jenis: "Simpan",
-    kategori: defaultSimpananCategory,
-    jumlah: 0,
-    keterangan: "",
-    status: "Menunggu",
-    dokumen: []
-  });
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("simpanan");
   
   useEffect(() => {
-    // Load anggota list
-    const loadedAnggota = getAllAnggota();
-    setAnggotaList(loadedAnggota);
-    
-    // If in edit mode, load the existing pengajuan data
-    if (isEditMode && id) {
-      const pengajuan = getPengajuanById(id);
-      if (pengajuan) {
-        setFormData({
-          tanggal: pengajuan.tanggal,
-          anggotaId: pengajuan.anggotaId,
-          jenis: pengajuan.jenis,
-          kategori: pengajuan.kategori || defaultSimpananCategory, // Use the category or default
-          jumlah: pengajuan.jumlah,
-          keterangan: pengajuan.keterangan || "",
-          status: pengajuan.status,
-          dokumen: (pengajuan as any).dokumen || [] // Cast to any to access potential dokumen field
-        });
-      } else {
-        // Handle case where pengajuan with ID is not found
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const data = await getAnggotaList();
+        setAnggotaList(data);
+      } catch (error) {
         toast({
-          title: "Data tidak ditemukan",
-          description: `Pengajuan dengan ID ${id} tidak ditemukan`,
-          variant: "destructive",
+          title: "Error",
+          description: "Terjadi kesalahan saat memuat data anggota",
+          variant: "destructive"
         });
-        navigate("/transaksi/pengajuan");
+      } finally {
+        setLoading(false);
       }
-    }
-  }, [id, isEditMode, navigate, toast, defaultSimpananCategory]);
-  
-  const handleSubmit = (submittedData: typeof formData) => {
-    setIsSubmitting(true);
+    };
     
-    try {
-      if (isEditMode && id) {
-        // Update existing pengajuan with properly typed data
-        const updated = updatePengajuan(id, {
-          tanggal: submittedData.tanggal,
-          anggotaId: submittedData.anggotaId,
-          jenis: submittedData.jenis,
-          kategori: submittedData.kategori,
-          jumlah: submittedData.jumlah,
-          keterangan: submittedData.keterangan,
-          status: submittedData.status,
-          dokumen: submittedData.dokumen
-        });
-        
-        if (updated) {
-          toast({
-            title: "Pengajuan berhasil diperbarui",
-            description: `Pengajuan dengan ID ${id} telah berhasil diperbarui`,
-          });
-          navigate("/transaksi/pengajuan");
-        } else {
-          throw new Error("Gagal memperbarui pengajuan");
-        }
-      } else {
-        // Create new pengajuan with properly typed data
-        const newPengajuan = createPengajuan({
-          tanggal: submittedData.tanggal,
-          anggotaId: submittedData.anggotaId,
-          jenis: submittedData.jenis,
-          kategori: submittedData.kategori,
-          jumlah: submittedData.jumlah,
-          keterangan: submittedData.keterangan,
-          status: submittedData.status,
-          dokumen: submittedData.dokumen
-        });
-        
-        if (newPengajuan) {
-          toast({
-            title: "Pengajuan berhasil dibuat",
-            description: `Pengajuan baru dengan ID ${newPengajuan.id} telah berhasil dibuat`,
-          });
-          navigate("/transaksi/pengajuan");
-        } else {
-          throw new Error("Gagal membuat pengajuan baru");
-        }
-      }
-    } catch (error) {
-      toast({
-        title: "Terjadi kesalahan",
-        description: "Gagal menyimpan data pengajuan. Silakan coba lagi.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    loadData();
+  }, [toast]);
   
   return (
-    <Layout pageTitle={isEditMode ? "Edit Pengajuan" : "Tambah Pengajuan"}>
+    <Layout pageTitle="Form Pengajuan">
       <div className="flex items-center gap-4 mb-6">
         <Link to="/transaksi/pengajuan">
           <Button variant="outline" size="icon">
             <ArrowLeft size={16} />
           </Button>
         </Link>
-        <h1 className="page-title">
-          {isEditMode ? "Edit Pengajuan" : "Tambah Pengajuan"}
-        </h1>
+        <h1 className="page-title">Buat Pengajuan Baru</h1>
       </div>
       
-      <PengajuanFormContent
-        isEditMode={isEditMode}
-        id={id}
-        initialFormData={formData}
-        anggotaList={anggotaList}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
+      <Card>
+        <CardHeader>
+          <CardTitle>Form Pengajuan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <p>Memuat data...</p>
+            </div>
+          ) : (
+            <Tabs 
+              defaultValue="simpanan" 
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="simpanan">Simpanan</TabsTrigger>
+                <TabsTrigger value="pinjaman">Pinjaman</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="simpanan">
+                <PengajuanSimpananForm anggotaList={anggotaList} />
+              </TabsContent>
+              
+              <TabsContent value="pinjaman">
+                <PengajuanPinjamanForm anggotaList={anggotaList} />
+              </TabsContent>
+            </Tabs>
+          )}
+        </CardContent>
+      </Card>
     </Layout>
   );
 }

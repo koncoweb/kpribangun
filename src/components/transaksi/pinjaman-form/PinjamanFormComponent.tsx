@@ -184,3 +184,5 @@ export function PinjamanFormComponent({ anggotaList = [] }: PinjamanFormProps) {
     </form>
   );
 }
+
+export default PinjamanFormComponent;
