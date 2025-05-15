@@ -1,11 +1,13 @@
 
 import { toast as sonnerToast } from "sonner";
 
-export function toast(props: {
+type ToastProps = {
   title?: string;
   description?: string;
   variant?: "default" | "destructive";
-}) {
+};
+
+export function toast(props: ToastProps) {
   const { title, description, variant } = props;
   
   if (variant === "destructive") {

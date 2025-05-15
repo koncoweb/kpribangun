@@ -1,17 +1,18 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getAnggotaById } from "@/services/anggotaService";
+import { getAnggotaById } from "@/adapters/serviceAdapters";
 import { getCurrentUser } from "@/services/authService";
 import Layout from "@/components/layout/Layout";
 import AnggotaLayout from "@/components/layout/AnggotaLayout";
 import { LoadingState } from "@/components/anggota/detail/LoadingState";
 import { AnggotaDetailContent } from "@/components/anggota/detail/AnggotaDetailContent";
 import { AnggotaNotFound } from "@/components/anggota/detail/AnggotaNotFound";
+import { Anggota } from "@/types";
 
 export default function AnggotaDetail() {
   const { id } = useParams<{ id: string }>();
-  const [anggota, setAnggota] = useState<any>(null);
+  const [anggota, setAnggota] = useState<Anggota | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const currentUser = getCurrentUser();
   const isAnggotaUser = currentUser?.roleId !== 'role_superadmin' && currentUser?.roleId !== 'role_admin';
@@ -20,17 +21,21 @@ export default function AnggotaDetail() {
   useEffect(() => {
     if (!id) return;
     
-    setIsLoading(true);
-    const anggotaData = getAnggotaById(id);
+    const fetchAnggota = async () => {
+      setIsLoading(true);
+      try {
+        const anggotaData = await getAnggotaById(id);
+        if (anggotaData) {
+          setAnggota(anggotaData);
+        }
+      } catch (error) {
+        console.error("Error fetching anggota:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    if (anggotaData) {
-      setAnggota(anggotaData);
-    }
-    
-    // Simulate loading delay for demo
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    fetchAnggota();
   }, [id]);
 
   // Render the appropriate content based on loading state and user role

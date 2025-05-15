@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { getPengaturan } from "@/adapters/serviceAdapters";
@@ -136,6 +136,10 @@ export function PinjamanFormComponent({ anggotaList = [] }: PinjamanFormProps) {
     const bungaRate = getInterestRate();
     return calculateAngsuran(Number(jumlah), tenor, bungaRate);
   };
+
+  if (loadingPengaturan) {
+    return <div className="p-4">Loading...</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
