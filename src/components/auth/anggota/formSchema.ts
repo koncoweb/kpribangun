@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 export const formSchema = z.object({
-  username: z.string().min(1, "Username wajib diisi"),
+  anggotaId: z.string().min(1, "ID Anggota wajib diisi"),
   password: z.string().min(1, "Password wajib diisi"),
 });
 

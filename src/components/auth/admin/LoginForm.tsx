@@ -174,7 +174,14 @@ export function LoginForm({
                   <FormItem>
                     <FormLabel className="text-foreground/80">Password</FormLabel>
                     <FormControl>
-                      <PasswordInput field={field} />
+                      <div className="relative">
+                        <Input
+                          type="password"
+                          placeholder="Enter your password"
+                          className="pl-10 h-12 border-muted/30 bg-white/50 backdrop-blur-sm"
+                          {...field}
+                        />
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -212,3 +219,6 @@ export function LoginForm({
     </div>
   );
 }
+
+// Import necessary components that were previously missing
+import { Input } from "@/components/ui/input";
