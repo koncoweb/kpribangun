@@ -24,19 +24,19 @@ import {
 } from "@/components/ui/form";
 import PasswordInput from "./PasswordInput";
 import { toast } from "@/components/ui/use-toast";
-import { anggotaLoginFormSchema } from "./formSchema";
+import { anggotaLoginSchema } from "./formSchema";
 import { Link } from "react-router-dom";
 import { loginAsAnggota } from "@/services/authService";
 import type { z } from "zod";
 
-type FormData = z.infer<typeof anggotaLoginFormSchema>;
+type FormData = z.infer<typeof anggotaLoginSchema>;
 
 export function AnggotaLoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<FormData>({
-    resolver: zodResolver(anggotaLoginFormSchema),
+    resolver: zodResolver(anggotaLoginSchema),
     defaultValues: {
       anggotaId: "",
       password: "",
