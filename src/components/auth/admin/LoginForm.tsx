@@ -26,7 +26,6 @@ import {
 import { login, initDefaultUsers } from "@/services/authService";
 import { toast } from "@/hooks/use-toast";
 import { adminLoginFormSchema } from "./formSchema";
-import { DemoCredentialsSection } from "./DemoCredentialsSection";
 import { LoginFooter } from "./LoginFooter";
 import { UsernameInput } from "./UsernameInput";
 import PasswordInput from "../anggota/PasswordInput";
@@ -192,16 +191,32 @@ export function LoginForm({
             </p>
           </div>
 
-          {demoCredentials && (
-            <DemoCredentialsSection 
-              demoCredentials={demoCredentials}
-              onDemoLogin={onDemoLogin}
-            />
+          {/* Single Demo Access button (only show if demoCredentials are provided) */}
+          {demoCredentials && demoCredentials.length > 0 && (
+            <>
+              <div className="relative w-full my-2">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-muted/40"></span>
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">
+                    Demo Access
+                  </span>
+                </div>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => onDemoLogin("superadmin", "password123")}
+                className="w-full text-sm h-10 border-muted/30 bg-white/30 backdrop-blur-sm hover:bg-white/50"
+              >
+                Login as Superadmin
+              </Button>
+            </>
           )}
         </CardContent>
         <CardFooter>
           <LoginFooter 
-            demoCredentials={demoCredentials}
             onDemoLogin={onDemoLogin}
           />
         </CardFooter>
