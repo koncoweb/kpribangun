@@ -25,7 +25,7 @@ import {
 
 import { login } from "@/services/authService";
 import { toast } from "@/hooks/use-toast";
-import { loginFormSchema } from "./formSchema";
+import { adminLoginFormSchema } from "./formSchema";
 import { DemoCredentialsSection } from "./DemoCredentialsSection";
 import { LoginFooter } from "./LoginFooter";
 import { UsernameInput } from "./UsernameInput";
@@ -33,19 +33,41 @@ import PasswordInput from "../anggota/PasswordInput";
 
 import type { z } from "zod";
 
-type FormData = z.infer<typeof loginFormSchema>;
+type FormData = z.infer<typeof adminLoginFormSchema>;
 
-export function LoginForm() {
+interface LoginFormProps {
+  title?: string;
+  subtitle?: string;
+  demoCredentials?: Array<{
+    label: string;
+    username: string;
+    password: string;
+  }>;
+  onSuccessRedirect?: string;
+}
+
+export function LoginForm({
+  title = "Koperasi Admin Panel",
+  subtitle = "Masukkan username dan password untuk login",
+  demoCredentials,
+  onSuccessRedirect = "/"
+}: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<FormData>({
-    resolver: zodResolver(loginFormSchema),
+    resolver: zodResolver(adminLoginFormSchema),
     defaultValues: {
       username: "",
       password: "",
     },
   });
+
+  const onDemoLogin = (username: string, password: string) => {
+    form.setValue("username", username);
+    form.setValue("password", password);
+    form.handleSubmit(onSubmit)();
+  };
 
   async function onSubmit(data: FormData) {
     setIsLoading(true);
@@ -58,7 +80,7 @@ export function LoginForm() {
           title: "Login berhasil!",
           description: `Selamat datang kembali, ${result.user?.nama}`,
         });
-        navigate("/");
+        navigate(onSuccessRedirect);
       } else {
         toast({
           variant: "destructive",
@@ -83,10 +105,10 @@ export function LoginForm() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">
-            Koperasi Admin Panel
+            {title}
           </CardTitle>
           <CardDescription className="text-center">
-            Masukkan username dan password untuk login
+            {subtitle}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -99,7 +121,7 @@ export function LoginForm() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <UsernameInput {...field} />
+                      <UsernameInput field={field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -135,10 +157,18 @@ export function LoginForm() {
             </form>
           </Form>
 
-          <DemoCredentialsSection />
+          {demoCredentials && (
+            <DemoCredentialsSection 
+              demoCredentials={demoCredentials}
+              onDemoLogin={onDemoLogin}
+            />
+          )}
         </CardContent>
         <CardFooter>
-          <LoginFooter />
+          <LoginFooter 
+            demoCredentials={demoCredentials}
+            onDemoLogin={onDemoLogin}
+          />
         </CardFooter>
       </Card>
     </div>

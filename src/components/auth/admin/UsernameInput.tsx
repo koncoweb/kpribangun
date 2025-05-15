@@ -3,7 +3,7 @@ import { User } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ControllerRenderProps } from "react-hook-form";
 
-interface UsernameInputProps {
+export interface UsernameInputProps {
   field: ControllerRenderProps<any, "username">;
 }
 

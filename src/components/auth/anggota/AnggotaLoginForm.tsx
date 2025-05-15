@@ -1,51 +1,65 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import PasswordInput from "./PasswordInput";
-import { toast } from "@/hooks/use-toast";
-import { anggotaLoginSchema } from "./formSchema";
+import { toast } from "@/components/ui/use-toast";
+import { anggotaLoginFormSchema } from "./formSchema";
+import { Link } from "react-router-dom";
 import { loginAsAnggota } from "@/services/authService";
+import type { z } from "zod";
 
-type AnggotaLoginFormValues = z.infer<typeof anggotaLoginSchema>;
+type FormData = z.infer<typeof anggotaLoginFormSchema>;
 
 export function AnggotaLoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  
-  const form = useForm<AnggotaLoginFormValues>({
-    resolver: zodResolver(anggotaLoginSchema),
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(anggotaLoginFormSchema),
     defaultValues: {
       anggotaId: "",
-      password: ""
-    }
+      password: "",
+    },
   });
-  
-  async function onSubmit(values: AnggotaLoginFormValues) {
+
+  async function onSubmit(data: FormData) {
     setIsLoading(true);
     
     try {
-      const result = await loginAsAnggota(values.anggotaId, values.password);
+      const result = await loginAsAnggota(data.anggotaId, data.password);
       
       if (result.success) {
         toast({
           title: "Login berhasil!",
-          description: `Selamat datang kembali, ${result.nama}`,
+          description: `Selamat datang, ${result.user?.nama}`,
         });
-        navigate("/anggota/dashboard");
+        navigate("/anggota");
       } else {
         toast({
           variant: "destructive",
           title: "Login gagal",
-          description: result.message || "ID Anggota atau kata sandi salah."
+          description: result.message || "ID Anggota atau password salah",
         });
       }
     } catch (error) {
@@ -53,23 +67,23 @@ export function AnggotaLoginForm() {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Terjadi kesalahan saat login. Silakan coba lagi."
+        description: "Terjadi kesalahan saat login. Silakan coba lagi.",
       });
     } finally {
       setIsLoading(false);
     }
   }
-  
+
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Login Anggota</CardTitle>
+          <CardTitle className="text-2xl text-center">KPRI BANGUN</CardTitle>
           <CardDescription className="text-center">
-            Masukkan ID Anggota dan kata sandi Anda
+            Login Anggota
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -79,44 +93,54 @@ export function AnggotaLoginForm() {
                   <FormItem>
                     <FormLabel>ID Anggota</FormLabel>
                     <FormControl>
-                      <Input placeholder="Masukkan ID Anggota" {...field} />
+                      <Input
+                        placeholder="Masukkan ID Anggota Anda"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Kata Sandi</FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <PasswordInput placeholder="Masukkan kata sandi" {...field} />
+                      <PasswordInput
+                        placeholder="Masukkan password"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <span>Memproses...</span>
                 ) : (
                   <>
-                    Login
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    Login <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
             </form>
           </Form>
         </CardContent>
-        <CardFooter className="flex flex-col">
-          <p className="text-center text-sm text-gray-600 mt-4">
-            Belum memiliki akun? Hubungi admin untuk pendaftaran.
-          </p>
+        <CardFooter className="flex justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Link to="/login" className="text-sm text-blue-600 hover:underline">
+              Login sebagai Admin
+            </Link>
+            <p className="text-xs text-muted-foreground">
+              KPRI Bangun &copy; 2023 - All rights reserved
+            </p>
+          </div>
         </CardFooter>
       </Card>
     </div>

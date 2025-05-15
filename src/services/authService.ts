@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 import { toast } from "@/components/ui/use-toast";
@@ -9,7 +8,7 @@ const AUTH_USER_KEY = "koperasi_auth_user";
 /**
  * Login user with username and password
  */
-export async function loginUser(username: string, password: string): Promise<User> {
+export async function login(username: string, password: string) {
   try {
     // First, fetch the user from our 'users' table using username
     const { data: userData, error: fetchError } = await supabase
@@ -21,7 +20,10 @@ export async function loginUser(username: string, password: string): Promise<Use
     
     if (fetchError || !userData) {
       console.error("Login error:", fetchError);
-      throw new Error("Username tidak ditemukan atau akun tidak aktif");
+      return {
+        success: false,
+        message: "Username tidak ditemukan atau akun tidak aktif"
+      };
     }
     
     // In a real application with Supabase auth, we would do something like this:
@@ -34,7 +36,10 @@ export async function loginUser(username: string, password: string): Promise<Use
     // we'll simulate authentication by checking the password directly
     // Note: In a production app, you would set up proper Supabase Auth
     if (password !== "password123") { // Replace with proper password check
-      throw new Error("Password tidak valid");
+      return {
+        success: false,
+        message: "Password tidak valid"
+      };
     }
     
     // Map database fields to User type
@@ -63,17 +68,23 @@ export async function loginUser(username: string, password: string): Promise<Use
       .update({ lastlogin: now })
       .eq("id", user.id);
     
-    return user;
+    return {
+      success: true,
+      user
+    };
   } catch (error: any) {
     console.error("Login error:", error);
-    throw new Error(error.message || "Login failed");
+    return {
+      success: false,
+      message: error.message || "Login failed"
+    };
   }
 }
 
 /**
  * Login with anggota ID
  */
-export async function loginWithAnggotaId(anggotaId: string, password: string): Promise<User> {
+export async function loginAsAnggota(anggotaId: string, password: string) {
   try {
     // First, check if anggota exists and is associated with a user
     const { data: userData, error: fetchError } = await supabase
@@ -85,12 +96,18 @@ export async function loginWithAnggotaId(anggotaId: string, password: string): P
     
     if (fetchError || !userData) {
       console.error("Login error:", fetchError);
-      throw new Error("ID Anggota tidak ditemukan atau akun tidak aktif");
+      return {
+        success: false,
+        message: "ID Anggota tidak ditemukan atau akun tidak aktif"
+      };
     }
     
     // Simple password check (should be replaced with proper auth)
     if (password !== "password123") {
-      throw new Error("Password tidak valid");
+      return {
+        success: false,
+        message: "Password tidak valid"
+      };
     }
 
     // Map database fields to User type
@@ -119,10 +136,16 @@ export async function loginWithAnggotaId(anggotaId: string, password: string): P
       .update({ lastlogin: now })
       .eq("id", user.id);
     
-    return user;
+    return {
+      success: true,
+      user
+    };
   } catch (error: any) {
     console.error("Login error:", error);
-    throw new Error(error.message || "Login failed");
+    return {
+      success: false,
+      message: error.message || "Login failed"
+    };
   }
 }
 
