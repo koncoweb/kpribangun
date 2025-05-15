@@ -82,12 +82,12 @@ async function migrateAnggota() {
         nama: anggota.nama,
         nip: anggota.nip || null,
         alamat: anggota.alamat || null,
-        noHp: anggota.noHp || null,
-        jenisKelamin: anggota.jenisKelamin || null,
+        nohp: anggota.noHp || null,
+        jeniskelamin: anggota.jenisKelamin || null,
         agama: anggota.agama || null,
         status: anggota.status || 'active',
-        unitKerja: anggota.unitKerja || null,
-        tanggalBergabung: anggota.tanggalBergabung || null,
+        unitkerja: anggota.unitKerja || null,
+        tanggalbergabung: anggota.tanggalBergabung || null,
         foto: anggota.foto || null,
         email: anggota.email || null,
         dokumen: anggota.dokumen || [],
@@ -124,14 +124,14 @@ async function migrateUsers() {
       username: user.username,
       nama: user.nama,
       email: user.email || null,
-      roleId: user.roleId,
+      roleid: user.roleId,
       foto: user.foto || null,
       jabatan: user.jabatan || null,
-      noHp: user.noHP || null,
+      nohp: user.noHP || null,
       alamat: user.alamat || null,
       aktif: user.aktif,
-      lastLogin: user.lastLogin || null,
-      anggotaId: user.anggotaId || null,
+      lastlogin: user.lastLogin || null,
+      anggotaid: user.anggotaId || null,
       created_at: user.createdAt || new Date().toISOString(),
       updated_at: user.updatedAt || new Date().toISOString()
     });
@@ -214,7 +214,7 @@ async function migratePengaturan() {
   
   const { error } = await supabase.from("pengaturan").upsert({
     id: "default_settings",
-    sukuBunga: pengaturan.sukuBunga,
+    sukubunga: pengaturan.sukuBunga,
     tenor: pengaturan.tenor,
     denda: pengaturan.denda
   });
@@ -246,8 +246,8 @@ async function migrateTransaksi() {
       const { error } = await supabase.from("transaksi").upsert({
         id: transaksi.id,
         tanggal: transaksi.tanggal ? transaksi.tanggal.split('T')[0] : new Date().toISOString().split('T')[0],
-        anggotaId: transaksi.anggotaId,
-        anggotaNama: transaksi.anggotaNama,
+        anggotaid: transaksi.anggotaId,
+        anggotanama: transaksi.anggotaNama,
         jenis: transaksi.jenis,
         kategori: transaksi.kategori || null,
         jumlah: transaksi.jumlah,
@@ -282,12 +282,12 @@ async function migratePengajuan() {
   for (const pengajuan of pengajuanList) {
     const { error } = await supabase.from("pengajuan").upsert({
       id: pengajuan.id,
-      anggotaId: pengajuan.anggotaId,
-      anggotaNama: pengajuan.anggotaNama,
-      jenisPengajuan: pengajuan.jenis || "Pinjam",
-      tanggalPengajuan: pengajuan.tanggal ? pengajuan.tanggal.split('T')[0] : new Date().toISOString().split('T')[0],
+      anggotaid: pengajuan.anggotaId,
+      anggotanama: pengajuan.anggotaNama,
+      jenispengajuan: pengajuan.jenis || "Pinjam",
+      tanggalpengajuan: pengajuan.tanggal ? pengajuan.tanggal.split('T')[0] : new Date().toISOString().split('T')[0],
       jumlah: pengajuan.jumlah,
-      jangkaWaktu: pengajuan.jangkaWaktu || null,
+      jangkawaktu: pengajuan.jangkaWaktu || null,
       status: pengajuan.status || "Menunggu",
       alasan: pengajuan.keterangan || null,
       dokumen: pengajuan.dokumen || [],
@@ -319,7 +319,7 @@ async function migrateKasir() {
       id: kasir.id,
       nama: kasir.nama,
       username: kasir.username,
-      noHp: kasir.noHp || null,
+      nohp: kasir.noHp || null,
       role: kasir.role,
       aktif: kasir.aktif !== undefined ? kasir.aktif : true,
       created_at: kasir.createdAt || new Date().toISOString()
@@ -380,8 +380,8 @@ async function migrateProduk() {
       kode: produk.kode,
       nama: produk.nama,
       kategori: produk.kategori || null,
-      hargaBeli: produk.hargaBeli,
-      hargaJual: produk.hargaJual,
+      hargabeli: produk.hargaBeli,
+      hargajual: produk.hargaJual,
       stok: produk.stok || 0,
       satuan: produk.satuan || null,
       deskripsi: produk.deskripsi || null,
@@ -411,9 +411,9 @@ async function migratePenjualan() {
   for (const penjualan of penjualanList) {
     const { error } = await supabase.from("penjualan").upsert({
       id: penjualan.id,
-      nomorTransaksi: penjualan.nomorTransaksi,
+      nomortransaksi: penjualan.nomorTransaksi,
       tanggal: penjualan.tanggal ? penjualan.tanggal.split('T')[0] : new Date().toISOString().split('T')[0],
-      kasirId: penjualan.kasirId,
+      kasirid: penjualan.kasirId,
       items: penjualan.items || [],
       subtotal: penjualan.subtotal,
       diskon: penjualan.diskon || 0,
@@ -421,7 +421,7 @@ async function migratePenjualan() {
       total: penjualan.total,
       dibayar: penjualan.dibayar,
       kembalian: penjualan.kembalian,
-      metodePembayaran: penjualan.metodePembayaran,
+      metodepembayaran: penjualan.metodePembayaran,
       status: penjualan.status,
       catatan: penjualan.catatan || null,
       created_at: penjualan.createdAt || new Date().toISOString()
@@ -449,9 +449,9 @@ async function migratePembelian() {
   for (const pembelian of pembelianList) {
     const { error } = await supabase.from("pembelian").upsert({
       id: pembelian.id,
-      nomorTransaksi: pembelian.nomorTransaksi,
+      nomortransaksi: pembelian.nomorTransaksi,
       tanggal: pembelian.tanggal ? pembelian.tanggal.split('T')[0] : new Date().toISOString().split('T')[0],
-      pemasokId: pembelian.pemasokId,
+      pemasokid: pembelian.pemasokId,
       items: pembelian.items || [],
       subtotal: pembelian.subtotal,
       diskon: pembelian.diskon || 0,

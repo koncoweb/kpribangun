@@ -1,9 +1,11 @@
 
 import { z } from "zod";
 
-export const formSchema = z.object({
-  anggotaId: z.string().min(1, "ID Anggota wajib diisi"),
-  password: z.string().min(1, "Password wajib diisi"),
+export const anggotaLoginSchema = z.object({
+  anggotaId: z.string().min(1, {
+    message: "ID Anggota harus diisi"
+  }),
+  password: z.string().min(6, {
+    message: "Kata sandi minimal 6 karakter"
+  })
 });
-
-export type FormValues = z.infer<typeof formSchema>;

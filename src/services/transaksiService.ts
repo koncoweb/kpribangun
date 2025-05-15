@@ -47,25 +47,30 @@ export function generateTransaksiId(): string {
 /**
  * Create a new transaksi
  */
-export function createTransaksi(transaksi: Omit<Transaksi, "id" | "anggotaNama" | "createdAt" | "updatedAt">): Transaksi | null {
-  const anggota = getAnggotaById(transaksi.anggotaId);
-  if (!anggota) return null;
-  
-  const transaksiList = getAllTransaksi();
-  const now = new Date().toISOString();
-  
-  const newTransaksi: Transaksi = {
-    ...transaksi,
-    id: generateTransaksiId(),
-    anggotaNama: anggota.nama || "",
-    createdAt: now,
-    updatedAt: now,
-  };
-  
-  transaksiList.push(newTransaksi);
-  saveToLocalStorage(TRANSAKSI_KEY, transaksiList);
-  
-  return newTransaksi;
+export async function createTransaksi(transaksi: Omit<Transaksi, "id" | "anggotaNama" | "createdAt" | "updatedAt">): Promise<Transaksi | null> {
+  try {
+    const anggota = await getAnggotaById(transaksi.anggotaId);
+    if (!anggota) return null;
+    
+    const transaksiList = getAllTransaksi();
+    const now = new Date().toISOString();
+    
+    const newTransaksi: Transaksi = {
+      ...transaksi,
+      id: generateTransaksiId(),
+      anggotaNama: anggota.nama || "",
+      createdAt: now,
+      updatedAt: now,
+    };
+    
+    transaksiList.push(newTransaksi);
+    saveToLocalStorage(TRANSAKSI_KEY, transaksiList);
+    
+    return newTransaksi;
+  } catch (error) {
+    console.error("Error creating transaksi:", error);
+    return null;
+  }
 }
 
 /**
@@ -143,24 +148,33 @@ export function getAllDueLoans(): {
 /**
  * Get upcoming due loans (not yet overdue)
  */
-export function getUpcomingDueLoans(daysThreshold: number = 30): { 
+export function getUpcomingDueLoans(anggotaId: string = "ALL", daysThreshold: number = 30): { 
   transaksi: Transaksi; 
   jatuhTempo: string;
   daysUntilDue: number;
 }[] {
-  return getAllDueLoans()
-    .filter(loan => loan.daysUntilDue > 0 && loan.daysUntilDue <= daysThreshold);
+  const allLoans = getAllDueLoans();
+  const filteredLoans = anggotaId === "ALL" 
+    ? allLoans 
+    : allLoans.filter(loan => loan.transaksi.anggotaId === anggotaId);
+  
+  return filteredLoans.filter(loan => loan.daysUntilDue > 0 && loan.daysUntilDue <= daysThreshold);
 }
 
 /**
  * Get overdue loans
  */
-export function getOverdueLoans(): { 
+export function getOverdueLoans(anggotaId: string = "ALL"): { 
   transaksi: Transaksi; 
   jatuhTempo: string;
   daysOverdue: number;
 }[] {
-  return getAllDueLoans()
+  const allLoans = getAllDueLoans();
+  const filteredLoans = anggotaId === "ALL" 
+    ? allLoans 
+    : allLoans.filter(loan => loan.transaksi.anggotaId === anggotaId);
+  
+  return filteredLoans
     .filter(loan => loan.daysUntilDue <= 0)
     .map(loan => ({
       transaksi: loan.transaksi,
@@ -188,7 +202,6 @@ export function calculatePenalty(loanAmount: number, daysOverdue: number): numbe
 
 /**
  * Calculate SHU (Sisa Hasil Usaha) for an anggota
- * Re-export the function from financialOperations
  */
 export function calculateSHU(anggotaId: string): number {
   // This is now a local service function, not from financialOperations

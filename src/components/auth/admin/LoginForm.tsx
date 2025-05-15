@@ -1,9 +1,9 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -22,203 +22,125 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useToast } from "@/components/ui/use-toast";
-import { loginUser } from "@/services/authService";
-import { PasswordInput } from "@/components/auth/anggota/PasswordInput";
-import { UsernameInput } from "./UsernameInput";
+
+import { login } from "@/services/authService";
+import { toast } from "@/hooks/use-toast";
+import { loginFormSchema } from "./formSchema";
+import { DemoCredentialsSection } from "./DemoCredentialsSection";
 import { LoginFooter } from "./LoginFooter";
-import { adminLoginFormSchema } from "./formSchema";
-import { migrateAllData } from "@/utils/migrateToSupabase";
+import { UsernameInput } from "./UsernameInput";
+import PasswordInput from "../anggota/PasswordInput";
 
-type FormValues = z.infer<typeof adminLoginFormSchema>;
+import type { z } from "zod";
 
-interface LoginFormProps {
-  title?: string;
-  subtitle?: string;
-  onSuccessRedirect?: string;
-  demoCredentials?: Array<{
-    label: string;
-    username: string;
-    password: string;
-  }>;
-}
+type FormData = z.infer<typeof loginFormSchema>;
 
-export function LoginForm({
-  title = "Login",
-  subtitle = "Enter your credentials to access your account",
-  onSuccessRedirect = "/",
-  demoCredentials,
-}: LoginFormProps) {
-  const navigate = useNavigate();
-  const { toast } = useToast();
+export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [isMigrating, setIsMigrating] = useState(false);
-  
-  // Initialize form with react-hook-form and zod validation
-  const form = useForm<FormValues>({
-    resolver: zodResolver(adminLoginFormSchema),
+  const navigate = useNavigate();
+
+  const form = useForm<FormData>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
       username: "",
       password: "",
     },
   });
 
-  async function onSubmit(values: FormValues) {
-    console.log("Login form submitted with values:", values);
+  async function onSubmit(data: FormData) {
     setIsLoading(true);
     
     try {
-      const user = await loginUser(values.username, values.password);
-      console.log("Login successful, user data:", user);
+      const result = await login(data.username, data.password);
       
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.nama}`,
-      });
-      
-      // Clear form after successful login
-      form.reset();
-      
-      // Redirect to appropriate page
-      console.log("Redirecting to:", onSuccessRedirect);
-      navigate(onSuccessRedirect);
-    } catch (error: any) {
+      if (result.success) {
+        toast({
+          title: "Login berhasil!",
+          description: `Selamat datang kembali, ${result.user?.nama}`,
+        });
+        navigate("/");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Login gagal",
+          description: result.message || "Username atau password salah.",
+        });
+      }
+    } catch (error) {
       console.error("Login error:", error);
       toast({
-        title: "Login failed",
-        description: error.message || "Username or password is incorrect",
         variant: "destructive",
+        title: "Error",
+        description: "Terjadi kesalahan saat login. Silakan coba lagi.",
       });
     } finally {
       setIsLoading(false);
     }
   }
 
-  // Function to handle demo login
-  const handleDemoLogin = (username: string, password: string) => {
-    console.log("Demo login with:", { username, password });
-    form.setValue("username", username);
-    form.setValue("password", password);
-    
-    // Auto-submit the form with demo credentials
-    form.handleSubmit(onSubmit)();
-  };
-
-  // Function to handle data migration
-  const handleMigrateData = async () => {
-    setIsMigrating(true);
-    
-    try {
-      const result = await migrateAllData();
-      
-      if (result.success) {
-        toast({
-          title: "Data Migration Successful",
-          description: "All data has been successfully migrated to Supabase.",
-        });
-      } else {
-        toast({
-          title: "Migration Failed",
-          description: result.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error: any) {
-      console.error("Migration error:", error);
-      toast({
-        title: "Migration Failed",
-        description: error.message || "An error occurred during migration",
-        variant: "destructive",
-      });
-    } finally {
-      setIsMigrating(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <Card className="w-full max-w-md shadow-xl border-0 overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-violet-500/10 z-0"></div>
-        <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500"></div>
-        
-        <CardHeader className="space-y-1 relative z-10">
-          <CardTitle className="text-2xl font-bold tracking-tight text-center">
-            {title}
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-center">
+            Koperasi Admin Panel
           </CardTitle>
           <CardDescription className="text-center">
-            {subtitle}
+            Masukkan username dan password untuk login
           </CardDescription>
         </CardHeader>
-        
-        <CardContent className="relative z-10">
+        <CardContent className="space-y-4">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/80">Username</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <UsernameInput field={field} />
+                      <UsernameInput {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground/80">Password</FormLabel>
+                    <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="password"
-                          placeholder="Enter your password"
-                          className="pl-10 h-12 border-muted/30 bg-white/50 backdrop-blur-sm"
-                          {...field}
-                        />
-                      </div>
+                      <PasswordInput
+                        placeholder="Masukkan password"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
-              <Button 
-                type="submit" 
-                className="w-full h-12 text-base bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-md"
-                disabled={isLoading}
-              >
-                {isLoading ? "Signing in..." : "Sign In"}
-              </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full h-10"
-                onClick={handleMigrateData}
-                disabled={isMigrating}
-              >
-                {isMigrating ? "Migrating Data..." : "Migrate Data to Supabase"}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <span>Memproses...</span>
+                ) : (
+                  <>
+                    Login <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </form>
           </Form>
+
+          <DemoCredentialsSection />
         </CardContent>
-        
         <CardFooter>
-          <LoginFooter 
-            demoCredentials={demoCredentials}
-            onDemoLogin={handleDemoLogin}
-          />
+          <LoginFooter />
         </CardFooter>
       </Card>
     </div>
   );
 }
-
-// Import necessary components that were previously missing
-import { Input } from "@/components/ui/input";
