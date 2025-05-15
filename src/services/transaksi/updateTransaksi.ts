@@ -38,12 +38,20 @@ export async function updateTransaksi(id: string, updatedData: Partial<Transaksi
     // Map fields from our Transaksi model to database field names
     if (updatedData.anggotaId) updateData.anggotaid = updatedData.anggotaId;
     if (anggotaNama) updateData.anggotanama = anggotaNama;
-    if (updatedData.jenis) updateData.jenis = updatedData.jenis;
+    if (updatedData.jenis) {
+      // Ensure jenis is one of the allowed values
+      const jenis = updatedData.jenis as "Simpan" | "Pinjam" | "Angsuran";
+      updateData.jenis = jenis;
+    }
     if (updatedData.kategori !== undefined) updateData.kategori = updatedData.kategori;
     if (updatedData.jumlah !== undefined) updateData.jumlah = updatedData.jumlah;
     if (updatedData.keterangan !== undefined) updateData.keterangan = updatedData.keterangan;
     if (updatedData.tanggal) updateData.tanggal = updatedData.tanggal;
-    if (updatedData.status) updateData.status = updatedData.status;
+    if (updatedData.status) {
+      // Ensure status is one of the allowed values
+      const status = updatedData.status as "Sukses" | "Pending" | "Gagal";
+      updateData.status = status;
+    }
     
     // Perform the update
     const { data: updatedTransaksi, error } = await supabase
@@ -63,12 +71,12 @@ export async function updateTransaksi(id: string, updatedData: Partial<Transaksi
       id: updatedTransaksi.id,
       anggotaId: updatedTransaksi.anggotaid,
       anggotaNama: updatedTransaksi.anggotanama,
-      jenis: updatedTransaksi.jenis,
+      jenis: updatedTransaksi.jenis as "Simpan" | "Pinjam" | "Angsuran",
       kategori: updatedTransaksi.kategori,
       jumlah: updatedTransaksi.jumlah,
       keterangan: updatedTransaksi.keterangan,
       tanggal: updatedTransaksi.tanggal,
-      status: updatedTransaksi.status,
+      status: updatedTransaksi.status as "Sukses" | "Pending" | "Gagal",
       createdAt: updatedTransaksi.created_at,
       updatedAt: updatedTransaksi.updated_at
     };

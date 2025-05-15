@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -17,6 +16,7 @@ export default function TransaksiCetak() {
   const [transaksi, setTransaksi] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [remainingAmount, setRemainingAmount] = useState<number | undefined>(undefined);
   
   useEffect(() => {
     if (id) {
@@ -79,18 +79,26 @@ export default function TransaksiCetak() {
     }
   };
   
-  // Calculate remaining amount if it's an angsuran
-  const getRemainingAmount = () => {
-    if (!transaksi) return undefined;
-    
-    if (transaksi.jenis === "Angsuran") {
-      const pinjamanIdMatch = transaksi.keterangan?.match(/pinjaman #(TR\d+)/);
-      if (pinjamanIdMatch && pinjamanIdMatch[1]) {
-        return getRemainingLoanAmount(pinjamanIdMatch[1]);
+  // Update the useEffect that calculates remaining amount:
+  useEffect(() => {
+    const fetchRemainingAmount = async () => {
+      if (transaksi?.jenis === "Angsuran") {
+        const pinjamanIdMatch = transaksi.keterangan?.match(/pinjaman #(TR\d+)/);
+        if (pinjamanIdMatch && pinjamanIdMatch[1]) {
+          try {
+            const remaining = await getRemainingLoanAmount(pinjamanIdMatch[1]);
+            setRemainingAmount(remaining);
+          } catch (error) {
+            console.error("Error fetching remaining amount:", error);
+          }
+        }
       }
+    };
+    
+    if (transaksi) {
+      fetchRemainingAmount();
     }
-    return undefined;
-  };
+  }, [transaksi]);
   
   if (loading) {
     return (
@@ -143,7 +151,7 @@ export default function TransaksiCetak() {
           <TransaksiReceipt 
             ref={receiptRef} 
             transaksi={transaksi} 
-            remainingAmount={getRemainingAmount()} 
+            remainingAmount={remainingAmount} 
           />
         </CardContent>
       </Card>

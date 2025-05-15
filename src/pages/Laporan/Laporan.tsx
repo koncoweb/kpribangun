@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { DateRange } from "react-day-picker";
 import Layout from "@/components/layout/Layout";
@@ -99,8 +100,8 @@ export default function Laporan() {
         const pengajuan = await getPengajuanList();
         
         // Fix: Pass "ALL" as parameter to getOverdueLoans and getUpcomingDueLoans
-        const overdue = getOverdueLoans("ALL");
-        const upcoming = getUpcomingDueLoans("ALL", 30);
+        const overdue = await getOverdueLoans("ALL");
+        const upcoming = await getUpcomingDueLoans("ALL", 30);
         
         setAnggotaList(anggota);
         setTransaksiList(transaksi);
@@ -109,13 +110,16 @@ export default function Laporan() {
         setUpcomingDueLoans(upcoming);
         
         // Calculate totals
-        const totalSimpanan = getTotalAllSimpanan();
-        const totalPinjaman = getTotalAllPinjaman();
-        const totalAngsuran = getTotalAllAngsuran();
-        const totalPenaltyAmount = overdue.reduce((sum, loan) => {
+        const totalSimpanan = await getTotalAllSimpanan();
+        const totalPinjaman = await getTotalAllPinjaman();
+        const totalAngsuran = await getTotalAllAngsuran();
+        
+        // Calculate total penalties
+        let totalPenaltyAmount = 0;
+        for (const loan of overdue) {
           const penalty = calculatePenalty(loan.transaksi.jumlah, loan.daysOverdue);
-          return sum + penalty;
-        }, 0);
+          totalPenaltyAmount += penalty;
+        }
         
         setTotalPenalty(totalPenaltyAmount);
         

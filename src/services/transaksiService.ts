@@ -57,7 +57,7 @@ export function createTransaksi(transaksi: Omit<Transaksi, "id" | "anggotaNama" 
   const newTransaksi: Transaksi = {
     ...transaksi,
     id: generateTransaksiId(),
-    anggotaNama: anggota.nama,
+    anggotaNama: anggota.nama || "",
     createdAt: now,
     updatedAt: now,
   };
@@ -191,9 +191,39 @@ export function calculatePenalty(loanAmount: number, daysOverdue: number): numbe
  * Re-export the function from financialOperations
  */
 export function calculateSHU(anggotaId: string): number {
-  return calculateSHUFromFinancialOperations(anggotaId);
+  // This is now a local service function, not from financialOperations
+  const transaksiList = getTransaksiByAnggotaId(anggotaId);
+  
+  // Calculate the member's loan interest payments (a portion goes to SHU)
+  let loanInterestPaid = 0;
+  
+  // Extract loan data from member transactions
+  const loans = transaksiList.filter(t => t.jenis === "Pinjam");
+  
+  // For each loan, calculate interest portion that contributes to SHU
+  loans.forEach(loan => {
+    // Parse keterangan for loan details
+    const bungaMatch = loan.keterangan?.match(/bunga (\d+(?:\.\d+)?)%/);
+    const tenorMatch = loan.keterangan?.match(/Pinjaman (\d+) bulan/);
+    
+    if (bungaMatch && tenorMatch) {
+      const bunga = parseFloat(bungaMatch[1]);
+      const tenor = parseInt(tenorMatch[1]);
+      
+      // Calculate interest portion based on flat rate
+      const interestRate = bunga / 100;
+      const interestPortion = loan.jumlah * interestRate * tenor * 0.6; // 60% of interest goes to SHU
+      
+      loanInterestPaid += interestPortion;
+    }
+  });
+  
+  // Calculate SHU based on savings and loan interest
+  const savingsSHU = calculateTotalSimpanan(anggotaId) * 0.05; // 5% of total savings
+  const totalSHU = savingsSHU + loanInterestPaid;
+  
+  return Math.round(totalSHU);
 }
 
 // Export the modular functions for updating and deleting transactions
 export { updateTransaksi, deleteTransaksi };
-

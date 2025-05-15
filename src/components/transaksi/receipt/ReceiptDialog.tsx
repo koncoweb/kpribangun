@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,19 +21,25 @@ interface ReceiptDialogProps {
 
 export function ReceiptDialog({ open, onOpenChange, transaksi }: ReceiptDialogProps) {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const [remainingAmount, setRemainingAmount] = useState<number | undefined>(undefined);
+  
+  useEffect(() => {
+    const fetchRemainingAmount = async () => {
+      if (transaksi?.jenis === "Angsuran") {
+        const pinjamanIdMatch = transaksi.keterangan?.match(/pinjaman #(TR\d+)/);
+        if (pinjamanIdMatch && pinjamanIdMatch[1]) {
+          const amount = await getRemainingLoanAmount(pinjamanIdMatch[1]);
+          setRemainingAmount(amount);
+        }
+      }
+    };
+    
+    if (transaksi) {
+      fetchRemainingAmount();
+    }
+  }, [transaksi]);
   
   if (!transaksi) return null;
-  
-  // Calculate remaining amount if it's an angsuran
-  const getRemainingAmount = () => {
-    if (transaksi.jenis === "Angsuran") {
-      const pinjamanIdMatch = transaksi.keterangan?.match(/pinjaman #(TR\d+)/);
-      if (pinjamanIdMatch && pinjamanIdMatch[1]) {
-        return getRemainingLoanAmount(pinjamanIdMatch[1]);
-      }
-    }
-    return undefined;
-  };
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,7 +55,7 @@ export function ReceiptDialog({ open, onOpenChange, transaksi }: ReceiptDialogPr
           <TransaksiReceipt 
             ref={receiptRef} 
             transaksi={transaksi} 
-            remainingAmount={getRemainingAmount()} 
+            remainingAmount={remainingAmount} 
           />
         </div>
         

@@ -53,11 +53,11 @@ export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: 
 
         // Calculate remaining amount
         if (loan) {
-          const remaining = getRemainingLoanAmount(selectedPinjaman);
+          const remaining = await getRemainingLoanAmount(selectedPinjaman);
           setRemainingAmount(remaining);
 
           // Calculate simpanan balance for payment option
-          const simpanan = calculateTotalSimpanan(loan.anggotaId);
+          const simpanan = await calculateTotalSimpanan(loan.anggotaId);
           setSimpananBalance(simpanan);
           
           // Calculate angsuran details
@@ -95,8 +95,12 @@ export function AngsuranList({ pinjamanTransaksi, disableSelfPayment = false }: 
       setSelectedLoan(loan || null);
       
       if (loan) {
-        setRemainingAmount(getRemainingLoanAmount(selectedPinjaman));
-        setSimpananBalance(calculateTotalSimpanan(loan.anggotaId));
+        const remaining = await getRemainingLoanAmount(selectedPinjaman);
+        setRemainingAmount(remaining);
+        
+        const simpanan = await calculateTotalSimpanan(loan.anggotaId);
+        setSimpananBalance(simpanan);
+        
         const details = await calculateAngsuran(selectedPinjaman);
         setAngsuranDetails(details);
       }

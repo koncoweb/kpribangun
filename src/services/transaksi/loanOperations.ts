@@ -137,9 +137,8 @@ export function calculatePenalty(jumlahPinjaman: number, daysOverdue: number): n
  */
 export async function getRemainingLoanAmount(pinjamanId: string): Promise<number> {
   const pinjaman = await getTransaksiById(pinjamanId);
-  if (!pinjaman || pinjaman.jenis !== "Pinjam") {
-    return 0;
-  }
+  if (!pinjaman) return 0;
+  if (pinjaman.jenis !== "Pinjam") return 0;
   
   const transaksiList = await getAllTransaksi();
   const angsuranList = transaksiList.filter(

@@ -54,16 +54,16 @@ export function AnggotaDetailContent({ anggota }: AnggotaDetailContentProps) {
         const pinjamanTransaksi = transaksiData.filter(t => t.jenis === "Pinjam");
         const angsuranTransaksi = transaksiData.filter(t => t.jenis === "Angsuran");
         
-        const totalSimpanan = calculateTotalSimpanan(id);
-        const totalPinjaman = calculateTotalPinjaman(id);
-        const totalSHU = calculateSHU(id);
+        const totalSimpanan = await calculateTotalSimpanan(id);
+        const totalPinjaman = await calculateTotalPinjaman(id);
+        const totalSHU = await calculateSHU(id);
         
         // Get due dates and overdue information
-        const jatuhTempo = getUpcomingDueLoans(id, 30);
-        const rawTunggakan = getOverdueLoans(id);
+        const rawJatuhTempo = await getUpcomingDueLoans(id, 30);
+        const rawTunggakan = await getOverdueLoans(id);
         
         // Filter and process loan data
-        const filteredJatuhTempo = jatuhTempo.filter(item => item.transaksi.anggotaId === id);
+        const filteredJatuhTempo = rawJatuhTempo.filter(item => item.transaksi.anggotaId === id);
         const filteredTunggakan = rawTunggakan
           .filter(item => item.transaksi.anggotaId === id)
           .map(item => ({
