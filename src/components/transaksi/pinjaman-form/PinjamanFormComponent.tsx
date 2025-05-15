@@ -1,5 +1,14 @@
 
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
+import { getPengaturan } from "@/adapters/serviceAdapters";
+import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
+import { createTransaksi } from "@/services/transaksi";
+import { useAsync } from "@/hooks/useAsync";
+import "@/styles/form-styles.css";
+
+// Import components
 import { FormHeader } from "./FormHeader";
 import { AnggotaSelector } from "./AnggotaSelector";
 import { KategoriSelector } from "./KategoriSelector";
@@ -7,16 +16,9 @@ import { JumlahInput } from "./JumlahInput";
 import { KeteranganInput } from "./KeteranganInput";
 import { LoanSummary } from "./LoanSummary";
 import { FormActions } from "./FormActions";
-import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
-import { getPengaturan } from "@/adapters/serviceAdapters";
-import { PinjamanFormProps, calculateAngsuran } from "./types";
-import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
-import { createTransaksi } from "@/services/transaksi";
-import { useAsync } from "@/hooks/useAsync";
-import "@/styles/form-styles.css";
+import { PinjamanFormProps } from "./types";
 
-export function PinjamanForm({ anggotaList = [] }: PinjamanFormProps) {
+export function PinjamanFormComponent({ anggotaList = [] }: PinjamanFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [selectedAnggota, setSelectedAnggota] = useState("");
@@ -131,12 +133,12 @@ export function PinjamanForm({ anggotaList = [] }: PinjamanFormProps) {
       
       <AnggotaSelector
         anggotaList={anggotaList}
-        selectedAnggota={selectedAnggota}
+        value={selectedAnggota}
         onChange={handleAnggotaChange}
       />
       
       <KategoriSelector 
-        kategori={kategori} 
+        value={kategori} 
         onChange={setKategori} 
         pengaturan={pengaturan}
       />
@@ -153,7 +155,7 @@ export function PinjamanForm({ anggotaList = [] }: PinjamanFormProps) {
       
       {canShowSummary && (
         <LoanSummary
-          jumlah={jumlah}
+          jumlah={Number(jumlah)}
           kategori={kategori}
           bungaRate={getInterestRate()}
           pengaturan={pengaturan}
@@ -161,7 +163,7 @@ export function PinjamanForm({ anggotaList = [] }: PinjamanFormProps) {
       )}
       
       <FormActions 
-        onCancel={() => navigate("/transaksi")}
+        cancelAction={() => navigate("/transaksi")}
         isSubmitting={isSubmitting}
       />
     </form>

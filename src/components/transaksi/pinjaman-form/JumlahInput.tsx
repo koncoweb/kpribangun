@@ -1,25 +1,27 @@
 
-import { Input } from "@/components/ui/input";
+import React from "react";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
-interface JumlahInputProps {
-  jumlah: number;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+export interface JumlahInputProps {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function JumlahInput({ jumlah, handleInputChange }: JumlahInputProps) {
+export function JumlahInput({ value, onChange }: JumlahInputProps) {
   return (
-    <div>
-      <Label htmlFor="jumlah" className="required">Jumlah Pinjaman (Rp)</Label>
-      <Input 
-        id="jumlah" 
-        placeholder="Contoh: 5000000" 
-        type="number" 
-        min="0" 
-        value={jumlah || ""}
-        onChange={handleInputChange}
-        required 
+    <div className="grid w-full items-center gap-2">
+      <Label htmlFor="jumlah" className="required">Jumlah (Rp)</Label>
+      <Input
+        id="jumlah"
+        placeholder="Masukkan jumlah pinjaman"
+        value={value}
+        onChange={onChange}
+        required
       />
+      <p className="text-xs text-muted-foreground mt-1">
+        Format akan otomatis ditambahkan, contoh: 5.000.000
+      </p>
     </div>
   );
 }

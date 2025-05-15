@@ -1,44 +1,52 @@
 
+import React from "react";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getPinjamanCategories } from "@/services/transaksi/categories";
+import { Pengaturan } from "@/types/pengaturan";
 
-interface KategoriSelectorProps {
-  kategori: string;
-  handleSelectChange: (name: string, value: string | number) => void;
+export interface KategoriSelectorProps {
+  value: string;
+  onChange: (kategori: string) => void;
+  pengaturan: Pengaturan | null;
 }
 
-export function KategoriSelector({ kategori, handleSelectChange }: KategoriSelectorProps) {
-  const pinjamanCategories = getPinjamanCategories();
-  
+export function KategoriSelector({ value, onChange, pengaturan }: KategoriSelectorProps) {
+  const categories = getPinjamanCategories();
+
+  // Get interest rate for a specific category
+  const getInterestRate = (category: string): number => {
+    if (!pengaturan) return 0;
+    
+    if (
+      pengaturan.sukuBunga?.pinjamanByCategory && 
+      category in pengaturan.sukuBunga.pinjamanByCategory
+    ) {
+      return pengaturan.sukuBunga.pinjamanByCategory[category];
+    }
+    
+    return pengaturan.sukuBunga?.pinjaman || 0;
+  };
+
   return (
-    <div>
+    <div className="grid w-full items-center gap-2">
       <Label htmlFor="kategori" className="required">Kategori Pinjaman</Label>
-      <Select 
-        value={kategori}
-        onValueChange={(value) => handleSelectChange("kategori", value)}
-        required
-      >
+      <Select value={value} onValueChange={onChange} required>
         <SelectTrigger id="kategori">
           <SelectValue placeholder="Pilih kategori pinjaman" />
         </SelectTrigger>
         <SelectContent>
-          {pinjamanCategories.map((category) => (
+          {categories.map(category => (
             <SelectItem key={category} value={category}>
-              Pinjaman {category}
+              {category} {pengaturan && (
+                <span className="text-xs">
+                  (Bunga {getInterestRate(category)}%)
+                </span>
+              )}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      <p className="text-muted-foreground text-xs mt-1">
-        Setiap kategori memiliki suku bunga yang berbeda
-      </p>
     </div>
   );
 }

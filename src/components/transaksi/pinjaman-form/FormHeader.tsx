@@ -1,30 +1,17 @@
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React from "react";
 
-interface FormHeaderProps {
-  tanggal: string;
-  handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+export interface FormHeaderProps {
+  title: string;
 }
 
-export function FormHeader({ tanggal, handleInputChange }: FormHeaderProps) {
+export function FormHeader({ title }: FormHeaderProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <Label htmlFor="tanggal" className="required">Tanggal</Label>
-        <Input 
-          id="tanggal" 
-          type="date"
-          value={tanggal}
-          onChange={handleInputChange}
-          required 
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="idTransaksi">ID Transaksi</Label>
-        <Input id="idTransaksi" placeholder="ID akan digenerate otomatis" disabled />
-      </div>
+    <div className="mb-4">
+      <h2 className="text-xl font-bold">{title}</h2>
+      <p className="text-muted-foreground text-sm">
+        Silahkan lengkapi form di bawah ini untuk membuat pinjaman baru.
+      </p>
     </div>
   );
 }

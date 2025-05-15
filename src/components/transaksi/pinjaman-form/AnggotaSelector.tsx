@@ -1,38 +1,33 @@
 
+import React from "react";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Anggota } from "@/types";
 
-interface AnggotaSelectorProps {
-  anggotaId: string;
+export interface AnggotaSelectorProps {
   anggotaList: Anggota[];
-  handleSelectChange: (name: string, value: string | number) => void;
+  value: string;
+  onChange: (anggotaId: string) => void;
 }
 
-export function AnggotaSelector({ anggotaId, anggotaList, handleSelectChange }: AnggotaSelectorProps) {
+export function AnggotaSelector({ anggotaList, value, onChange }: AnggotaSelectorProps) {
   return (
-    <div>
-      <Label htmlFor="anggotaId" className="required">Anggota</Label>
-      <Select 
-        value={anggotaId}
-        onValueChange={(value) => handleSelectChange("anggotaId", value)}
-        required
-      >
-        <SelectTrigger id="anggotaId">
+    <div className="grid w-full items-center gap-2">
+      <Label htmlFor="anggota" className="required">Pilih Anggota</Label>
+      <Select value={value} onValueChange={onChange} required>
+        <SelectTrigger id="anggota">
           <SelectValue placeholder="Pilih anggota" />
         </SelectTrigger>
         <SelectContent>
-          {anggotaList.map((anggota) => (
-            <SelectItem key={anggota.id} value={anggota.id}>
-              {anggota.nama} ({anggota.id})
-            </SelectItem>
-          ))}
+          {anggotaList.length === 0 ? (
+            <SelectItem value="empty" disabled>Tidak ada data anggota</SelectItem>
+          ) : (
+            anggotaList.map((anggota: any) => (
+              <SelectItem key={anggota.id} value={anggota.id}>
+                {anggota.nama} ({anggota.nip || 'Tanpa NIP'})
+              </SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
     </div>

@@ -1,22 +1,23 @@
 
-import { Textarea } from "@/components/ui/textarea";
+import React from "react";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
-interface KeteranganInputProps {
-  keterangan: string;
-  handleInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+export interface KeteranganInputProps {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
 }
 
-export function KeteranganInput({ keterangan, handleInputChange }: KeteranganInputProps) {
+export function KeteranganInput({ value, onChange }: KeteranganInputProps) {
   return (
-    <div>
+    <div className="grid w-full items-center gap-2">
       <Label htmlFor="keterangan">Keterangan</Label>
-      <Textarea 
-        id="keterangan" 
-        placeholder="Masukkan keterangan (opsional)" 
+      <Textarea
+        id="keterangan"
+        placeholder="Masukkan keterangan pinjaman (opsional)"
+        value={value}
+        onChange={onChange}
         rows={3}
-        value={keterangan}
-        onChange={handleInputChange}
       />
     </div>
   );
