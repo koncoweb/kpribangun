@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@/types";
 import { toast } from "@/components/ui/use-toast";
@@ -10,7 +11,22 @@ const AUTH_USER_KEY = "koperasi_auth_user";
  */
 export async function login(username: string, password: string) {
   try {
-    // First, fetch the user from our 'users' table using username
+    console.log("Attempting to login with username:", username);
+    
+    // First, check if users exist in the Supabase database
+    let { data: usersCount, error: countError } = await supabase
+      .from("users")
+      .select("*", { count: 'exact', head: true });
+    
+    console.log("Users count check:", usersCount, countError);
+    
+    // If no users exist, initialize the users in Supabase
+    if (countError || (usersCount && Object.keys(usersCount).length === 0)) {
+      console.log("No users found in Supabase, creating default users");
+      await initDefaultUsers();
+    }
+    
+    // Try to fetch user by username
     const { data: userData, error: fetchError } = await supabase
       .from("users")
       .select("*")
@@ -18,7 +34,7 @@ export async function login(username: string, password: string) {
       .eq("aktif", true)
       .single();
     
-    if (fetchError || !userData) {
+    if (fetchError) {
       console.error("Login error:", fetchError);
       return {
         success: false,
@@ -26,11 +42,7 @@ export async function login(username: string, password: string) {
       };
     }
     
-    // In a real application with Supabase auth, we would do something like this:
-    // const { data, error } = await supabase.auth.signInWithPassword({
-    //   email: users.email,
-    //   password: password
-    // });
+    console.log("User found:", userData);
     
     // For now, since we're not using Supabase Auth but just our users table,
     // we'll simulate authentication by checking the password directly
@@ -78,6 +90,89 @@ export async function login(username: string, password: string) {
       success: false,
       message: error.message || "Login failed"
     };
+  }
+}
+
+/**
+ * Initialize default users if none exist
+ */
+export async function initDefaultUsers() {
+  const defaultUsers = [
+    {
+      id: "user_1",
+      username: "superadmin",
+      nama: "Super Administrator",
+      email: "superadmin@koperasi.com",
+      roleid: "role_superadmin",
+      foto: "",
+      jabatan: "Super Administrator",
+      nohp: "081234567890",
+      alamat: "Jl. Admin No. 1",
+      aktif: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: "user_2",
+      username: "admin",
+      nama: "Administrator",
+      email: "admin@koperasi.com",
+      roleid: "role_admin",
+      foto: "",
+      jabatan: "Administrator",
+      nohp: "081234567891",
+      alamat: "Jl. Admin No. 2",
+      aktif: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+
+  // Insert default users
+  const { error } = await supabase
+    .from("users")
+    .insert(defaultUsers);
+
+  if (error) {
+    console.error("Error inserting default users:", error);
+    throw error;
+  }
+
+  // Also need to initialize roles
+  await initDefaultRoles();
+}
+
+/**
+ * Initialize default roles if none exist
+ */
+export async function initDefaultRoles() {
+  const defaultRoles = [
+    {
+      id: "role_superadmin",
+      name: "Super Admin",
+      description: "Akses penuh ke semua fitur sistem",
+      permissions: ["perm_anggota_read", "perm_users_read"],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: "role_admin",
+      name: "Admin",
+      description: "Akses untuk mengelola data koperasi",
+      permissions: ["perm_anggota_read"],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+  ];
+
+  // Insert default roles
+  const { error } = await supabase
+    .from("roles")
+    .insert(defaultRoles);
+
+  if (error) {
+    console.error("Error inserting default roles:", error);
+    throw error;
   }
 }
 

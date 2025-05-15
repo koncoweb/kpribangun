@@ -23,7 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import { login } from "@/services/authService";
+import { login, initDefaultUsers } from "@/services/authService";
 import { toast } from "@/hooks/use-toast";
 import { adminLoginFormSchema } from "./formSchema";
 import { DemoCredentialsSection } from "./DemoCredentialsSection";
@@ -53,6 +53,7 @@ export function LoginForm({
   onSuccessRedirect = "/"
 }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [initInProgress, setInitInProgress] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<FormData>({
@@ -99,6 +100,26 @@ export function LoginForm({
       setIsLoading(false);
     }
   }
+
+  const handleInitData = async () => {
+    try {
+      setInitInProgress(true);
+      await initDefaultUsers();
+      toast({
+        title: "Inisialisasi data berhasil",
+        description: "Data pengguna default telah ditambahkan ke database",
+      });
+    } catch (error) {
+      console.error("Init data error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Terjadi kesalahan saat menginisialisasi data",
+      });
+    } finally {
+      setInitInProgress(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -156,6 +177,20 @@ export function LoginForm({
               </Button>
             </form>
           </Form>
+
+          <div className="text-center">
+            <Button 
+              variant="outline" 
+              onClick={handleInitData}
+              disabled={initInProgress}
+              className="mt-2 mx-auto text-xs"
+            >
+              {initInProgress ? "Menginisialisasi..." : "Inisialisasi Data"}
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1">
+              Klik tombol di atas jika ini adalah pertama kali Anda menggunakan aplikasi
+            </p>
+          </div>
 
           {demoCredentials && (
             <DemoCredentialsSection 
