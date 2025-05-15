@@ -1,147 +1,213 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import PasswordInput from "./PasswordInput";
-import { toast } from "@/components/ui/use-toast";
-import { anggotaLoginSchema } from "./formSchema";
-import { Link } from "react-router-dom";
-import { loginAsAnggota } from "@/services/authService";
-import type { z } from "zod";
 
-type FormData = z.infer<typeof anggotaLoginSchema>;
+import { supabase } from "@/integrations/supabase/client";
+import { Json } from "@/integrations/supabase/types";
 
-export function AnggotaLoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+/**
+ * Utility functions for migrating data to Supabase
+ * This file is not currently used in the application
+ * but can be helpful for data migration tasks
+ */
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(anggotaLoginSchema),
-    defaultValues: {
-      anggotaId: "",
-      password: "",
-    },
-  });
+// Sample data structure for an anggota (member)
+interface AnggotaData {
+  id: string;
+  nama: string;
+  nip?: string;
+  email?: string;
+  nohp?: string;
+  alamat?: string;
+  unitkerja?: string;
+  jeniskelamin?: string;
+  agama?: string;
+  tanggalbergabung?: string;
+  status?: string;
+  foto?: string;
+  dokumen?: Json;
+  keluarga?: Json;
+}
 
-  async function onSubmit(data: FormData) {
-    setIsLoading(true);
+// Sample data structure for a user
+interface UserData {
+  id: string;
+  username: string;
+  nama: string;
+  email?: string;
+  roleid: string;
+  anggotaid?: string;
+  nohp?: string;
+  alamat?: string;
+  jabatan?: string;
+  foto?: string;
+  aktif?: boolean;
+}
+
+// Sample data structure for a transaction
+interface TransaksiData {
+  id: string;
+  anggotaid: string;
+  anggotanama: string;
+  jenis: string;
+  kategori?: string;
+  jumlah: number;
+  tanggal: string;
+  keterangan?: string;
+  status?: string;
+}
+
+// Sample data structure for a submission
+interface PengajuanData {
+  id: string;
+  anggotaid: string;
+  anggotanama: string;
+  jenispengajuan: string;
+  jumlah: number;
+  tanggalpengajuan: string;
+  jangkawaktu?: number;
+  status?: string;
+  alasan?: string;
+  dokumen?: Json;
+}
+
+/**
+ * Migrate anggota (members) data to Supabase
+ * @param data Array of anggota data
+ */
+export async function migrateAnggota(data: AnggotaData[]): Promise<void> {
+  try {
+    console.log(`Migrating ${data.length} anggota records...`);
     
-    try {
-      const result = await loginAsAnggota(data.anggotaId, data.password);
+    for (const item of data) {
+      const { error } = await supabase
+        .from('anggota')
+        .upsert({
+          id: item.id,
+          nama: item.nama,
+          nip: item.nip,
+          email: item.email,
+          nohp: item.nohp,
+          alamat: item.alamat,
+          unitkerja: item.unitkerja,
+          jeniskelamin: item.jeniskelamin,
+          agama: item.agama,
+          tanggalbergabung: item.tanggalbergabung,
+          status: item.status || 'active',
+          foto: item.foto,
+          dokumen: item.dokumen || [],
+          keluarga: item.keluarga || []
+        });
       
-      if (result.success) {
-        toast({
-          title: "Login berhasil!",
-          description: `Selamat datang, ${result.user?.nama}`,
-        });
-        navigate("/anggota");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Login gagal",
-          description: result.message || "ID Anggota atau password salah",
-        });
+      if (error) {
+        console.error(`Error migrating anggota ${item.id}:`, error);
       }
-    } catch (error) {
-      console.error("Login error:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Terjadi kesalahan saat login. Silakan coba lagi.",
-      });
-    } finally {
-      setIsLoading(false);
     }
+    
+    console.log('Anggota migration completed.');
+  } catch (err) {
+    console.error('Error in migrateAnggota:', err);
   }
+}
 
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">KPRI BANGUN</CardTitle>
-          <CardDescription className="text-center">
-            Login Anggota
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="anggotaId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID Anggota</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Masukkan ID Anggota Anda"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+/**
+ * Migrate users data to Supabase
+ * @param data Array of user data
+ */
+export async function migrateUsers(data: UserData[]): Promise<void> {
+  try {
+    console.log(`Migrating ${data.length} user records...`);
+    
+    for (const item of data) {
+      const { error } = await supabase
+        .from('users')
+        .upsert({
+          id: item.id,
+          username: item.username,
+          nama: item.nama,
+          email: item.email,
+          roleid: item.roleid,
+          anggotaid: item.anggotaid,
+          nohp: item.nohp,
+          alamat: item.alamat,
+          jabatan: item.jabatan,
+          foto: item.foto,
+          aktif: item.aktif !== undefined ? item.aktif : true
+        });
+      
+      if (error) {
+        console.error(`Error migrating user ${item.id}:`, error);
+      }
+    }
+    
+    console.log('Users migration completed.');
+  } catch (err) {
+    console.error('Error in migrateUsers:', err);
+  }
+}
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <PasswordInput
-                        placeholder="Masukkan password"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+/**
+ * Migrate transaksi (transactions) data to Supabase
+ * @param data Array of transaction data
+ */
+export async function migrateTransaksi(data: TransaksiData[]): Promise<void> {
+  try {
+    console.log(`Migrating ${data.length} transaksi records...`);
+    
+    for (const item of data) {
+      const { error } = await supabase
+        .from('transaksi')
+        .upsert({
+          id: item.id,
+          anggotaid: item.anggotaid,
+          anggotanama: item.anggotanama,
+          jenis: item.jenis,
+          kategori: item.kategori,
+          jumlah: item.jumlah,
+          tanggal: item.tanggal,
+          keterangan: item.keterangan,
+          status: item.status || 'Sukses'
+        });
+      
+      if (error) {
+        console.error(`Error migrating transaksi ${item.id}:`, error);
+      }
+    }
+    
+    console.log('Transaksi migration completed.');
+  } catch (err) {
+    console.error('Error in migrateTransaksi:', err);
+  }
+}
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <span>Memproses...</span>
-                ) : (
-                  <>
-                    Login <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Link to="/login" className="text-sm text-blue-600 hover:underline">
-              Login sebagai Admin
-            </Link>
-            <p className="text-xs text-muted-foreground">
-              KPRI Bangun &copy; 2023 - All rights reserved
-            </p>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
-  );
+/**
+ * Migrate pengajuan (submissions) data to Supabase
+ * @param data Array of submission data
+ */
+export async function migratePengajuan(data: PengajuanData[]): Promise<void> {
+  try {
+    console.log(`Migrating ${data.length} pengajuan records...`);
+    
+    for (const item of data) {
+      const { error } = await supabase
+        .from('pengajuan')
+        .upsert({
+          id: item.id,
+          anggotaid: item.anggotaid,
+          anggotanama: item.anggotanama,
+          jenispengajuan: item.jenispengajuan,
+          jumlah: item.jumlah,
+          tanggalpengajuan: item.tanggalpengajuan,
+          jangkawaktu: item.jangkawaktu,
+          status: item.status || 'Diajukan',
+          alasan: item.alasan,
+          dokumen: item.dokumen || []
+        });
+      
+      if (error) {
+        console.error(`Error migrating pengajuan ${item.id}:`, error);
+      }
+    }
+    
+    console.log('Pengajuan migration completed.');
+  } catch (err) {
+    console.error('Error in migratePengajuan:', err);
+  }
 }
