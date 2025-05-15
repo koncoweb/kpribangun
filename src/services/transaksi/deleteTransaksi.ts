@@ -1,26 +1,28 @@
 
-import { Transaksi } from "@/types";
-import { getAllTransaksi } from "./transaksiCore";
-import { saveToLocalStorage } from "@/utils/localStorage";
-import { TRANSAKSI_KEY } from "./baseService";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Delete a transaksi by ID
  * @param id Transaction ID to delete
  * @returns true if successful, false if not found
  */
-export function deleteTransaksi(id: string): boolean {
-  const transaksiList = getAllTransaksi();
-  const initialLength = transaksiList.length;
-  
-  const filteredList = transaksiList.filter(transaksi => transaksi.id !== id);
-  
-  // If no transaction was removed, return false
-  if (filteredList.length === initialLength) {
+export async function deleteTransaksi(id: string): Promise<boolean> {
+  try {
+    const { error, count } = await supabase
+      .from("transaksi")
+      .delete()
+      .eq("id", id)
+      .select("count");
+    
+    if (error) {
+      console.error("Error deleting transaction:", error);
+      throw error;
+    }
+    
+    // If no rows were affected, return false (not found)
+    return count !== null && count > 0;
+  } catch (error) {
+    console.error("Error in deleteTransaksi:", error);
     return false;
   }
-  
-  // Save the updated list to local storage
-  saveToLocalStorage(TRANSAKSI_KEY, filteredList);
-  return true;
 }

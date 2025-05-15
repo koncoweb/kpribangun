@@ -7,16 +7,16 @@ import { getAnggotaById } from "../anggotaService";
  * This is different from the one in loanOperations.ts
  * as it uses the settings configuration
  */
-export function calculatePenaltyWithSettings(jumlahPinjaman: number, daysOverdue: number): number {
-  const pengaturan = getPengaturan();
-  const dendaPercentage = pengaturan.denda.persentase;
-  const gracePeriod = pengaturan.denda.gracePeriod;
+export async function calculatePenaltyWithSettings(jumlahPinjaman: number, daysOverdue: number): Promise<number> {
+  const pengaturan = await getPengaturan();
+  const dendaPercentage = pengaturan.denda?.persentase || 0.1;
+  const gracePeriod = pengaturan.denda?.gracePeriod || 0;
   
   if (daysOverdue <= gracePeriod) return 0;
   
   const effectiveDaysOverdue = daysOverdue - gracePeriod;
   
-  if (pengaturan.denda.metodeDenda === "harian") {
+  if (pengaturan.denda?.metodeDenda === "harian") {
     return jumlahPinjaman * (dendaPercentage / 100) * effectiveDaysOverdue;
   } else {
     // For monthly calculation, we divide by 30 days to get months

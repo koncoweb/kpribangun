@@ -73,6 +73,7 @@ export function AnggotaLoginForm() {
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <PasswordInput
+                name="password"
                 id="password"
                 placeholder="Masukkan password"
                 {...register('password')}

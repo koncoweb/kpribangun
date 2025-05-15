@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
@@ -167,7 +166,7 @@ export default function SimpanList() {
                       <TableCell>{transaksi.kategori || "-"}</TableCell>
                       <TableCell className="text-right">{formatCurrency(transaksi.jumlah)}</TableCell>
                       <TableCell>
-                        <Badge variant={transaksi.status === "Sukses" ? "success" : "pending"}>
+                        <Badge variant={transaksi.status === "Sukses" ? "success" : "outline"}>
                           {transaksi.status}
                         </Badge>
                       </TableCell>

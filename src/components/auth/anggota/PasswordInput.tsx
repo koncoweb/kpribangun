@@ -44,8 +44,8 @@ export function PasswordInput(props: PasswordInputProps | PasswordInputFieldProp
       <Input
         type={showPassword ? "text" : "password"}
         {...inputProps}
-        placeholder={isFieldProp ? props.field.placeholder || "Enter password" : (props as PasswordInputProps).placeholder || "Enter password"}
-        className={(isFieldProp ? props.field.className : (props as PasswordInputProps).className) || ""}
+        placeholder={isFieldProp ? "Enter password" : (props as PasswordInputProps).placeholder || "Enter password"}
+        className={isFieldProp ? "" : (props as PasswordInputProps).className || ""}
       />
       <Button
         type="button"

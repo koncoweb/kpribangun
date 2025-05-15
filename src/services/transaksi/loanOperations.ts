@@ -5,13 +5,13 @@ import { getAllTransaksi, getTransaksiById } from "./transaksiCore";
 /**
  * Get overdue loans for an anggota or all anggota
  */
-export function getOverdueLoans(anggotaId: string): {
+export async function getOverdueLoans(anggotaId: string): Promise<{
   transaksi: Transaksi;
   jatuhTempo: string;
   daysOverdue: number;
   penalty: number;
-}[] {
-  const transaksiList = getAllTransaksi();
+}[]> {
+  const transaksiList = await getAllTransaksi();
   let pinjamanList;
   
   if (anggotaId === "ALL") {
@@ -54,12 +54,12 @@ export function getOverdueLoans(anggotaId: string): {
  * Get upcoming due loans for an anggota or all anggota
  * Updated to handle the "ALL" value for anggotaId and accept daysInFuture as number
  */
-export function getUpcomingDueLoans(anggotaId: string, daysInFuture: number = 30): {
+export async function getUpcomingDueLoans(anggotaId: string, daysInFuture: number = 30): Promise<{
   transaksi: Transaksi;
   jatuhTempo: string;
   daysUntilDue: number;
-}[] {
-  const transaksiList = getAllTransaksi();
+}[]> {
+  const transaksiList = await getAllTransaksi();
   let pinjamanList;
   
   if (anggotaId === "ALL") {
@@ -135,13 +135,13 @@ export function calculatePenalty(jumlahPinjaman: number, daysOverdue: number): n
 /**
  * Calculate remaining loan amount
  */
-export function getRemainingLoanAmount(pinjamanId: string): number {
-  const pinjaman = getTransaksiById(pinjamanId);
+export async function getRemainingLoanAmount(pinjamanId: string): Promise<number> {
+  const pinjaman = await getTransaksiById(pinjamanId);
   if (!pinjaman || pinjaman.jenis !== "Pinjam") {
     return 0;
   }
   
-  const transaksiList = getAllTransaksi();
+  const transaksiList = await getAllTransaksi();
   const angsuranList = transaksiList.filter(
     transaksi => 
       transaksi.jenis === "Angsuran" && 

@@ -1,10 +1,11 @@
+
 import { getAllTransaksi } from "./transaksiCore";
 
 /**
  * Calculate total simpanan for an anggota
  */
-export function calculateTotalSimpanan(anggotaId: string): number {
-  const transaksiList = getAllTransaksi();
+export async function calculateTotalSimpanan(anggotaId: string): Promise<number> {
+  const transaksiList = await getAllTransaksi();
   
   // Sum up all simpanan transactions
   return transaksiList
@@ -15,8 +16,8 @@ export function calculateTotalSimpanan(anggotaId: string): number {
 /**
  * Calculate total outstanding pinjaman for an anggota
  */
-export function calculateTotalPinjaman(anggotaId: string): number {
-  const transaksiList = getAllTransaksi();
+export async function calculateTotalPinjaman(anggotaId: string): Promise<number> {
+  const transaksiList = await getAllTransaksi();
   
   // Total pinjaman
   const totalPinjaman = transaksiList
@@ -35,8 +36,8 @@ export function calculateTotalPinjaman(anggotaId: string): number {
 /**
  * Get total simpanan for all members
  */
-export function getTotalAllSimpanan(): number {
-  const transaksiList = getAllTransaksi();
+export async function getTotalAllSimpanan(): Promise<number> {
+  const transaksiList = await getAllTransaksi();
   
   // Sum up all simpanan transactions
   return transaksiList
@@ -47,8 +48,8 @@ export function getTotalAllSimpanan(): number {
 /**
  * Get total pinjaman for all members
  */
-export function getTotalAllPinjaman(): number {
-  const transaksiList = getAllTransaksi();
+export async function getTotalAllPinjaman(): Promise<number> {
+  const transaksiList = await getAllTransaksi();
   
   // Sum up all simpanan transactions
   return transaksiList
@@ -59,8 +60,8 @@ export function getTotalAllPinjaman(): number {
 /**
  * Get total angsuran for all members
  */
-export function getTotalAllAngsuran(): number {
-  const transaksiList = getAllTransaksi();
+export async function getTotalAllAngsuran(): Promise<number> {
+  const transaksiList = await getAllTransaksi();
   
   // Sum up all simpanan transactions
   return transaksiList
@@ -75,9 +76,9 @@ export function getTotalAllAngsuran(): number {
  * @param anggotaId The anggota ID
  * @returns The SHU amount
  */
-export function calculateSHU(anggotaId: string): number {
-  const totalSimpanan = calculateTotalSimpanan(anggotaId);
-  const allTransaksi = getAllTransaksi();
+export async function calculateSHU(anggotaId: string): Promise<number> {
+  const totalSimpanan = await calculateTotalSimpanan(anggotaId);
+  const allTransaksi = await getAllTransaksi();
   
   // Filter transactions for this member
   const memberTransaksi = allTransaksi.filter(t => t.anggotaId === anggotaId);

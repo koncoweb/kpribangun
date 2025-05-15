@@ -3,6 +3,40 @@ import { Transaksi } from "@/types";
 import { supabase } from "@/integrations/supabase/client";
 import { generateTransaksiId } from "./idGenerator";
 
+// Helper function to map database fields to Transaksi model
+function mapDbToTransaksi(dbRecord: any): Transaksi {
+  return {
+    id: dbRecord.id,
+    anggotaId: dbRecord.anggotaid,
+    anggotaNama: dbRecord.anggotanama,
+    jenis: dbRecord.jenis,
+    kategori: dbRecord.kategori,
+    jumlah: dbRecord.jumlah,
+    keterangan: dbRecord.keterangan,
+    tanggal: dbRecord.tanggal,
+    status: dbRecord.status,
+    createdAt: dbRecord.created_at,
+    updatedAt: dbRecord.updated_at
+  };
+}
+
+// Helper function to map Transaksi model to database fields
+function mapTransaksiToDb(transaksi: Partial<Transaksi>): any {
+  return {
+    id: transaksi.id,
+    anggotaid: transaksi.anggotaId,
+    anggotanama: transaksi.anggotaNama,
+    jenis: transaksi.jenis,
+    kategori: transaksi.kategori,
+    jumlah: transaksi.jumlah,
+    keterangan: transaksi.keterangan,
+    tanggal: transaksi.tanggal,
+    status: transaksi.status,
+    created_at: transaksi.createdAt,
+    updated_at: transaksi.updatedAt
+  };
+}
+
 /**
  * Get all transaksi from Supabase
  */
@@ -17,7 +51,7 @@ export async function getAllTransaksi(): Promise<Transaksi[]> {
     throw error;
   }
   
-  return data as Transaksi[];
+  return data.map(mapDbToTransaksi);
 }
 
 /**
@@ -27,7 +61,7 @@ export async function getTransaksiByAnggotaId(anggotaId: string): Promise<Transa
   const { data, error } = await supabase
     .from("transaksi")
     .select("*")
-    .eq("anggotaId", anggotaId)
+    .eq("anggotaid", anggotaId)
     .order("tanggal", { ascending: false });
   
   if (error) {
@@ -35,7 +69,7 @@ export async function getTransaksiByAnggotaId(anggotaId: string): Promise<Transa
     throw error;
   }
   
-  return data as Transaksi[];
+  return data.map(mapDbToTransaksi);
 }
 
 /**
@@ -56,7 +90,7 @@ export async function getTransaksiById(id: string): Promise<Transaksi | undefine
     throw error;
   }
   
-  return data as Transaksi;
+  return mapDbToTransaksi(data);
 }
 
 /**
@@ -67,13 +101,13 @@ export async function createTransaksi(data: Partial<Transaksi>): Promise<Transak
     const newId = await generateTransaksiId();
     const now = new Date().toISOString();
     
-    const newTransaksi = {
+    const transaksiData = {
       id: newId,
       tanggal: data.tanggal || new Date().toISOString().split('T')[0],
-      anggotaId: data.anggotaId || "",
-      anggotaNama: data.anggotaNama || "",
+      anggotaid: data.anggotaId || "",
+      anggotanama: data.anggotaNama || "",
       jenis: data.jenis || "Simpan",
-      kategori: data.kategori || undefined,
+      kategori: data.kategori || null,
       jumlah: data.jumlah || 0,
       keterangan: data.keterangan || "",
       status: data.status || "Sukses",
@@ -83,7 +117,7 @@ export async function createTransaksi(data: Partial<Transaksi>): Promise<Transak
     
     const { data: result, error } = await supabase
       .from("transaksi")
-      .insert([newTransaksi])
+      .insert([transaksiData])
       .select()
       .single();
     
@@ -92,7 +126,7 @@ export async function createTransaksi(data: Partial<Transaksi>): Promise<Transak
       throw error;
     }
     
-    return result as Transaksi;
+    return mapDbToTransaksi(result);
   } catch (error) {
     console.error("Error creating transaksi:", error);
     return null;
