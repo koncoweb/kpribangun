@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -7,14 +7,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { getAnggotaList } from "@/adapters/serviceAdapters";
 import { SimpananForm } from "@/components/transaksi/SimpananForm";
-import { useAsync } from "@/hooks/use-async";
+import { Anggota } from "@/types";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function SimpleSimpanForm() {
-  const { data: anggotaList, loading } = useAsync(
-    async () => await getAnggotaList(),
-    [],
-    []
-  );
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadAnggota = async () => {
+      try {
+        setLoading(true);
+        const data = await getAnggotaList();
+        setAnggotaList(data);
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Gagal memuat data anggota",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadAnggota();
+  }, [toast]);
 
   return (
     <Layout pageTitle="Transaksi Simpanan">

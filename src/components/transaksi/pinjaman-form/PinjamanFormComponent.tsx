@@ -7,6 +7,7 @@ import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 import { createTransaksi } from "@/services/transaksi";
 import { useAsync } from "@/hooks/useAsync";
 import "@/styles/form-styles.css";
+import { calculateAngsuran } from "./utils";
 
 // Import components
 import { FormHeader } from "./FormHeader";
@@ -28,6 +29,7 @@ export function PinjamanFormComponent({ anggotaList = [] }: PinjamanFormProps) {
   const [formattedJumlah, setFormattedJumlah] = useState("");
   const [keterangan, setKeterangan] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tenor, setTenor] = useState(12); // Default tenor
 
   // Get pengaturan data using useAsync hook
   const { data: pengaturan, loading: loadingPengaturan } = useAsync(
@@ -126,6 +128,14 @@ export function PinjamanFormComponent({ anggotaList = [] }: PinjamanFormProps) {
     
     return pengaturan.sukuBunga?.pinjaman || 0;
   };
+  
+  // Calculate monthly installment amount
+  const calculateInstallment = () => {
+    if (!jumlah || !kategori || !pengaturan) return 0;
+    
+    const bungaRate = getInterestRate();
+    return calculateAngsuran(Number(jumlah), tenor, bungaRate);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -157,8 +167,9 @@ export function PinjamanFormComponent({ anggotaList = [] }: PinjamanFormProps) {
         <LoanSummary
           jumlah={Number(jumlah)}
           kategori={kategori}
-          bungaRate={getInterestRate()}
-          pengaturan={pengaturan}
+          bunga={getInterestRate()}
+          tenor={tenor}
+          angsuran={calculateInstallment()}
         />
       )}
       

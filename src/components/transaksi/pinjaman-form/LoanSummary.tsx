@@ -1,7 +1,7 @@
 
 import { formatCurrency } from "@/utils/formatters";
 
-interface LoanSummaryProps {
+export interface LoanSummaryProps {
   kategori: string;
   jumlah: number;
   bunga: number;

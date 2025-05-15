@@ -107,7 +107,7 @@ export async function createAnggota(anggota: Omit<Anggota, "id" | "createdAt" | 
     const id = await generateAnggotaId();
     const now = new Date().toISOString();
     
-    // Map Anggota to database structure
+    // Map Anggota to database structure and convert to correct types
     const dbAnggota = {
       id,
       nama: anggota.nama,
@@ -122,8 +122,8 @@ export async function createAnggota(anggota: Omit<Anggota, "id" | "createdAt" | 
       tanggalbergabung: anggota.tanggalBergabung,
       foto: anggota.foto,
       email: anggota.email,
-      dokumen: anggota.dokumen,
-      keluarga: anggota.keluarga,
+      dokumen: JSON.stringify(anggota.dokumen || []),
+      keluarga: JSON.stringify(anggota.keluarga || []),
       created_at: now,
       updated_at: now
     };
@@ -153,7 +153,7 @@ export async function updateAnggota(id: string, anggota: Partial<Anggota>): Prom
   try {
     const now = new Date().toISOString();
     
-    // Map Anggota to database structure
+    // Map Anggota to database structure and convert to correct JSON types
     const dbAnggota = {
       nama: anggota.nama,
       nip: anggota.nip,
@@ -167,8 +167,8 @@ export async function updateAnggota(id: string, anggota: Partial<Anggota>): Prom
       tanggalbergabung: anggota.tanggalBergabung,
       foto: anggota.foto,
       email: anggota.email,
-      dokumen: anggota.dokumen,
-      keluarga: anggota.keluarga,
+      dokumen: anggota.dokumen ? JSON.stringify(anggota.dokumen) : undefined,
+      keluarga: anggota.keluarga ? JSON.stringify(anggota.keluarga) : undefined,
       updated_at: now
     };
     
