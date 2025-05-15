@@ -1,8 +1,9 @@
 
 import { z } from "zod";
 
-// Create schema for anggota login form validation
-export const anggotaFormSchema = z.object({
-  anggotaId: z.string().min(2, "ID Anggota minimal 2 karakter"),
-  password: z.string().min(3, "Password minimal 3 karakter"),
+export const formSchema = z.object({
+  username: z.string().min(1, "Username wajib diisi"),
+  password: z.string().min(1, "Password wajib diisi"),
 });
+
+export type FormValues = z.infer<typeof formSchema>;

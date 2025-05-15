@@ -1,36 +1,62 @@
 
 import { useState } from "react";
-import { Key, Eye, EyeOff } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ControllerRenderProps } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
-interface PasswordInputProps {
-  field: ControllerRenderProps<any, "password">;
+export interface PasswordInputProps {
+  value?: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;
+  name: string;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+  ref?: React.Ref<HTMLInputElement>;
+  min?: string | number;
+  max?: string | number;
+  maxLength?: number;
+  minLength?: number;
+  pattern?: string;
 }
 
-export function PasswordInput({ field }: PasswordInputProps) {
+export function PasswordInput({
+  value,
+  onChange,
+  onBlur,
+  name,
+  placeholder = "Masukkan password",
+  className,
+  disabled,
+  ref,
+  ...rest
+}: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false);
-
+  
   return (
     <div className="relative">
-      <Key className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
       <Input
         type={showPassword ? "text" : "password"}
-        placeholder="Masukkan password"
-        className="pl-10 h-12 pr-10 border-muted/30 bg-white/50 backdrop-blur-sm"
-        {...field}
+        name={name}
+        value={value}
+        onChange={onChange}
+        onBlur={onBlur}
+        placeholder={placeholder}
+        className={className}
+        disabled={disabled}
+        ref={ref}
+        {...rest}
       />
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
+        className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
         onClick={() => setShowPassword(!showPassword)}
-        className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground transition-colors"
+        tabIndex={-1}
       >
-        {showPassword ? (
-          <EyeOff className="h-5 w-5" />
-        ) : (
-          <Eye className="h-5 w-5" />
-        )}
-      </button>
+        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+      </Button>
     </div>
   );
 }
