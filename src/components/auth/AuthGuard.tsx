@@ -1,7 +1,7 @@
 
 import { ReactNode, useEffect } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { isAuthenticated, getCurrentUser } from "@/services/authService";
+import { isAuthenticated, getCurrentUser } from "@/services/auth";
 import { getRoleById } from "@/services/userManagementService";
 
 interface AuthGuardProps {

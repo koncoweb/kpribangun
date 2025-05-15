@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { initDefaultUsers } from "@/services/authService";
+import { initDefaultUsers } from "@/services/auth";
 import { toast } from "@/hooks/use-toast";
 
 export function InitializeDataButton() {

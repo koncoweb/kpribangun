@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import { login } from "@/services/authService";
+import { login } from "@/services/auth";
 import { toast } from "@/hooks/use-toast";
 import { LoginFooter } from "./LoginFooter";
 import { FormData, LoginFormProps } from "./types";
