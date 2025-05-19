@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { User } from "@/types/user";
+import { User, Role } from "@/types/user";
 import { UserFormData } from "@/types/user";
-import { getRoles } from "@/services/userManagementService";
+import { getAllRoles } from "@/services/user-management/supabaseRoleService";
 import { Form } from "@/components/ui/form";
 import { PhotoUpload } from "./PhotoUpload";
 import { UserFormFields } from "./UserFormFields";
@@ -36,9 +36,27 @@ interface UserFormProps {
 }
 
 export function UserForm({ user, onSubmit, onCancel }: UserFormProps) {
-  const [roles] = useState(getRoles());
+  const [roles, setRoles] = useState<Role[]>([]);
   const [photoPreview, setPhotoPreview] = useState<string | undefined>(user?.foto);
+  const [isLoading, setIsLoading] = useState(false);
   const isEditMode = !!user;
+  
+  // Fetch roles from Supabase
+  useEffect(() => {
+    const fetchRoles = async () => {
+      setIsLoading(true);
+      try {
+        const fetchedRoles = await getAllRoles();
+        setRoles(fetchedRoles);
+      } catch (error) {
+        console.error("Error fetching roles:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRoles();
+  }, []);
 
   // Initialize form
   const form = useForm<UserFormData>({

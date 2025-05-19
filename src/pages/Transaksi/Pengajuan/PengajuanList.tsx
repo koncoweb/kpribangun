@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
-import { Plus, Search, MoreHorizontal, Eye, FileText, Edit, Trash } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Eye, FileText, Edit, Trash, Loader2, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { getPengajuanList, deletePengajuan } from "@/services/pengajuanService";
 import { Pengajuan } from "@/types";
@@ -46,11 +46,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { getPengajuanListFromSupabase, deletePengajuanFromSupabase } from "@/services/pengajuan/adapter";
 
 export default function PengajuanList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("semua");
   const [pengajuanList, setPengajuanList] = useState<Pengajuan[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -71,9 +75,23 @@ export default function PengajuanList() {
     loadPengajuanData();
   }, []);
   
-  const loadPengajuanData = () => {
-    const data = getPengajuanList();
-    setPengajuanList(data);
+  const loadPengajuanData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // Fetch data from Supabase
+      const data = await getPengajuanListFromSupabase();
+      setPengajuanList(data);
+    } catch (err) {
+      console.error('Error loading pengajuan data:', err);
+      setError('Gagal memuat data pengajuan. Silakan coba lagi.');
+      // Fallback to local data if Supabase fails
+      const fallbackData = getPengajuanList();
+      setPengajuanList(fallbackData);
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleToggleColumn = (columnId: string) => {
@@ -101,25 +119,51 @@ export default function PengajuanList() {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteId) {
-      const success = deletePengajuan(deleteId);
-      if (success) {
-        toast({
-          title: "Pengajuan berhasil dihapus",
-          description: `Pengajuan dengan ID ${deleteId} telah dihapus`,
-        });
-        loadPengajuanData();
-      } else {
+      try {
+        setIsDeleting(true);
+        
+        // Delete from Supabase
+        const success = await deletePengajuanFromSupabase(deleteId);
+        
+        if (success) {
+          toast({
+            title: "Pengajuan berhasil dihapus",
+            description: `Pengajuan dengan ID ${deleteId} telah dihapus`,
+          });
+          await loadPengajuanData();
+        } else {
+          // Fallback to local delete if Supabase fails
+          const localSuccess = deletePengajuan(deleteId);
+          
+          if (localSuccess) {
+            toast({
+              title: "Pengajuan berhasil dihapus (lokal)",
+              description: `Pengajuan dengan ID ${deleteId} telah dihapus dari penyimpanan lokal`,
+            });
+            await loadPengajuanData();
+          } else {
+            toast({
+              title: "Gagal menghapus pengajuan",
+              description: "Terjadi kesalahan saat menghapus data pengajuan",
+              variant: "destructive",
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error deleting pengajuan:', err);
         toast({
           title: "Gagal menghapus pengajuan",
           description: "Terjadi kesalahan saat menghapus data pengajuan",
           variant: "destructive",
         });
+      } finally {
+        setIsDeleting(false);
+        setIsDeleteDialogOpen(false);
+        setDeleteId(null);
       }
     }
-    setIsDeleteDialogOpen(false);
-    setDeleteId(null);
   };
   
   // Filter pengajuan based on search query and filter status
@@ -181,31 +225,52 @@ export default function PengajuanList() {
             <TableColumnToggle columns={columns} onToggleColumn={handleToggleColumn} />
           </div>
           
-          <div className="overflow-x-auto">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
-                  {columns[0].isVisible && <TableHead>ID Pengajuan</TableHead>}
+                  {columns[0].isVisible && <TableHead>ID</TableHead>}
                   {columns[1].isVisible && <TableHead>Tanggal</TableHead>}
                   {columns[2].isVisible && <TableHead>Anggota</TableHead>}
                   {columns[3].isVisible && <TableHead>Jenis</TableHead>}
                   {columns[4].isVisible && <TableHead>Jumlah</TableHead>}
                   {columns[5].isVisible && <TableHead>Status</TableHead>}
                   {columns[6].isVisible && <TableHead>Keterangan</TableHead>}
-                  <TableHead className="text-right">Opsi</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredPengajuan.length === 0 ? (
+                {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={columns.filter(c => c.isVisible).length + 1} className="text-center py-10">
-                      Tidak ada data pengajuan yang ditemukan
+                    <TableCell colSpan={8} className="text-center py-8">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p>Memuat data pengajuan...</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : error ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <p className="text-red-500">{error}</p>
+                        <Button variant="outline" onClick={loadPengajuanData} size="sm">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Coba lagi
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : filteredPengajuan.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-4">
+                      Tidak ada data pengajuan yang sesuai
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredPengajuan.map((pengajuan) => (
                     <TableRow key={pengajuan.id}>
-                      {columns[0].isVisible && <TableCell className="font-medium">{pengajuan.id}</TableCell>}
+                      {columns[0].isVisible && <TableCell>{pengajuan.id}</TableCell>}
                       {columns[1].isVisible && <TableCell>{formatDate(pengajuan.tanggal)}</TableCell>}
                       {columns[2].isVisible && <TableCell>{pengajuan.anggotaNama}</TableCell>}
                       {columns[3].isVisible && (
@@ -283,9 +348,20 @@ export default function PengajuanList() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700">
-              Hapus
+            <AlertDialogCancel disabled={isDeleting}>Batal</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete} 
+              className="bg-red-600 hover:bg-red-700"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Menghapus...
+                </>
+              ) : (
+                "Hapus"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

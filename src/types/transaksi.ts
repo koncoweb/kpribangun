@@ -4,7 +4,7 @@ export interface Transaksi {
   id: string;
   anggotaId: string;
   anggotaNama: string;
-  jenis: "Simpan" | "Pinjam" | "Angsuran";
+  jenis: "Simpanan" | "Pinjaman" | "Angsuran";
   jumlah: number;
   tanggal: string;
   kategori?: string;
@@ -18,7 +18,7 @@ export interface Pengajuan {
   id: string;
   anggotaId: string;
   anggotaNama: string;
-  jenis: "Simpan" | "Pinjam";
+  jenis: "Simpanan" | "Pinjaman";
   jumlah: number;
   tanggal: string;
   status: "Menunggu" | "Disetujui" | "Ditolak";

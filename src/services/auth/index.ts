@@ -14,6 +14,10 @@ export {
 } from './password';
 
 export {
+  registerUser
+} from './registration';
+
+export {
   initDefaultUsers,
   initDefaultRoles
 } from './initialization';

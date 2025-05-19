@@ -19,7 +19,7 @@ interface PengajuanFormContentProps {
   initialFormData: {
     tanggal: string;
     anggotaId: string;
-    jenis: "Simpan" | "Pinjam";
+    jenis: "Simpanan" | "Pinjaman";
     kategori: string;
     jumlah: number;
     keterangan: string;
@@ -57,13 +57,13 @@ export function PengajuanFormContent({
   const handleSelectChange = (name: string, value: string) => {
     if (name === "jenis") {
       // When jenis changes, we need to reset kategori and set it to a valid default based on the new type
-      const defaultCategory = value === "Simpan" 
+      const defaultCategory = value === "Simpanan" 
         ? getSimpananCategories()[0] 
         : getPinjamanCategories()[0];
       
       setFormData(prev => ({ 
         ...prev, 
-        [name]: value as "Simpan" | "Pinjam",
+        [name]: value as "Simpanan" | "Pinjaman",
         kategori: defaultCategory,
         dokumen: [] // Reset documents when changing application type
       }));
@@ -118,7 +118,7 @@ export function PengajuanFormContent({
     
     if (!formData.kategori) {
       toast({
-        title: `Kategori ${formData.jenis === "Simpan" ? "simpanan" : "pinjaman"} wajib dipilih`,
+        title: `Kategori ${formData.jenis === "Simpanan" ? "simpanan" : "pinjaman"} wajib dipilih`,
         variant: "destructive",
       });
       return false;
@@ -133,7 +133,7 @@ export function PengajuanFormContent({
     }
     
     // Check required documents for loan applications
-    if (formData.jenis === "Pinjam") {
+    if (formData.jenis === "Pinjaman") {
       const requiredDocTypes = ["KTP", "KK", "Buku Rekening"];
       
       // Add category-specific required documents
@@ -206,7 +206,7 @@ export function PengajuanFormContent({
               onChange={handleInputChange}
             />
             
-            {formData.jenis === "Pinjam" && formData.kategori && (
+            {formData.jenis === "Pinjaman" && formData.kategori && (
               <DokumenPersyaratanUpload
                 selectedKategori={formData.kategori}
                 dokumenList={formData.dokumen || []}

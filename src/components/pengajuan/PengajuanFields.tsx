@@ -17,7 +17,7 @@ import { getPengaturan } from "@/adapters/serviceAdapters";
 import { formatNumberInput, cleanNumberInput } from "@/utils/formatters";
 
 interface PengajuanFieldsProps {
-  jenis: "Simpan" | "Pinjam";
+  jenis: "Simpanan" | "Pinjaman";
   kategori: string;
   jumlah: number;
   onJenisChange: (value: string) => void;
@@ -134,17 +134,17 @@ export function PengajuanFields({
       
       {jenis && (
         <div>
-          <Label htmlFor="kategori" className="required">Kategori {jenis === "Simpan" ? "Simpanan" : "Pinjaman"}</Label>
+          <Label htmlFor="kategori" className="required">Kategori {jenis === "Simpanan" ? "Simpanan" : "Pinjaman"}</Label>
           <Select 
             value={kategori}
             onValueChange={onKategoriChange}
             required
           >
             <SelectTrigger id="kategori">
-              <SelectValue placeholder={`Pilih kategori ${jenis === "Simpan" ? "simpanan" : "pinjaman"}`} />
+              <SelectValue placeholder={`Pilih kategori ${jenis === "Simpanan" ? "simpanan" : "pinjaman"}`} />
             </SelectTrigger>
             <SelectContent>
-              {jenis === "Simpan" ? (
+              {jenis === "Simpanan" ? (
                 simpananCategories.map((cat) => (
                   <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                 ))
@@ -158,7 +158,7 @@ export function PengajuanFields({
             </SelectContent>
           </Select>
           
-          {jenis === "Pinjam" && kategori && pengaturan && (
+          {jenis === "Pinjaman" && kategori && pengaturan && (
             <p className="text-muted-foreground text-xs mt-1">
               Suku bunga untuk pinjaman {kategori}: {getInterestRateForCategory(kategori)} per bulan
             </p>

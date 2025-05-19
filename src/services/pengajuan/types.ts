@@ -6,7 +6,7 @@ export interface PengajuanData {
   tanggal: string;
   anggotaId: string;
   anggotaNama: string;
-  jenis: "Simpan" | "Pinjam";
+  jenis: "Simpanan" | "Pinjaman";
   jumlah: number;
   status: "Menunggu" | "Disetujui" | "Ditolak";
   kategori: string;

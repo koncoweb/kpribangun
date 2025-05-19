@@ -6,7 +6,7 @@ import { Anggota } from "@/types";
 import { PengajuanFormContent } from "./PengajuanFormContent";
 
 // Import necessary functions from service
-import { createPengajuan } from "@/services/pengajuan";
+import { createPengajuanInSupabase } from "@/services/pengajuan/adapter";
 
 interface PengajuanSimpananFormProps {
   anggotaList: Anggota[];
@@ -21,7 +21,7 @@ export function PengajuanSimpananForm({ anggotaList }: PengajuanSimpananFormProp
   const initialFormData = {
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
-    jenis: "Simpan" as const,
+    jenis: "Simpanan" as const,
     kategori: "Wajib",
     jumlah: 0,
     keterangan: "",
@@ -45,8 +45,8 @@ export function PengajuanSimpananForm({ anggotaList }: PengajuanSimpananFormProp
         anggotaNama: anggota.nama
       };
       
-      // Create the pengajuan
-      await createPengajuan(submissionData);
+      // Create the pengajuan in Supabase
+      await createPengajuanInSupabase(submissionData);
       
       toast({
         title: "Berhasil",

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { getPengajuanById, deletePengajuan, approvePengajuan, rejectPengajuan } from "@/services/pengajuanService";
+import { getPengajuanByIdFromSupabase, deletePengajuanFromSupabase, updatePengajuanInSupabase } from "@/services/pengajuan/adapter";
 import { getAnggotaById } from "@/services/anggotaService";
 import { Anggota, Pengajuan } from "@/types";
 import PengajuanDetailLayout from "./PengajuanDetailLayout";
@@ -24,7 +24,8 @@ export default function PengajuanDetailContainer() {
     const loadData = async () => {
       if (id) {
         try {
-          const pengajuanData = getPengajuanById(id);
+          setLoading(true);
+          const pengajuanData = await getPengajuanByIdFromSupabase(id);
           if (pengajuanData) {
             setPengajuan(pengajuanData);
             
@@ -59,16 +60,25 @@ export default function PengajuanDetailContainer() {
     loadData();
   }, [id, navigate, toast]);
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (id) {
-      const success = deletePengajuan(id);
-      if (success) {
-        toast({
-          title: "Pengajuan berhasil dihapus",
-          description: `Pengajuan dengan ID ${id} telah dihapus dari sistem`,
-        });
-        navigate("/transaksi/pengajuan");
-      } else {
+      try {
+        const success = await deletePengajuanFromSupabase(id);
+        if (success) {
+          toast({
+            title: "Pengajuan berhasil dihapus",
+            description: `Pengajuan dengan ID ${id} telah dihapus dari sistem`,
+          });
+          navigate("/transaksi/pengajuan");
+        } else {
+          toast({
+            title: "Gagal menghapus pengajuan",
+            description: "Terjadi kesalahan saat menghapus data pengajuan",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting pengajuan:", error);
         toast({
           title: "Gagal menghapus pengajuan",
           description: "Terjadi kesalahan saat menghapus data pengajuan",
@@ -79,45 +89,42 @@ export default function PengajuanDetailContainer() {
     }
   };
 
-  const handleUpdateStatus = (status: "Menunggu" | "Disetujui" | "Ditolak") => {
+  const handleUpdateStatus = async (status: "Menunggu" | "Disetujui" | "Ditolak") => {
     if (id && pengajuan) {
-      let success;
-      
-      if (status === "Disetujui") {
-        success = approvePengajuan(id);
-        if (success) {
-          toast({
-            title: "Pengajuan disetujui",
-            description: `Pengajuan telah disetujui dan transaksi baru telah dibuat`,
-          });
-        }
-      } else if (status === "Ditolak") {
-        success = rejectPengajuan(id);
-        if (success) {
-          toast({
-            title: "Pengajuan ditolak",
-            description: `Pengajuan telah ditandai sebagai ditolak`,
-          });
-        }
-      } else {
-        // This is from the updatePengajuan function referenced in the original file
-        const updatedPengajuan = getPengajuanById(id);
-        success = !!updatedPengajuan;
-        if (success) {
-          toast({
-            title: "Status berhasil diperbarui",
-            description: `Status pengajuan telah diubah menjadi ${status}`,
-          });
-        }
-      }
-      
-      if (success) {
-        // Refresh pengajuan data
-        const updatedPengajuan = getPengajuanById(id);
+      try {
+        // Update the pengajuan status in Supabase
+        const updatedPengajuan = await updatePengajuanInSupabase(id, { status });
+        
         if (updatedPengajuan) {
+          // Show appropriate toast message based on the new status
+          if (status === "Disetujui") {
+            toast({
+              title: "Pengajuan disetujui",
+              description: `Pengajuan telah disetujui dan transaksi baru telah dibuat`,
+            });
+          } else if (status === "Ditolak") {
+            toast({
+              title: "Pengajuan ditolak",
+              description: `Pengajuan telah ditandai sebagai ditolak`,
+            });
+          } else {
+            toast({
+              title: "Status berhasil diperbarui",
+              description: `Status pengajuan telah diubah menjadi ${status}`,
+            });
+          }
+          
+          // Update the local state with the updated pengajuan
           setPengajuan(updatedPengajuan);
+        } else {
+          toast({
+            title: "Gagal memperbarui status",
+            description: "Terjadi kesalahan saat memperbarui status pengajuan",
+            variant: "destructive",
+          });
         }
-      } else {
+      } catch (error) {
+        console.error("Error updating pengajuan status:", error);
         toast({
           title: "Gagal memperbarui status",
           description: "Terjadi kesalahan saat memperbarui status pengajuan",

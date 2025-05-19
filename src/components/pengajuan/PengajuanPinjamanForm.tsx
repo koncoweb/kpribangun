@@ -6,7 +6,7 @@ import { Anggota } from "@/types";
 import { PengajuanFormContent } from "./PengajuanFormContent";
 
 // Import necessary functions from service
-import { createPengajuan } from "@/services/pengajuan";
+import { createPengajuanInSupabase } from "@/services/pengajuan/adapter";
 
 interface PengajuanPinjamanFormProps {
   anggotaList: Anggota[];
@@ -21,7 +21,7 @@ export function PengajuanPinjamanForm({ anggotaList }: PengajuanPinjamanFormProp
   const initialFormData = {
     tanggal: new Date().toISOString().split('T')[0],
     anggotaId: "",
-    jenis: "Pinjam" as const,
+    jenis: "Pinjaman" as const,
     kategori: "Reguler",
     jumlah: 0,
     keterangan: "",
@@ -45,8 +45,8 @@ export function PengajuanPinjamanForm({ anggotaList }: PengajuanPinjamanFormProp
         anggotaNama: anggota.nama
       };
       
-      // Create the pengajuan
-      await createPengajuan(submissionData);
+      // Create the pengajuan in Supabase
+      await createPengajuanInSupabase(submissionData);
       
       toast({
         title: "Berhasil",

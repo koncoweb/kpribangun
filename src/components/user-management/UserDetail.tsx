@@ -1,6 +1,5 @@
 
 import { User } from "@/types/user";
-import { getRoleById } from "@/services/userManagementService";
 import {
   Dialog,
   DialogContent,
@@ -22,8 +21,6 @@ interface UserDetailProps {
 
 export function UserDetail({ user, isOpen, onClose }: UserDetailProps) {
   if (!user) return null;
-
-  const role = getRoleById(user.roleId);
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return "-";
@@ -90,7 +87,7 @@ export function UserDetail({ user, isOpen, onClose }: UserDetailProps) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="font-medium">Hak Akses</div>
-            <div className="col-span-2">{role?.name || "-"}</div>
+            <div className="col-span-2">{user.roleName || "-"}</div>
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div className="font-medium">Login Terakhir</div>
