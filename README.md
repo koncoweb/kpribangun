@@ -62,7 +62,46 @@ This project is built with:
 
 ## How can I deploy this project?
 
+### Option 1: Deploy with Lovable
+
 Simply open [Lovable](https://lovable.dev/projects/ed981e0c-17f6-4cab-b716-5fa0d164692d) and click on Share -> Publish.
+
+### Option 2: Deploy to Netlify
+
+This project is configured for easy deployment to Netlify. Follow these steps:
+
+1. **Set up environment variables**:
+   - Copy `.env.example` to `.env.local` for local development
+   - In Netlify, add the following environment variables in your site settings:
+     - `VITE_SUPABASE_URL`: Your Supabase project URL
+     - `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+2. **Deploy using Netlify CLI**:
+   ```sh
+   # Install Netlify CLI if you haven't already
+   npm install -g netlify-cli
+   
+   # Login to your Netlify account
+   netlify login
+   
+   # Initialize a new Netlify site
+   netlify init
+   
+   # Deploy to production
+   netlify deploy --prod
+   ```
+
+3. **Deploy via Netlify UI**:
+   - Go to [Netlify](https://app.netlify.com/)
+   - Click "New site from Git"
+   - Connect to your GitHub repository
+   - Configure build settings:
+     - Build command: `npm run build`
+     - Publish directory: `dist`
+   - Click "Deploy site"
+
+4. **Configure redirects**:
+   - The included `netlify.toml` file already contains the necessary redirect rules for a single-page application
 
 ## Can I connect a custom domain to my Lovable project?
 
