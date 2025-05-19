@@ -6,59 +6,57 @@ import { LoginResult } from "./types";
 import { toast } from "@/components/ui/use-toast";
 
 /**
- * Login user with username and password
+ * Login user with email and password using Supabase Auth
  */
-export async function login(username: string, password: string): Promise<LoginResult> {
+export async function login(email: string, password: string): Promise<LoginResult> {
   try {
-    console.log("Attempting to login with username:", username);
+    console.log("Attempting to login with email:", email);
     
-    // First, check if users exist in the Supabase database
-    let { count } = await supabase
-      .from("users")
-      .select("*", { count: 'exact', head: true });
+    // Use Supabase Auth for authentication
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
     
-    console.log("Users count check:", count);
-    
-    // If no users exist, initialize the users in Supabase
-    if (!count || count === 0) {
-      console.log("No users found in Supabase, creating default users");
-      await initDefaultUsers();
-    }
-    
-    // Try to fetch user by username
-    const { data: userData, error: fetchError } = await supabase
-      .from("users")
-      .select("*")
-      .eq("username", username)
-      .eq("aktif", true)
-      .single();
-    
-    if (fetchError) {
-      console.error("Login error:", fetchError);
+    if (authError) {
+      console.error("Supabase Auth login error:", authError);
       return {
         success: false,
-        message: "Username tidak ditemukan atau akun tidak aktif"
+        message: authError.message || "Email atau password tidak valid"
       };
     }
     
-    console.log("User found:", userData);
-    
-    // For now, since we're not using Supabase Auth but just our users table,
-    // we'll simulate authentication by checking the password directly
-    // Note: In a production app, you would set up proper Supabase Auth
-    if (password !== "password123") { // Replace with proper password check
+    if (!authData.user) {
       return {
         success: false,
-        message: "Password tidak valid"
+        message: "Login gagal: User tidak ditemukan"
+      };
+    }
+    
+    // Fetch additional user data from the users table
+    const { data: userData, error: fetchError } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", authData.user.id)
+      .eq("aktif", true)
+      .single();
+    
+    if (fetchError || !userData) {
+      console.error("User data fetch error:", fetchError);
+      // Sign out since we couldn't get the user data
+      await supabase.auth.signOut();
+      return {
+        success: false,
+        message: "Akun tidak aktif atau data tidak ditemukan"
       };
     }
     
     // Map database fields to User type
     const user: User = {
       id: userData.id,
-      username: userData.username,
+      username: userData.username || email,
       nama: userData.nama,
-      email: userData.email || "",
+      email: userData.email || email,
       roleId: userData.roleid || "",
       anggotaId: userData.anggotaid || "",
       noHP: userData.nohp || "",
@@ -93,7 +91,7 @@ export async function login(username: string, password: string): Promise<LoginRe
 }
 
 /**
- * Login with anggota ID
+ * Login with anggota ID using Supabase Auth
  */
 export async function loginAsAnggota(anggotaId: string, password: string): Promise<LoginResult> {
   try {
@@ -106,15 +104,21 @@ export async function loginAsAnggota(anggotaId: string, password: string): Promi
       .single();
     
     if (fetchError || !userData) {
-      console.error("Login error:", fetchError);
+      console.error("Anggota login error:", fetchError);
       return {
         success: false,
         message: "ID Anggota tidak ditemukan atau akun tidak aktif"
       };
     }
     
-    // Simple password check (should be replaced with proper auth)
-    if (password !== "password123") {
+    // Use Supabase Auth to sign in with the user's email
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: userData.email,
+      password
+    });
+    
+    if (authError) {
+      console.error("Supabase Auth login error:", authError);
       return {
         success: false,
         message: "Password tidak valid"
@@ -161,23 +165,79 @@ export async function loginAsAnggota(anggotaId: string, password: string): Promi
 }
 
 /**
- * Logout user
+ * Logout user using Supabase Auth
  */
-export function logoutUser(): void {
-  sessionStorage.removeItem(AUTH_USER_KEY);
+export async function logoutUser(): Promise<void> {
+  try {
+    // Sign out from Supabase Auth
+    await supabase.auth.signOut();
+    // Remove user from session storage
+    sessionStorage.removeItem(AUTH_USER_KEY);
+  } catch (error) {
+    console.error("Logout error:", error);
+    // Still remove from session storage even if Supabase logout fails
+    sessionStorage.removeItem(AUTH_USER_KEY);
+  }
 }
 
 /**
  * Get current logged in user
  */
-export function getCurrentUser(): User | null {
-  const userJson = sessionStorage.getItem(AUTH_USER_KEY);
-  if (!userJson) return null;
-  
+export async function getCurrentUser(): Promise<User | null> {
   try {
-    return JSON.parse(userJson) as User;
+    // First check Supabase Auth session
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      // No active session, clear local storage
+      sessionStorage.removeItem(AUTH_USER_KEY);
+      return null;
+    }
+    
+    // Try to get from session storage first for performance
+    const userJson = sessionStorage.getItem(AUTH_USER_KEY);
+    if (userJson) {
+      try {
+        return JSON.parse(userJson) as User;
+      } catch (error) {
+        console.error("Error parsing user from session:", error);
+        // Continue to fetch from database
+      }
+    }
+    
+    // If not in session storage or parsing failed, fetch from database
+    const { data: userData, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", session.user.id)
+      .eq("aktif", true)
+      .single();
+    
+    if (error || !userData) {
+      console.error("Error fetching current user:", error);
+      return null;
+    }
+    
+    // Map and store user
+    const user: User = {
+      id: userData.id,
+      username: userData.username,
+      nama: userData.nama,
+      email: userData.email || "",
+      roleId: userData.roleid || "",
+      anggotaId: userData.anggotaid || "",
+      noHP: userData.nohp || "",
+      alamat: userData.alamat || "",
+      aktif: userData.aktif || true,
+      foto: userData.foto || "",
+      createdAt: userData.created_at || new Date().toISOString(),
+      updatedAt: userData.updated_at || new Date().toISOString()
+    };
+    
+    sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    return user;
   } catch (error) {
-    console.error("Error parsing user from session:", error);
+    console.error("Error getting current user:", error);
     return null;
   }
 }
@@ -185,15 +245,16 @@ export function getCurrentUser(): User | null {
 /**
  * Check if user is authenticated
  */
-export function isAuthenticated(): boolean {
-  return !!getCurrentUser();
+export async function isAuthenticated(): Promise<boolean> {
+  const user = await getCurrentUser();
+  return !!user;
 }
 
 /**
  * Check user login status
  */
-export function checkLoginStatus(): boolean {
-  const isLoggedIn = isAuthenticated();
+export async function checkLoginStatus(): Promise<boolean> {
+  const isLoggedIn = await isAuthenticated();
   
   // If not logged in and not on login page, redirect to login
   if (!isLoggedIn && !window.location.pathname.includes("/login")) {

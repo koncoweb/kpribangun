@@ -34,19 +34,21 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { Plus, Search, MoreHorizontal, Edit, Trash, Eye, LayoutGrid, LayoutList } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { getAllAnggota, deleteAnggota } from "@/services/anggotaService";
 import { calculateTotalSimpanan, calculateTotalPinjaman, calculateSHU } from "@/services/transaksiService";
-import { Anggota } from "@/types";
+import { Anggota, User } from "@/types";
 import { TableColumnToggle } from "@/components/ui/table-column-toggle";
 import { AnggotaGridView } from "@/components/anggota/AnggotaGridView";
-import { useAsync } from "@/hooks/useAsync";
+import { getAllUsers, deleteUser } from "@/services/user-management/supabaseUserService";
+import { adaptUsersToAnggota } from "@/components/anggota/UserAnggotaAdapter";
 
 export default function AnggotaList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [anggotaList, setAnggotaList] = useState<Anggota[]>([]);
+  const [filteredAnggota, setFilteredAnggota] = useState<Anggota[]>([]);
   const [anggotaToDelete, setAnggotaToDelete] = useState<string | null>(null);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "grid">("table");
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -64,26 +66,46 @@ export default function AnggotaList() {
     { id: "petugas", label: "Petugas", isVisible: true },
   ]);
   
-  // Load anggota data with useAsync hook
-  const { data, loading, error } = useAsync(
-    getAllAnggota,
-    [] as Anggota[],
-    []
-  );
-
+  // Fetch users data and convert to anggota format
   useEffect(() => {
-    if (data) {
-      setAnggotaList(data);
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const users = await getAllUsers();
+        const adaptedUsers = adaptUsersToAnggota(users);
+        setAnggotaList(adaptedUsers);
+        setFilteredAnggota(adaptedUsers);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Gagal memuat data anggota",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [toast]);
+  
+  // Filter anggota based on search query
+  useEffect(() => {
+    if (searchQuery.trim() === "") {
+      setFilteredAnggota(anggotaList);
+      return;
     }
-    
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Gagal memuat data anggota",
-        variant: "destructive",
-      });
-    }
-  }, [data, error, toast]);
+
+    const lowercasedQuery = searchQuery.toLowerCase();
+    const filtered = anggotaList.filter((item) => 
+      item.nama.toLowerCase().includes(lowercasedQuery) || 
+      item.id.toLowerCase().includes(lowercasedQuery) ||
+      (item.nip && item.nip.toLowerCase().includes(lowercasedQuery))
+    );
+
+    setFilteredAnggota(filtered);
+  }, [searchQuery, anggotaList]);
   
   const handleDeleteClick = (id: string) => {
     setAnggotaToDelete(id);
@@ -92,27 +114,34 @@ export default function AnggotaList() {
   
   const handleDeleteConfirm = async () => {
     if (anggotaToDelete) {
-      const success = deleteAnggota(anggotaToDelete);
-      
-      if (success) {
-        toast({
-          title: "Anggota berhasil dihapus",
-          description: "Data anggota telah dihapus dari sistem",
-        });
+      try {
+        const success = await deleteUser(anggotaToDelete);
         
-        // Refresh the list
-        const freshData = await getAllAnggota();
-        setAnggotaList(freshData);
-      } else {
+        if (success) {
+          toast({
+            title: "Anggota berhasil dihapus",
+            description: "Data anggota telah dihapus dari sistem",
+          });
+          
+          // Refresh the list
+          const users = await getAllUsers();
+          const adaptedUsers = adaptUsersToAnggota(users);
+          setAnggotaList(adaptedUsers);
+          setFilteredAnggota(adaptedUsers);
+        } else {
+          throw new Error("Failed to delete user");
+        }
+      } catch (error) {
+        console.error("Error deleting user:", error);
         toast({
           title: "Gagal menghapus anggota",
           description: "Terjadi kesalahan saat menghapus data anggota",
           variant: "destructive",
         });
+      } finally {
+        setIsConfirmOpen(false);
+        setAnggotaToDelete(null);
       }
-      
-      setIsConfirmOpen(false);
-      setAnggotaToDelete(null);
     }
   };
   
@@ -146,12 +175,6 @@ export default function AnggotaList() {
       )
     );
   };
-  
-  const filteredAnggota = anggotaList.filter(anggota => 
-    anggota.nama.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    anggota.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (anggota.nip && anggota.nip.includes(searchQuery))
-  );
 
   return (
     <Layout pageTitle="Data Anggota">
@@ -203,7 +226,7 @@ export default function AnggotaList() {
             </div>
           </div>
           
-          {loading ? (
+          {isLoading ? (
             <div className="py-8 text-center">
               <p>Memuat data anggota...</p>
             </div>

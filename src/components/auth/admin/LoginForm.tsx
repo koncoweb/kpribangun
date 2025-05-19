@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 import {
   Card,
@@ -13,16 +13,12 @@ import {
 
 import { login } from "@/services/auth";
 import { toast } from "@/hooks/use-toast";
-import { LoginFooter } from "./LoginFooter";
 import { FormData, LoginFormProps } from "./types";
 import LoginFormFields from "./LoginFormFields";
-import InitializeDataButton from "./InitializeDataButton";
-import DemoLoginButton from "./DemoLoginButton";
 
 export function LoginForm({
   title = "Koperasi Admin Panel",
-  subtitle = "Masukkan username dan password untuk login",
-  demoCredentials,
+  subtitle = "Masukkan email dan password untuk login",
   onSuccessRedirect = "/"
 }: LoginFormProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,42 +28,34 @@ export function LoginForm({
     password: ""
   });
 
-  const onDemoLogin = (username: string, password: string) => {
-    setFormValues({
-      username,
-      password,
-    });
-    handleSubmit({
-      username,
-      password,
-    });
-  };
-
   async function handleSubmit(data: FormData) {
     setIsLoading(true);
     
     try {
-      const result = await login(data.username, data.password);
+      // With Supabase Auth, we use email for authentication
+      // We're using the username field from the form as the email
+      const email = data.username;
+      const result = await login(email, data.password);
       
       if (result.success) {
         toast({
           title: "Login berhasil!",
-          description: `Selamat datang kembali, ${result.user?.nama}`,
+          description: `Selamat datang kembali, ${result.user?.nama || result.user?.email}`,
         });
         navigate(onSuccessRedirect);
       } else {
         toast({
           variant: "destructive",
           title: "Login gagal",
-          description: result.message || "Username atau password salah.",
+          description: result.message || "Email atau password salah.",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Terjadi kesalahan saat login. Silakan coba lagi.",
+        description: error.message || "Terjadi kesalahan saat login. Silakan coba lagi.",
       });
     } finally {
       setIsLoading(false);
@@ -91,18 +79,14 @@ export function LoginForm({
             isLoading={isLoading}
             defaultValues={formValues}
           />
-
-          <InitializeDataButton />
-
-          {/* Single Demo Access button (only show if demoCredentials are provided) */}
-          {demoCredentials && demoCredentials.length > 0 && (
-            <DemoLoginButton onDemoLogin={onDemoLogin} />
-          )}
         </CardContent>
-        <CardFooter>
-          <LoginFooter 
-            onDemoLogin={onDemoLogin}
-          />
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-center text-muted-foreground">
+            Belum punya akun?{" "}
+            <Link to="/register" className="text-primary hover:underline">
+              Daftar
+            </Link>
+          </p>
         </CardFooter>
       </Card>
     </div>

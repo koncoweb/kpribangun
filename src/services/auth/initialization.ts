@@ -6,47 +6,81 @@ import { supabase } from "@/integrations/supabase/client";
  */
 export async function initDefaultUsers() {
   try {
-    // Generate proper UUIDs instead of string IDs
+    // First check if users exist
+    const { count } = await supabase
+      .from("users")
+      .select("*", { count: 'exact', head: true });
+    
+    if (count && count > 0) {
+      console.log("Users already exist, skipping initialization");
+      return true;
+    }
+
+    // Create default users with Supabase Auth
     const defaultUsers = [
       {
-        // Use UUID format instead of "user_1"
-        id: crypto.randomUUID(),
-        username: "superadmin",
-        nama: "Super Administrator",
         email: "superadmin@koperasi.com",
-        roleid: "role_superadmin",
-        foto: "",
-        jabatan: "Super Administrator",
-        nohp: "081234567890",
-        alamat: "Jl. Admin No. 1",
-        aktif: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        password: "password123", // This should be changed after first login
+        userData: {
+          username: "superadmin",
+          nama: "Super Administrator",
+          roleid: "role_superadmin",
+          foto: "",
+          jabatan: "Super Administrator",
+          nohp: "081234567890",
+          alamat: "Jl. Admin No. 1",
+          aktif: true
+        }
       },
       {
-        id: crypto.randomUUID(),
-        username: "admin",
-        nama: "Administrator",
         email: "admin@koperasi.com",
-        roleid: "role_admin",
-        foto: "",
-        jabatan: "Administrator",
-        nohp: "081234567891",
-        alamat: "Jl. Admin No. 2",
-        aktif: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        password: "password123", // This should be changed after first login
+        userData: {
+          username: "admin",
+          nama: "Administrator",
+          roleid: "role_admin",
+          foto: "",
+          jabatan: "Administrator",
+          nohp: "081234567891",
+          alamat: "Jl. Admin No. 2",
+          aktif: true
+        }
       }
     ];
 
-    // Insert default users
-    const { error } = await supabase
-      .from("users")
-      .insert(defaultUsers);
+    // Create users one by one
+    for (const user of defaultUsers) {
+      // Create user in Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+        email: user.email,
+        password: user.password,
+        email_confirm: true
+      });
 
-    if (error) {
-      console.error("Error inserting default users:", error);
-      throw error;
+      if (authError) {
+        console.error("Error creating user in Supabase Auth:", authError);
+        throw authError;
+      }
+
+      if (!authData.user) {
+        throw new Error("Failed to create user in Supabase Auth");
+      }
+
+      // Insert user data in the users table
+      const { error: insertError } = await supabase
+        .from("users")
+        .insert({
+          id: authData.user.id,
+          email: user.email,
+          ...user.userData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+      if (insertError) {
+        console.error("Error inserting user data:", insertError);
+        throw insertError;
+      }
     }
 
     // Also need to initialize roles
@@ -63,6 +97,16 @@ export async function initDefaultUsers() {
  */
 export async function initDefaultRoles() {
   try {
+    // First check if roles exist
+    const { count } = await supabase
+      .from("roles")
+      .select("*", { count: 'exact', head: true });
+    
+    if (count && count > 0) {
+      console.log("Roles already exist, skipping initialization");
+      return true;
+    }
+    
     const defaultRoles = [
       {
         id: "role_superadmin",

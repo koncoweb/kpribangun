@@ -1,8 +1,11 @@
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { isAuthenticated, getCurrentUser } from "@/services/auth";
 import { getRoleById } from "@/services/userManagementService";
+import { User } from "@/types";
+// Import the Spinner component with relative path to avoid module resolution issues
+import { Spinner } from "../../components/ui/spinner";
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -11,8 +14,32 @@ interface AuthGuardProps {
 
 export function AuthGuard({ children, requiredPermission }: AuthGuardProps) {
   const location = useLocation();
-  const isAuth = isAuthenticated();
-  const currentUser = getCurrentUser();
+  const [isAuth, setIsAuth] = useState<boolean | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // Check authentication status using Supabase Auth
+        const authStatus = await isAuthenticated();
+        setIsAuth(authStatus);
+        
+        if (authStatus) {
+          // Get current user if authenticated
+          const user = await getCurrentUser();
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error("Auth check error:", error);
+        setIsAuth(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, [location]);
   
   useEffect(() => {
     // Log authentication status for debugging
@@ -20,6 +47,16 @@ export function AuthGuard({ children, requiredPermission }: AuthGuardProps) {
     console.log("Current user:", currentUser);
     console.log("Current location:", location.pathname);
   }, [isAuth, currentUser, location]);
+  
+  // Show loading spinner while checking auth
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner size="lg" />
+        <span className="ml-2">Memeriksa autentikasi...</span>
+      </div>
+    );
+  }
   
   // If user is not authenticated, redirect to login
   if (!isAuth) {

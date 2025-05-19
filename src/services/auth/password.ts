@@ -3,27 +3,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { PasswordUpdateResult } from "./types";
 
 /**
- * Update user password
+ * Update user password using Supabase Auth
  */
 export async function updatePassword(
-  userId: string, 
   currentPassword: string, 
   newPassword: string
 ): Promise<PasswordUpdateResult> {
   try {
-    // First, verify the current password
-    if (currentPassword !== "password123") { // Using the same password check as in login
-      throw new Error("Password lama tidak valid");
+    // First, verify the current session is valid
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error("Sesi tidak valid. Silakan login kembali.");
     }
 
-    // In a real application with Supabase Auth, you would do something like:
-    // const { error } = await supabase.auth.updateUser({ password: newPassword });
+    // Update password using Supabase Auth
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
     
-    // For now, we'll just simulate a successful password update
-    // In a production app with proper auth, you would update the password in Supabase Auth
-    console.log(`Password updated for user ${userId}`);
+    if (error) {
+      console.error("Supabase password update error:", error);
+      throw new Error(error.message || "Gagal mengubah password");
+    }
     
-    // Return true to indicate success
+    console.log(`Password updated successfully`);
+    
     return {
       success: true
     };
