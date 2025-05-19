@@ -2,6 +2,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import LoginPage from "./pages/Auth/LoginPage";
+import RegisterPage from "./pages/Auth/RegisterPage";
 import AnggotaLoginPage from "./pages/Auth/AnggotaLoginPage";
 import { AuthGuard } from "./components/auth/AuthGuard";
 
@@ -79,6 +80,7 @@ function App() {
       <Routes>
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/anggota-login" element={<AnggotaLoginPage />} />
 
         {/* Protected Routes */}

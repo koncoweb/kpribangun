@@ -10,9 +10,10 @@ import { createPengajuanInSupabase } from "@/services/pengajuan/adapter";
 
 interface PengajuanSimpananFormProps {
   anggotaList: Anggota[];
+  activeTab: string;
 }
 
-export function PengajuanSimpananForm({ anggotaList }: PengajuanSimpananFormProps) {
+export function PengajuanSimpananForm({ anggotaList, activeTab }: PengajuanSimpananFormProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);

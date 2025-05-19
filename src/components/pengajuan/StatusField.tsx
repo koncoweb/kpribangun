@@ -7,9 +7,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { PengajuanStatus } from "@/services/pengajuan/types";
 
 interface StatusFieldProps {
-  value: string;
+  value: PengajuanStatus;
   onChange: (value: string) => void;
   disabled?: boolean;
 }
@@ -27,6 +28,7 @@ export function StatusField({ value, onChange, disabled = false }: StatusFieldPr
           <SelectValue placeholder="Pilih status" />
         </SelectTrigger>
         <SelectContent>
+          <SelectItem value="Diajukan">Diajukan</SelectItem>
           <SelectItem value="Menunggu">Menunggu</SelectItem>
           <SelectItem value="Disetujui">Disetujui</SelectItem>
           <SelectItem value="Ditolak">Ditolak</SelectItem>

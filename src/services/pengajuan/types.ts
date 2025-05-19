@@ -1,6 +1,9 @@
 
 import { PersyaratanDokumen } from "@/types";
 
+// Define the status type to match what's in the database
+export type PengajuanStatus = "Diajukan" | "Menunggu" | "Disetujui" | "Ditolak";
+
 export interface PengajuanData {
   id: string;
   tanggal: string;
@@ -8,7 +11,7 @@ export interface PengajuanData {
   anggotaNama: string;
   jenis: "Simpanan" | "Pinjaman";
   jumlah: number;
-  status: "Menunggu" | "Disetujui" | "Ditolak";
+  status: PengajuanStatus;
   kategori: string;
   keterangan?: string;
   dokumen?: PersyaratanDokumen[];

@@ -72,11 +72,17 @@ export default function PengajuanForm() {
               </TabsList>
               
               <TabsContent value="simpanan">
-                <PengajuanSimpananForm anggotaList={anggotaList} />
+                <PengajuanSimpananForm 
+                  anggotaList={anggotaList} 
+                  activeTab={activeTab} 
+                />
               </TabsContent>
               
               <TabsContent value="pinjaman">
-                <PengajuanPinjamanForm anggotaList={anggotaList} />
+                <PengajuanPinjamanForm 
+                  anggotaList={anggotaList} 
+                  activeTab={activeTab} 
+                />
               </TabsContent>
             </Tabs>
           )}

@@ -12,6 +12,7 @@ import { KeteranganField } from "./KeteranganField";
 import { DateField } from "./DateField";
 import { DokumenPersyaratanUpload, PersyaratanDokumen } from "./DokumenPersyaratanUpload";
 import { getSimpananCategories, getPinjamanCategories } from "@/services/transaksi/categories";
+import { PengajuanStatus } from "@/services/pengajuan/types";
 
 interface PengajuanFormContentProps {
   isEditMode: boolean;
@@ -23,7 +24,7 @@ interface PengajuanFormContentProps {
     kategori: string;
     jumlah: number;
     keterangan: string;
-    status: "Menunggu" | "Disetujui" | "Ditolak";
+    status: PengajuanStatus;
     dokumen?: PersyaratanDokumen[];
   };
   anggotaList: Anggota[];
@@ -41,17 +42,38 @@ export function PengajuanFormContent({
   // Local form state
   const [formData, setFormData] = useState({
     ...initialFormData,
-    dokumen: initialFormData.dokumen || []
+    dokumen: initialFormData.dokumen || [],
+    jumlah: initialFormData.jumlah || 0 // Ensure jumlah is initialized properly
   });
   const { toast } = useToast();
   const navigate = useNavigate();
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [id]: id === "jumlah" ? Number(value) : value
-    }));
+    console.log(`Input change - id: ${id}, value: ${value}`);
+    
+    if (!id) {
+      console.warn('Input change event with no id:', e);
+      return;
+    }
+    
+    // Handle jumlah field specially to ensure it's a number
+    if (id === "jumlah") {
+      // Remove any non-numeric characters
+      const numericValue = value.replace(/[^0-9]/g, '');
+      const numberValue = numericValue ? Number(numericValue) : 0;
+      console.log(`Converted jumlah value: ${numberValue}`);
+      
+      setFormData(prev => {
+        const newData = { ...prev, jumlah: numberValue };
+        return newData;
+      });
+    } else {
+      setFormData(prev => {
+        const newData = { ...prev, [id]: value };
+        return newData;
+      });
+    }
   };
   
   const handleSelectChange = (name: string, value: string) => {
@@ -70,7 +92,7 @@ export function PengajuanFormContent({
     } else if (name === "status") {
       setFormData(prev => ({ 
         ...prev, 
-        [name]: value as "Menunggu" | "Disetujui" | "Ditolak" 
+        [name]: value as PengajuanStatus 
       }));
     } else if (name === "kategori") {
       // Reset documents when changing category
@@ -92,6 +114,23 @@ export function PengajuanFormContent({
   };
   
   const validateForm = () => {
+    console.log('Validating form with data:', formData);
+    
+    // Check for any unexpected properties in the form data
+    const expectedProps = ['tanggal', 'anggotaId', 'jenis', 'kategori', 'jumlah', 'keterangan', 'status', 'dokumen'];
+    const unexpectedProps = Object.keys(formData).filter(key => !expectedProps.includes(key));
+    
+    if (unexpectedProps.length > 0) {
+      console.warn('Unexpected properties in form data:', unexpectedProps);
+      // Remove unexpected properties
+      const cleanedFormData = { ...formData };
+      unexpectedProps.forEach(prop => delete cleanedFormData[prop]);
+      setFormData(cleanedFormData);
+      
+      // Return false to prevent form submission with unexpected properties
+      return false;
+    }
+    
     if (!formData.tanggal) {
       toast({
         title: "Tanggal wajib diisi",
@@ -108,9 +147,11 @@ export function PengajuanFormContent({
       return false;
     }
     
-    if (!formData.jenis) {
+    // Validate jenis - make sure it's exactly "Simpanan" or "Pinjaman"
+    if (formData.jenis !== "Simpanan" && formData.jenis !== "Pinjaman") {
       toast({
-        title: "Jenis pengajuan wajib dipilih",
+        title: "Jenis pengajuan tidak valid",
+        description: "Jenis harus 'Simpanan' atau 'Pinjaman'",
         variant: "destructive",
       });
       return false;
@@ -124,7 +165,9 @@ export function PengajuanFormContent({
       return false;
     }
     
-    if (!formData.jumlah || formData.jumlah <= 0) {
+    // Ensure jumlah is a valid number greater than 0
+    const jumlah = Number(formData.jumlah);
+    if (isNaN(jumlah) || jumlah <= 0) {
       toast({
         title: "Jumlah harus lebih dari 0",
         variant: "destructive",
@@ -161,17 +204,62 @@ export function PengajuanFormContent({
   };
   
   const handleSubmit = (e: React.FormEvent) => {
+    console.log('Form submission started');
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('Form data before validation:', formData);
     
+    if (!validateForm()) {
+      console.log('Form validation failed');
+      return;
+    }
+    
+    console.log('Form validation passed, calling onSubmit with data:', formData);
     onSubmit(formData);
+  };
+
+  // Add a direct click handler for debugging
+  const handleFormSubmitClick = () => {
+    console.log('Manual form submit triggered');
+    
+    // First, clean up any unexpected properties
+    const expectedProps = ['tanggal', 'anggotaId', 'jenis', 'kategori', 'jumlah', 'keterangan', 'status', 'dokumen'];
+    
+    // Create a properly typed cleaned form data object
+    const cleanedFormData = {
+      tanggal: formData.tanggal,
+      anggotaId: formData.anggotaId,
+      jenis: formData.jenis,
+      kategori: formData.kategori,
+      jumlah: Number(formData.jumlah) || 0, // Ensure jumlah is a number
+      keterangan: formData.keterangan,
+      status: formData.status,
+      dokumen: formData.dokumen || []
+    };
+    
+    // Update the form data with the cleaned version
+    setFormData(cleanedFormData);
+    
+    console.log('Cleaned form data:', cleanedFormData);
+    
+    // Manually validate and submit the form
+    if (validateForm()) {
+      console.log('Manual validation passed, submitting form data:', cleanedFormData);
+      onSubmit(cleanedFormData);
+    } else {
+      console.log('Manual validation failed');
+    }
   };
 
   return (
     <Card>
       <CardContent className="p-6">
-        <form onSubmit={handleSubmit}>
+        <form 
+          onSubmit={handleSubmit}
+          // Add this to ensure the form is properly set up
+          action="#"
+          method="post"
+        >
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <DateField 
@@ -199,6 +287,7 @@ export function PengajuanFormContent({
               onJenisChange={(value) => handleSelectChange("jenis", value)}
               onKategoriChange={(value) => handleSelectChange("kategori", value)}
               onJumlahChange={handleInputChange}
+              disableJenisField={true} // Disable jenis field to match the active tab
             />
             
             <KeteranganField 

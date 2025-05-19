@@ -23,6 +23,7 @@ interface PengajuanFieldsProps {
   onJenisChange: (value: string) => void;
   onKategoriChange: (value: string) => void;
   onJumlahChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  disableJenisField?: boolean; // Add option to disable jenis field
 }
 
 export function PengajuanFields({ 
@@ -31,7 +32,8 @@ export function PengajuanFields({
   jumlah, 
   onJenisChange, 
   onKategoriChange,
-  onJumlahChange 
+  onJumlahChange,
+  disableJenisField = true // Default to true to disable jenis field
 }: PengajuanFieldsProps) {
   const simpananCategories = getSimpananCategories();
   const pinjamanCategories = getPinjamanCategories();
@@ -67,9 +69,11 @@ export function PengajuanFields({
   // Handle the input change with formatting
   const handleJumlahChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
+    console.log('Original jumlah input:', inputValue);
     
     // Remove any non-numeric characters for processing
     const numericValue = inputValue.replace(/[^\d]/g, '');
+    console.log('Numeric value after cleaning:', numericValue);
     
     if (!numericValue) {
       setFormattedJumlah("");
@@ -77,9 +81,10 @@ export function PengajuanFields({
       // Create a synthetic event with value 0
       const syntheticEvent = {
         ...e,
-        target: { ...e.target, value: "0" }
+        target: { id: "jumlah", value: "0" }
       } as React.ChangeEvent<HTMLInputElement>;
       
+      console.log('Setting jumlah to 0');
       onJumlahChange(syntheticEvent);
       return;
     }
@@ -90,9 +95,11 @@ export function PengajuanFields({
     
     // Create a synthetic event with the cleaned numeric value
     const numericAmount = cleanNumberInput(formatted);
+    console.log('Numeric amount for jumlah:', numericAmount);
+    
     const syntheticEvent = {
       ...e,
-      target: { ...e.target, value: String(numericAmount) }
+      target: { id: "jumlah", value: String(numericAmount) }
     } as React.ChangeEvent<HTMLInputElement>;
     
     onJumlahChange(syntheticEvent);
@@ -121,15 +128,21 @@ export function PengajuanFields({
           value={jenis}
           onValueChange={onJenisChange}
           required
+          disabled={disableJenisField} // Disable the jenis field based on prop
         >
-          <SelectTrigger id="jenis">
+          <SelectTrigger id="jenis" className={disableJenisField ? "cursor-not-allowed opacity-70" : ""}>
             <SelectValue placeholder="Pilih jenis pengajuan" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="Simpan">Simpanan</SelectItem>
-            <SelectItem value="Pinjam">Pinjaman</SelectItem>
+            <SelectItem value="Simpanan">Simpanan</SelectItem>
+            <SelectItem value="Pinjaman">Pinjaman</SelectItem>
           </SelectContent>
         </Select>
+        {disableJenisField && (
+          <p className="text-muted-foreground text-xs mt-1">
+            Jenis pengajuan ditentukan oleh tab yang aktif
+          </p>
+        )}
       </div>
       
       {jenis && (
